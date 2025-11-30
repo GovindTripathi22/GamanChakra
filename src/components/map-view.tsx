@@ -40,7 +40,16 @@ export function MapView({ destination, hotels, itinerary }: MapViewProps) {
         setIsMounted(true);
     }, []);
 
-    const points = [];
+    interface Point {
+        position: [number, number];
+        title: string;
+        type: "hotel" | "activity";
+        details: string;
+        price?: string;
+        time?: string;
+    }
+
+    const points: Point[] = [];
 
     hotels.forEach(h => {
         if (h.geo_coordinates) {
