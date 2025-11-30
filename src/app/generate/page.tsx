@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Loader2, Plane, MapPin, Sparkles } from "lucide-react";
@@ -14,7 +14,7 @@ const loadingMessages = [
     "🎒 Packing your itinerary..."
 ];
 
-export default function GeneratePage() {
+function GenerateContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [currentMessage, setCurrentMessage] = useState(0);
@@ -159,5 +159,17 @@ export default function GeneratePage() {
                 </motion.div>
             </div>
         </div>
+    );
+}
+
+export default function GeneratePage() {
+    return (
+        <Suspense fallback={
+            <div className="flex min-h-screen items-center justify-center bg-white">
+                <Loader2 className="h-12 w-12 animate-spin text-orange-500" />
+            </div>
+        }>
+            <GenerateContent />
+        </Suspense>
     );
 }
