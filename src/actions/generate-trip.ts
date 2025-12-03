@@ -112,7 +112,7 @@ export async function generateTrip(tripData: TripData): Promise<GeneratedTrip> {
     // @ts-ignore
     const decision = await aj.protect(req, { userId });
     if (decision.isDenied()) {
-      throw new Error("Rate limit exceeded. Free users are limited to 5 trips per day. Please contact admin for access.");
+      throw new Error("Rate limit exceeded. Free users are limited to 3 trips per day. Please contact admin for access.");
     }
   }
 

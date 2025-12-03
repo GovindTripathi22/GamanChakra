@@ -17,7 +17,7 @@ const plans = [
             "Public Support",
         ],
         notIncluded: [
-            "AI Travel Assistant",
+            "Unlimited AI Trips",
             "Offline Access",
             "Export to PDF",
             "Exclusive Deals",
@@ -26,10 +26,10 @@ const plans = [
         popular: false,
     },
     {
-        name: "Pro",
-        price: "₹999",
-        period: "/month",
-        description: "For the frequent traveler who wants more.",
+        name: "Pro Day Pass",
+        price: "₹7",
+        period: "/day",
+        description: "Unlimited access for 24 hours.",
         features: [
             "Unlimited Trip Generations",
             "Advanced AI Itineraries",
@@ -42,25 +42,8 @@ const plans = [
             "Dedicated Travel Agent",
             "Concierge Service",
         ],
-        buttonText: "Upgrade to Pro",
+        buttonText: "Get Day Pass",
         popular: true,
-    },
-    {
-        name: "Super Pro",
-        price: "₹2,999",
-        period: "/month",
-        description: "The ultimate experience for luxury travelers.",
-        features: [
-            "Everything in Pro",
-            "Dedicated Travel Agent",
-            "24/7 Concierge Service",
-            "Exclusive Luxury Deals",
-            "Custom Travel Arrangements",
-            "Visa Assistance",
-        ],
-        notIncluded: [],
-        buttonText: "Contact Sales",
-        popular: false,
     },
 ];
 
@@ -120,7 +103,7 @@ export default function PricingPage() {
                     </motion.p>
                 </div>
 
-                <div className="grid gap-8 lg:grid-cols-3">
+                <div className="grid gap-8 lg:grid-cols-2 max-w-4xl mx-auto">
                     {plans.map((plan, index) => (
                         <motion.div
                             key={plan.name}

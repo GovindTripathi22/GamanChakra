@@ -63,8 +63,8 @@ export function UserMeter() {
         );
     }
 
-    const remaining = Math.max(0, 5 - tripsToday);
-    const percentage = (tripsToday / 5) * 100;
+    const remaining = Math.max(0, 3 - tripsToday);
+    const percentage = (tripsToday / 3) * 100;
 
     return (
         <div className="flex items-center gap-3 rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1.5 border border-slate-200 dark:border-slate-700">
