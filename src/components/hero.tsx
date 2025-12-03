@@ -74,7 +74,7 @@ export function Hero() {
                     <div className="relative flex items-center rounded-2xl border border-white/20 bg-white/10 p-2 shadow-2xl backdrop-blur-md transition-all focus-within:bg-white/20 focus-within:border-orange-500/50">
                         <Input
                             type="text"
-                            placeholder="Create a trip for Paris from New York"
+                            placeholder="Trip to Udaipur, Rajasthan..."
                             className="h-16 border-none bg-transparent px-6 text-lg text-white placeholder:text-white/60 focus-visible:ring-0 md:text-xl"
                             value={destination}
                             onChange={(e) => setDestination(e.target.value)}

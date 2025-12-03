@@ -16,7 +16,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Gamanchakra - AI Travel Planner",
+  title: "Voyage - AI Travel Planner",
   description: "Your personal AI-powered travel companion",
 };
 

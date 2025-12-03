@@ -14,9 +14,9 @@ export function Header() {
             <div className="container mx-auto flex items-center justify-between px-4">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2">
-                    <img src="/gamanchakra_logo.png" alt="Gamanchakra Logo" className="h-10 w-10 object-contain" />
+                    <img src="/logo.svg" alt="Voyage Logo" className="h-10 w-10 object-contain" />
                     <span className="font-sans text-xl font-bold text-slate-900">
-                        Gamanchakra
+                        Voyage
                     </span>
                 </Link>
 
