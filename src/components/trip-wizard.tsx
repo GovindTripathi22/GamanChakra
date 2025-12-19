@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Globe } from "@/components/globe";
 import { getCoordinates } from "@/lib/geocoding";
+import { PlaceAutocomplete } from "@/components/place-autocomplete";
 
 interface TripFormData {
     origin: string;
@@ -17,6 +18,8 @@ interface TripFormData {
     budget: string;
     travelers: string;
     vibe: string;
+    startDate?: string;
+    travelMode?: string;
 }
 
 const budgetOptions = [
@@ -110,6 +113,7 @@ export function TripWizard() {
         vibe: "",
     });
 
+    const [addedDestinations, setAddedDestinations] = useState<string[]>([]);
     const [globeCenter, setGlobeCenter] = useState<{ lat: number; lng: number } | undefined>(undefined);
 
     // Debounce geocoding for Origin
@@ -134,6 +138,16 @@ export function TripWizard() {
         return () => clearTimeout(timer);
     }, [formData.destination]);
 
+    const handleAddDestination = () => {
+        if (formData.destination && formData.destination.length > 2) {
+            setAddedDestinations([...addedDestinations, formData.destination]);
+            setFormData(prev => ({ ...prev, destination: "" }));
+        }
+    };
+
+    const handleRemoveDestination = (index: number) => {
+        setAddedDestinations(addedDestinations.filter((_, i) => i !== index));
+    };
 
     const handleInputChange = (name: string, value: string) => {
         setFormData((prev) => ({
@@ -145,17 +159,27 @@ export function TripWizard() {
     const isFormValid = () => {
         return (
             formData.origin &&
-            formData.destination &&
+            (formData.destination || addedDestinations.length > 0) &&
             formData.days &&
             formData.budget &&
-            formData.travelers &&
+            // Travelers is now optional
             formData.vibe
         );
     };
 
     const onGenerateTrip = async () => {
         setLoading(true);
-        const params = new URLSearchParams(formData as any);
+        // Combine all destinations
+        const allDestinations = [...addedDestinations, formData.destination].filter(Boolean);
+        const finalDestination = allDestinations.join(" | ");
+
+        const params = new URLSearchParams({
+            ...formData,
+            destination: finalDestination,
+            travelers: formData.travelers || "2 People", // Default if not selected
+            startDate: formData.startDate || "",
+            travelMode: formData.travelMode || "",
+        });
         router.push(`/generate?${params.toString()}`);
     };
 
@@ -175,7 +199,6 @@ export function TripWizard() {
                         Discover personalized travel itineraries, find the best destinations, and plan your dream vacation effortlessly with the power of AI.
                     </p>
 
-                    {/* Action Pills */}
                     {/* Action Pills */}
                     <div className="mb-8 flex flex-wrap gap-3">
                         <button
@@ -217,11 +240,11 @@ export function TripWizard() {
                             From where? (Origin)
                         </label>
                         <div className="relative">
-                            <Plane className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5" />
-                            <Input
+                            <Plane className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5 z-10" />
+                            <PlaceAutocomplete
                                 placeholder="City, Airport, or Country"
                                 value={formData.origin}
-                                onChange={(e) => handleInputChange("origin", e.target.value)}
+                                onChange={(val) => handleInputChange("origin", val)}
                                 className="h-14 pl-12 rounded-xl border-slate-200 text-lg shadow-sm focus-visible:ring-orange-500"
                             />
                         </div>
@@ -239,17 +262,51 @@ export function TripWizard() {
                                 {/* Step 2: Destination Input */}
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-slate-700">
-                                        To where? (Destination)
+                                        To where? (Destinations)
                                     </label>
-                                    <div className="relative">
-                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5" />
-                                        <Input
-                                            placeholder="Search for a destination (e.g., Paris, Tokyo, Goa)"
-                                            value={formData.destination}
-                                            onChange={(e) => handleInputChange("destination", e.target.value)}
-                                            className="h-14 pl-12 rounded-xl border-slate-200 text-lg shadow-sm focus-visible:ring-orange-500"
-                                        />
+
+                                    {/* Added Destinations List */}
+                                    {addedDestinations.length > 0 && (
+                                        <div className="mb-3 flex flex-wrap gap-2">
+                                            {addedDestinations.map((dest, index) => (
+                                                <div key={index} className="flex items-center gap-1 rounded-full bg-orange-100 px-3 py-1 text-sm font-medium text-orange-700">
+                                                    <MapPin className="h-3 w-3" />
+                                                    {dest}
+                                                    <button onClick={() => handleRemoveDestination(index)} className="ml-1 hover:text-red-500">
+                                                        ×
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <div className="relative flex gap-2">
+                                        <div className="relative flex-1">
+                                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5 z-10" />
+                                            <PlaceAutocomplete
+                                                placeholder={addedDestinations.length > 0 ? "Add another destination..." : "Search for a destination (e.g., Paris)"}
+                                                value={formData.destination}
+                                                onChange={(val) => handleInputChange("destination", val)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        e.preventDefault();
+                                                        handleAddDestination();
+                                                    }
+                                                }}
+                                                className="h-14 pl-12 rounded-xl border-slate-200 text-lg shadow-sm focus-visible:ring-orange-500"
+                                            />
+                                        </div>
+                                        <Button
+                                            onClick={handleAddDestination}
+                                            disabled={!formData.destination}
+                                            className="h-14 w-14 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                        >
+                                            +
+                                        </Button>
                                     </div>
+                                    <p className="mt-2 text-xs text-slate-500">
+                                        Tip: Add multiple cities to create a full route!
+                                    </p>
                                 </div>
 
                                 {/* Step 3: Duration */}
@@ -269,7 +326,7 @@ export function TripWizard() {
                                 {/* Step 4: Budget */}
                                 <div>
                                     <label className="mb-4 block text-sm font-medium text-slate-700">
-                                        What is your budget?
+                                        What is your budget? <span className="text-slate-400 font-normal">(Per Person)</span>
                                     </label>
                                     <div className="grid grid-cols-3 gap-4 mb-4">
                                         {budgetOptions.map((option) => (
@@ -297,7 +354,7 @@ export function TripWizard() {
                                         </div>
                                         <Input
                                             type="number"
-                                            placeholder="Or enter custom budget (e.g. 20000)"
+                                            placeholder="Or enter custom budget per person (e.g. 20000)"
                                             value={formData.budget.match(/^\d+$/) ? formData.budget : ""}
                                             onChange={(e) => handleInputChange("budget", e.target.value)}
                                             className={cn(
@@ -308,12 +365,12 @@ export function TripWizard() {
                                     </div>
                                 </div>
 
-                                {/* Step 5: Travelers */}
+                                {/* Step 5: Travelers (Optional) */}
                                 <div>
                                     <label className="mb-4 block text-sm font-medium text-slate-700">
-                                        Who are you traveling with?
+                                        Who are you traveling with? <span className="text-slate-400 font-normal">(Optional)</span>
                                     </label>
-                                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-4">
                                         {travelerOptions.map((option) => (
                                             <div
                                                 key={option.id}
@@ -331,9 +388,65 @@ export function TripWizard() {
                                             </div>
                                         ))}
                                     </div>
+
+                                    {/* Manual Travelers Input */}
+                                    <div className="relative">
+                                        <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5" />
+                                        <Input
+                                            type="number"
+                                            placeholder="Or enter specific number of people"
+                                            value={formData.travelers.match(/^\d+ People$/) ? formData.travelers.split(" ")[0] : ""}
+                                            onChange={(e) => handleInputChange("travelers", e.target.value ? `${e.target.value} People` : "")}
+                                            className={cn(
+                                                "h-14 pl-12 rounded-xl border-slate-200 text-lg shadow-sm focus-visible:ring-orange-500",
+                                                formData.travelers.match(/^\d+ People$/) ? "border-orange-500 ring-1 ring-orange-500" : ""
+                                            )}
+                                        />
+                                    </div>
                                 </div>
 
-                                {/* Step 6: Vibe */}
+                                {/* Step 6: Dates & Travel Mode */}
+                                <div className="grid gap-6 md:grid-cols-2">
+                                    <div>
+                                        <label className="mb-2 block text-sm font-medium text-slate-700">
+                                            When are you planning to go?
+                                        </label>
+                                        <div className="relative">
+                                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5" />
+                                            <Input
+                                                type="date"
+                                                min={new Date().toISOString().split('T')[0]}
+                                                value={formData.startDate}
+                                                onChange={(e) => handleInputChange("startDate", e.target.value)}
+                                                className="h-14 pl-12 rounded-xl border-slate-200 text-lg shadow-sm focus-visible:ring-orange-500"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="mb-2 block text-sm font-medium text-slate-700">
+                                            Preferred Mode of Travel
+                                        </label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {["Flight", "Train", "Bus", "Cab"].map((mode) => (
+                                                <div
+                                                    key={mode}
+                                                    onClick={() => handleInputChange("travelMode", mode)}
+                                                    className={cn(
+                                                        "cursor-pointer flex items-center justify-center rounded-xl border p-3 text-sm font-medium transition-all hover:shadow-md",
+                                                        formData.travelMode === mode
+                                                            ? "border-orange-500 bg-orange-50 text-orange-700 shadow-md"
+                                                            : "border-slate-200 bg-white text-slate-600"
+                                                    )}
+                                                >
+                                                    {mode}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Step 7: Vibe */}
                                 <div>
                                     <label className="mb-4 block text-sm font-medium text-slate-700">
                                         Select your travel vibe

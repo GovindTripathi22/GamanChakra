@@ -305,7 +305,7 @@ export default function TripPage() {
                                             <p className="text-lg text-orange-600 font-medium">{day.theme}</p>
                                         </div>
 
-                                        <div className="grid gap-6">
+                                        <div className="space-y-8">
                                             {day.activities.map((activity, actIndex) => (
                                                 <div
                                                     key={actIndex}
