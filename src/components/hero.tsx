@@ -36,7 +36,7 @@ export function Hero() {
                     className="h-full w-full object-cover"
                     poster="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop"
                 >
-                    <source src="https://videos.pexels.com/video-files/3209044/3209044-uhd_2560_1440_25fps.mp4" type="video/mp4" />
+                    <source src="https://cdn.pixabay.com/video/2024/02/09/199958-911693663_large.mp4" type="video/mp4" />
                     Your browser does not support the video tag.
                 </video>
             </div>
