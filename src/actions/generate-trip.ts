@@ -1,7 +1,7 @@
 "use server";
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { aj } from "@/lib/arcjet";
 import { headers } from "next/headers";
 import { getCoordinates } from "@/lib/geocoding";
@@ -104,23 +104,38 @@ export async function generateTrip(tripData: TripData): Promise<GeneratedTrip> {
   }
 
   // Rate Limiting & Access Control
+  const user = await currentUser();
   const adminIds = (process.env.ADMIN_USER_ID || "").split(",").map(id => id.trim());
   const isAdmin = adminIds.includes(userId);
 
-  if (!isAdmin) {
-    const req = {
-      headers: await headers(),
-    };
-    // @ts-ignore
-    const decision = await aj.protect(req, { userId });
-    if (decision.isDenied()) {
-      throw new Error("Rate limit exceeded. Free users are limited to 3 trips per day. Please contact admin for access.");
+  // Check Pro Status
+  const isPro = user?.publicMetadata?.isPro === true;
+  const proExpires = user?.publicMetadata?.proExpires as number | undefined;
+  const isProActive = isPro && proExpires && proExpires > Date.now();
+
+  try {
+    if (!isAdmin && !isProActive) {
+      const req = {
+        headers: await headers(),
+      };
+      // @ts-ignore
+      const decision = await aj.protect(req, { userId });
+      if (decision.isDenied()) {
+        throw new Error("Rate limit exceeded. Free users are limited to 3 trips per day. Upgrade to Pro for unlimited access!");
+      }
     }
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("Rate limit")) {
+      throw err;
+    }
+    console.warn("Arcjet protection skipped or failed:", err);
+    // Continue execution if Arcjet fails (don't block user in dev)
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is not configured.");
+    console.error("GEMINI_API_KEY is missing in environment variables.");
+    throw new Error("API Key configuration missing. Please check .env.local");
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);

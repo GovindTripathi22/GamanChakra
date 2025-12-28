@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 
+// Trigger reload
+
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [

@@ -5,6 +5,8 @@ import { dark } from "@clerk/themes";
 import { Header } from "@/components/header";
 import "./globals.css";
 
+export const dynamic = "force-dynamic";
+
 const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-outfit",

@@ -50,11 +50,22 @@ const plans = [
 export default function PricingPage() {
     const router = useRouter();
 
-    const handlePlanClick = (planName: string) => {
+    const handlePlanClick = async (planName: string) => {
         if (planName === "Free") {
             router.push("/create-trip");
-        } else if (planName === "Pro") {
-            alert("Payment gateway integration coming soon! You can use the Free plan for now.");
+        } else if (planName === "Pro Day Pass") {
+            try {
+                const response = await fetch("/api/checkout", { method: "POST" });
+                const data = await response.json();
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    alert("Failed to start checkout.");
+                }
+            } catch (error) {
+                console.error("Checkout error:", error);
+                alert("Something went wrong. Please try again.");
+            }
         } else {
             alert("Thank you for your interest! Our sales team will contact you shortly.");
         }
