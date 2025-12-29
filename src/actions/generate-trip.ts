@@ -146,7 +146,7 @@ export async function generateTrip(tripData: TripData): Promise<GeneratedTrip | 
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     // ... (rest of the prompt logic stays the same) ...
     const destinations = tripData.destination.split("|").map(d => d.trim()).filter(Boolean);
