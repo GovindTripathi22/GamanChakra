@@ -50,6 +50,10 @@ function GenerateContent() {
                 // Call AI generation
                 const result = await generateTrip(tripData);
 
+                if ('error' in result) {
+                    throw new Error(result.error);
+                }
+
                 // Increment usage counter locally for immediate feedback
                 const currentTrips = parseInt(localStorage.getItem("tripsToday") || "0");
                 localStorage.setItem("tripsToday", (currentTrips + 1).toString());

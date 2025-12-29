@@ -97,55 +97,63 @@ async function fetchPlaceData(query: string, destination?: string): Promise<Plac
   };
 }
 
-export async function generateTrip(tripData: TripData): Promise<GeneratedTrip> {
-  const { userId } = await auth();
-  if (!userId) {
-    throw new Error("Unauthorized: Please sign in to generate a trip.");
-  }
-
-  // Rate Limiting & Access Control
-  const user = await currentUser();
-  const adminIds = (process.env.ADMIN_USER_ID || "").split(",").map(id => id.trim());
-  const isAdmin = adminIds.includes(userId);
-
-  // Check Pro Status
-  const isPro = user?.publicMetadata?.isPro === true;
-  const proExpires = user?.publicMetadata?.proExpires as number | undefined;
-  const isProActive = isPro && proExpires && proExpires > Date.now();
-
+export async function generateTrip(tripData: TripData): Promise<GeneratedTrip | { error: string }> {
   try {
-    if (!isAdmin && !isProActive) {
-      const req = {
-        headers: await headers(),
-      };
-      // @ts-ignore
-      const decision = await aj.protect(req, { userId });
-      if (decision.isDenied()) {
-        throw new Error("Rate limit exceeded. Free users are limited to 3 trips per day. Upgrade to Pro for unlimited access!");
+    const { userId } = await auth();
+    if (!userId) {
+      return { error: "Unauthorized: Please sign in to generate a trip." };
+    }
+
+    // Rate Limiting & Access Control
+    let user;
+    try {
+      user = await currentUser();
+    } catch (e) {
+      console.error("Clerk currentUser error:", e);
+      // Fallback or fail gracefully if Clerk is misconfigured
+    }
+
+    const adminIds = (process.env.ADMIN_USER_ID || "").split(",").map(id => id.trim());
+    const isAdmin = adminIds.includes(userId);
+
+    // Check Pro Status
+    const isPro = user?.publicMetadata?.isPro === true;
+    const proExpires = user?.publicMetadata?.proExpires as number | undefined;
+    const isProActive = isPro && proExpires && proExpires > Date.now();
+
+    try {
+      if (!isAdmin && !isProActive) {
+        const req = {
+          headers: await headers(),
+        };
+        // @ts-ignore
+        const decision = await aj.protect(req, { userId });
+        if (decision.isDenied()) {
+          return { error: "Rate limit exceeded. Free users are limited to 3 trips per day. Upgrade to Pro for unlimited access!" };
+        }
       }
+    } catch (err) {
+      if (err instanceof Error && err.message.includes("Rate limit")) {
+        return { error: err.message };
+      }
+      console.warn("Arcjet protection skipped or failed:", err);
     }
-  } catch (err) {
-    if (err instanceof Error && err.message.includes("Rate limit")) {
-      throw err;
+
+    const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error("GEMINI_API_KEY is missing in environment variables.");
+      return { error: "Configuration Error: GEMINI_API_KEY is missing. Please check your Vercel Project Settings." };
     }
-    console.warn("Arcjet protection skipped or failed:", err);
-    // Continue execution if Arcjet fails (don't block user in dev)
-  }
 
-  const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-  if (!apiKey) {
-    console.error("GEMINI_API_KEY is missing in environment variables.");
-    throw new Error("API Key configuration missing. Please check .env.local");
-  }
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    // ... (rest of the prompt logic stays the same) ...
+    const destinations = tripData.destination.split("|").map(d => d.trim()).filter(Boolean);
+    const isMultiCity = destinations.length > 1;
+    const destinationString = isMultiCity ? destinations.join(" -> ") : tripData.destination;
 
-  const destinations = tripData.destination.split("|").map(d => d.trim()).filter(Boolean);
-  const isMultiCity = destinations.length > 1;
-  const destinationString = isMultiCity ? destinations.join(" -> ") : tripData.destination;
-
-  const prompt = `You are a professional travel planner AI. Plan a detailed trip from ${tripData.origin} to ${destinationString}.
+    const prompt = `You are a professional travel planner AI. Plan a detailed trip from ${tripData.origin} to ${destinationString}.
 
 Trip Parameters:
 - Origin: ${tripData.origin} (START HERE)
@@ -219,7 +227,6 @@ Generate a JSON response with this EXACT structure:
 
 Return ONLY the JSON object.`;
 
-  try {
     const result = await model.generateContent(prompt);
     const response = result.response;
     const text = response.text();
@@ -234,10 +241,11 @@ Return ONLY the JSON object.`;
     const generatedTrip = JSON.parse(jsonText) as GeneratedTrip;
 
     if (!generatedTrip.trip_details || !generatedTrip.hotels || !generatedTrip.itinerary) {
-      throw new Error("Invalid response structure from AI");
+      return { error: "Invalid response structure from AI. Please try again." };
     }
 
     // Enrich with Real Images and Coordinates
+    // ... (enrichment logic) ...
     if (generatedTrip.hotels) {
       await Promise.all(generatedTrip.hotels.map(async (hotel) => {
         const data = await fetchPlaceData(hotel.image_query);
@@ -258,8 +266,9 @@ Return ONLY the JSON object.`;
     }
 
     return generatedTrip;
+
   } catch (error) {
     console.error("Error generating trip:", error);
-    throw new Error(`Failed to generate trip: ${error instanceof Error ? error.message : "Unknown error"}`);
+    return { error: `Global Error: ${error instanceof Error ? error.message : "Unknown error occurred"}` };
   }
 }
