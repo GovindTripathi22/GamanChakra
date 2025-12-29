@@ -56,6 +56,11 @@ export default function PricingPage() {
         } else if (planName === "Pro Day Pass") {
             try {
                 const response = await fetch("/api/checkout", { method: "POST" });
+                if (response.status === 503) {
+                    alert("Payment Gateway is currently disabled. Please contact support or use the Free plan.");
+                    return;
+                }
+
                 const data = await response.json();
                 if (data.url) {
                     window.location.href = data.url;

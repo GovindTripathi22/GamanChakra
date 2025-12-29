@@ -11,6 +11,11 @@ export async function POST(req: Request) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
+        if (!stripe) {
+            console.warn("Stripe is not configured. Skipping checkout.");
+            return new NextResponse("Stripe not configured", { status: 503 });
+        }
+
         const priceId = "price_H5ggYJDqQ8B"; // We will set this dynamically or use a fixed one. For now, we create a specialized session.
         // Actually, for a dynamic implementation without pre-creating products in Stripe Dashboard manually multiple times,
         // we can create a "on-the-fly" price or use a lookup.
