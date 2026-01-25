@@ -1,15 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
+import { useEffect, useState, useId } from "react";
 import type { Hotel, DayItinerary } from "@/actions/generate-trip";
-import "leaflet/dist/leaflet.css";
-
-// Dynamically import Leaflet components to avoid SSR issues
-const MapContainer = dynamic(() => import("react-leaflet").then(mod => mod.MapContainer), { ssr: false });
-const TileLayer = dynamic(() => import("react-leaflet").then(mod => mod.TileLayer), { ssr: false });
-const Marker = dynamic(() => import("react-leaflet").then(mod => mod.Marker), { ssr: false });
-const Popup = dynamic(() => import("react-leaflet").then(mod => mod.Popup), { ssr: false });
 
 interface MapViewProps {
     destination: string;
@@ -17,14 +9,20 @@ interface MapViewProps {
     itinerary: DayItinerary[];
 }
 
-export function MapView({ destination, hotels, itinerary }: MapViewProps) {
-    const [isMounted, setIsMounted] = useState(false);
+// Use a completely separate component that is only rendered client-side
+function MapViewInner({ hotels, itinerary }: { hotels: Hotel[]; itinerary: DayItinerary[] }) {
+    const [mapComponents, setMapComponents] = useState<any>(null);
     const [mapIcon, setMapIcon] = useState<any>(null);
+    const mapId = useId();
 
     useEffect(() => {
-        // Only run on client
-        import("leaflet").then((L) => {
-            const defaultIcon = L.icon({
+        // Dynamically import everything on client side only
+        Promise.all([
+            import("leaflet"),
+            import("react-leaflet"),
+            import("leaflet/dist/leaflet.css")
+        ]).then(([L, RL]) => {
+            const icon = L.icon({
                 iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
                 iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
                 shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
@@ -33,8 +31,13 @@ export function MapView({ destination, hotels, itinerary }: MapViewProps) {
                 popupAnchor: [1, -34],
                 shadowSize: [41, 41]
             });
-            setMapIcon(defaultIcon);
-            setIsMounted(true);
+            setMapIcon(icon);
+            setMapComponents({
+                MapContainer: RL.MapContainer,
+                TileLayer: RL.TileLayer,
+                Marker: RL.Marker,
+                Popup: RL.Popup
+            });
         });
     }, []);
 
@@ -77,14 +80,15 @@ export function MapView({ destination, hotels, itinerary }: MapViewProps) {
 
     const center: [number, number] = points.length > 0 ? points[0].position : [20.5937, 78.9629];
 
-    if (!isMounted) {
+    if (!mapComponents || !mapIcon) {
         return <div className="h-[500px] w-full rounded-3xl bg-slate-100 animate-pulse" />;
     }
 
+    const { MapContainer, TileLayer, Marker, Popup } = mapComponents;
+
     return (
-        <div className="h-[500px] w-full rounded-3xl overflow-hidden z-0 relative">
+        <div id={mapId} className="h-[500px] w-full rounded-3xl overflow-hidden z-0 relative">
             <MapContainer
-                key={`map-${center[0]}-${center[1]}`}
                 center={center}
                 zoom={13}
                 style={{ height: "100%", width: "100%" }}
@@ -94,25 +98,38 @@ export function MapView({ destination, hotels, itinerary }: MapViewProps) {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 {points.map((point, idx) => (
-                    mapIcon && (
-                        <Marker
-                            key={idx}
-                            position={point.position}
-                            icon={mapIcon}
-                        >
-                            <Popup>
-                                <div className="p-2 max-w-xs">
-                                    <h3 className="font-bold text-sm text-black">{point.title}</h3>
-                                    <p className="text-xs text-gray-600 mb-1">{point.type === 'hotel' ? 'Hotel' : 'Activity'}</p>
-                                    <p className="text-xs mb-1 text-black">{point.details}</p>
-                                    {point.price && <p className="text-xs font-semibold text-green-600">{point.price}</p>}
-                                    {point.time && <p className="text-xs font-semibold text-orange-600">{point.time}</p>}
-                                </div>
-                            </Popup>
-                        </Marker>
-                    )
+                    <Marker
+                        key={`marker-${idx}`}
+                        position={point.position}
+                        icon={mapIcon}
+                    >
+                        <Popup>
+                            <div className="p-2 max-w-xs">
+                                <h3 className="font-bold text-sm text-black">{point.title}</h3>
+                                <p className="text-xs text-gray-600 mb-1">{point.type === 'hotel' ? 'Hotel' : 'Activity'}</p>
+                                <p className="text-xs mb-1 text-black">{point.details}</p>
+                                {point.price && <p className="text-xs font-semibold text-green-600">{point.price}</p>}
+                                {point.time && <p className="text-xs font-semibold text-orange-600">{point.time}</p>}
+                            </div>
+                        </Popup>
+                    </Marker>
                 ))}
             </MapContainer>
         </div>
     );
+}
+
+export function MapView({ destination, hotels, itinerary }: MapViewProps) {
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    if (!isMounted) {
+        return <div className="h-[500px] w-full rounded-3xl bg-slate-100 animate-pulse" />;
+    }
+
+    // Use key based on destination to force fresh mount when data changes
+    return <MapViewInner key={destination} hotels={hotels} itinerary={itinerary} />;
 }
