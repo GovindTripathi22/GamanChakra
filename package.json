@@ -9,9 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@arcjet/next": "^1.0.0-beta.15",
-    "@arcjet/node": "^1.0.0-beta.15",
-    "@clerk/nextjs": "^6.36.5",
+    "@arcjet/next": "^1.0.0",
+    "@arcjet/node": "^1.0.0",
+    "@clerk/nextjs": "^6.36.10",
     "@clerk/themes": "^2.4.39",
     "@google/generative-ai": "^0.24.1",
     "@radix-ui/react-dialog": "^1.1.15",
