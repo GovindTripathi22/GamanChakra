@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useId } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Hotel, DayItinerary } from "@/actions/generate-trip";
 
 interface MapViewProps {
@@ -9,37 +9,10 @@ interface MapViewProps {
     itinerary: DayItinerary[];
 }
 
-// Use a completely separate component that is only rendered client-side
-function MapViewInner({ hotels, itinerary }: { hotels: Hotel[]; itinerary: DayItinerary[] }) {
-    const [mapComponents, setMapComponents] = useState<any>(null);
-    const [mapIcon, setMapIcon] = useState<any>(null);
-    const mapId = useId();
-
-    useEffect(() => {
-        // Dynamically import everything on client side only
-        Promise.all([
-            import("leaflet"),
-            import("react-leaflet"),
-            import("leaflet/dist/leaflet.css")
-        ]).then(([L, RL]) => {
-            const icon = L.icon({
-                iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-                iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-                shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [1, -34],
-                shadowSize: [41, 41]
-            });
-            setMapIcon(icon);
-            setMapComponents({
-                MapContainer: RL.MapContainer,
-                TileLayer: RL.TileLayer,
-                Marker: RL.Marker,
-                Popup: RL.Popup
-            });
-        });
-    }, []);
+export function MapView({ destination, hotels, itinerary }: MapViewProps) {
+    const mapContainerRef = useRef<HTMLDivElement>(null);
+    const mapInstanceRef = useRef<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     interface Point {
         position: [number, number];
@@ -80,56 +53,84 @@ function MapViewInner({ hotels, itinerary }: { hotels: Hotel[]; itinerary: DayIt
 
     const center: [number, number] = points.length > 0 ? points[0].position : [20.5937, 78.9629];
 
-    if (!mapComponents || !mapIcon) {
-        return <div className="h-[500px] w-full rounded-3xl bg-slate-100 animate-pulse" />;
-    }
+    useEffect(() => {
+        // Skip if already initialized or no container
+        if (!mapContainerRef.current) return;
 
-    const { MapContainer, TileLayer, Marker, Popup } = mapComponents;
+        // Check if map already exists
+        if (mapInstanceRef.current) {
+            return;
+        }
+
+        let isCancelled = false;
+
+        const initMap = async () => {
+            try {
+                const L = await import("leaflet");
+                await import("leaflet/dist/leaflet.css");
+
+                if (isCancelled || !mapContainerRef.current) return;
+
+                // Double check container isn't already initialized
+                if ((mapContainerRef.current as any)._leaflet_id) {
+                    return;
+                }
+
+                const map = L.map(mapContainerRef.current).setView(center, 13);
+                mapInstanceRef.current = map;
+
+                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }).addTo(map);
+
+                const icon = L.icon({
+                    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+                    iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+                    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+
+                points.forEach(point => {
+                    const marker = L.marker(point.position, { icon }).addTo(map);
+                    marker.bindPopup(`
+                        <div style="padding: 8px; max-width: 200px;">
+                            <h3 style="font-weight: bold; font-size: 14px; margin: 0 0 4px 0;">${point.title}</h3>
+                            <p style="font-size: 12px; color: #666; margin: 0 0 4px 0;">${point.type === 'hotel' ? 'Hotel' : 'Activity'}</p>
+                            <p style="font-size: 12px; margin: 0 0 4px 0;">${point.details}</p>
+                            ${point.price ? `<p style="font-size: 12px; color: green; font-weight: 600; margin: 0;">${point.price}</p>` : ''}
+                            ${point.time ? `<p style="font-size: 12px; color: orange; font-weight: 600; margin: 0;">${point.time}</p>` : ''}
+                        </div>
+                    `);
+                });
+
+                setIsLoading(false);
+            } catch (error) {
+                console.error("Failed to initialize map:", error);
+            }
+        };
+
+        initMap();
+
+        return () => {
+            isCancelled = true;
+            if (mapInstanceRef.current) {
+                mapInstanceRef.current.remove();
+                mapInstanceRef.current = null;
+            }
+        };
+    }, [destination]); // Only reinitialize when destination changes
 
     return (
-        <div id={mapId} className="h-[500px] w-full rounded-3xl overflow-hidden z-0 relative">
-            <MapContainer
-                center={center}
-                zoom={13}
-                style={{ height: "100%", width: "100%" }}
-            >
-                <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                {points.map((point, idx) => (
-                    <Marker
-                        key={`marker-${idx}`}
-                        position={point.position}
-                        icon={mapIcon}
-                    >
-                        <Popup>
-                            <div className="p-2 max-w-xs">
-                                <h3 className="font-bold text-sm text-black">{point.title}</h3>
-                                <p className="text-xs text-gray-600 mb-1">{point.type === 'hotel' ? 'Hotel' : 'Activity'}</p>
-                                <p className="text-xs mb-1 text-black">{point.details}</p>
-                                {point.price && <p className="text-xs font-semibold text-green-600">{point.price}</p>}
-                                {point.time && <p className="text-xs font-semibold text-orange-600">{point.time}</p>}
-                            </div>
-                        </Popup>
-                    </Marker>
-                ))}
-            </MapContainer>
+        <div className="h-[500px] w-full rounded-3xl overflow-hidden z-0 relative">
+            {isLoading && (
+                <div className="absolute inset-0 bg-slate-100 animate-pulse flex items-center justify-center">
+                    <span className="text-slate-500">Loading map...</span>
+                </div>
+            )}
+            <div ref={mapContainerRef} className="h-full w-full" />
         </div>
     );
-}
-
-export function MapView({ destination, hotels, itinerary }: MapViewProps) {
-    const [isMounted, setIsMounted] = useState(false);
-
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
-
-    if (!isMounted) {
-        return <div className="h-[500px] w-full rounded-3xl bg-slate-100 animate-pulse" />;
-    }
-
-    // Use key based on destination to force fresh mount when data changes
-    return <MapViewInner key={destination} hotels={hotels} itinerary={itinerary} />;
 }
