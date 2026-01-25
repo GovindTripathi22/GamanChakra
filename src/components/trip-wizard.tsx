@@ -416,7 +416,7 @@ export function TripWizard() {
                                             <Input
                                                 type="date"
                                                 min={new Date().toISOString().split('T')[0]}
-                                                value={formData.startDate}
+                                                value={formData.startDate ?? ""}
                                                 onChange={(e) => handleInputChange("startDate", e.target.value)}
                                                 className="h-14 pl-12 rounded-xl border-slate-200 text-lg shadow-sm focus-visible:ring-orange-500"
                                             />

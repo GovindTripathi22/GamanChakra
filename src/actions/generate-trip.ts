@@ -244,24 +244,43 @@ Return ONLY the JSON object.`;
       return { error: "Invalid response structure from AI. Please try again." };
     }
 
-    // Enrich with Real Images and Coordinates
-    // ... (enrichment logic) ...
+    // Optimized Enrichment: Image URLs can be generated synchronously
     if (generatedTrip.hotels) {
+      generatedTrip.hotels.forEach(hotel => {
+        const prompt = encodeURIComponent(`${hotel.image_query} cinematic hotel photography 4k`);
+        hotel.image_url = `https://image.pollinations.ai/prompt/${prompt}?width=800&height=600&nologo=true`;
+      });
+
+      // Fetch coordinates only for hotels (usually fewer items)
       await Promise.all(generatedTrip.hotels.map(async (hotel) => {
-        const data = await fetchPlaceData(hotel.image_query);
-        if (data.image_url) hotel.image_url = data.image_url;
-        if (data.coordinates) hotel.geo_coordinates = data.coordinates;
-        if (data.rating) hotel.rating = data.rating;
+        try {
+          const coords = await getCoordinates(hotel.image_query);
+          if (coords) hotel.geo_coordinates = coords;
+        } catch (e) {
+          console.warn("Failed to fetch hotel coordinates");
+        }
       }));
     }
 
     if (generatedTrip.itinerary) {
+      generatedTrip.itinerary.forEach(day => {
+        day.activities.forEach(activity => {
+          const prompt = encodeURIComponent(`${activity.image_query} travel photography 4k`);
+          activity.image_url = `https://image.pollinations.ai/prompt/${prompt}?width=800&height=600&nologo=true`;
+        });
+      });
+
+      // Optional: Fetch coordinates for activities but limit to 1 per day to save time/avoid ratelimits
       for (const day of generatedTrip.itinerary) {
-        await Promise.all(day.activities.map(async (activity) => {
-          const data = await fetchPlaceData(activity.image_query);
-          if (data.image_url) activity.image_url = data.image_url;
-          if (data.coordinates) activity.geo_coordinates = data.coordinates;
-        }));
+        if (day.activities.length > 0) {
+          try {
+            const first = day.activities[0];
+            const coords = await getCoordinates(first.image_query);
+            if (coords) first.geo_coordinates = coords;
+          } catch (e) {
+            console.warn("Skipping activity coordinates to save time");
+          }
+        }
       }
     }
 
