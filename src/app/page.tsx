@@ -65,14 +65,14 @@ const internationalDestinations = [
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-white dark:bg-slate-900">
       <Hero />
       <DestinationSection
         title="Popular in India"
         subtitle="Discover the hidden gems of our incredible country"
         destinations={indianDestinations}
       />
-      <div className="bg-slate-50">
+      <div className="bg-slate-50 dark:bg-slate-800/50">
         <DestinationSection
           title="International Top Picks"
           subtitle="Explore the world's most fascinating destinations"

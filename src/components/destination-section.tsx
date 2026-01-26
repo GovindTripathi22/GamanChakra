@@ -28,8 +28,8 @@ export function DestinationSection({ title, subtitle, destinations }: Destinatio
                     transition={{ duration: 0.6 }}
                     className="mb-12 text-center"
                 >
-                    <h2 className="mb-4 text-4xl font-bold font-serif text-slate-900">{title}</h2>
-                    <p className="text-lg text-slate-600">{subtitle}</p>
+                    <h2 className="mb-4 text-4xl font-bold font-serif text-slate-900 dark:text-white">{title}</h2>
+                    <p className="text-lg text-slate-600 dark:text-slate-400">{subtitle}</p>
                 </motion.div>
 
                 <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">

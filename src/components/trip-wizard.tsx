@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, MapPin, Calendar, DollarSign, Users, Sparkles, Plane } from "lucide-react";
+import { Loader2, MapPin, Calendar, Users, Plane, Wallet, Banknote, Crown, User, Heart, Home, Ship, Palmtree, Mountain, UtensilsCrossed, Sparkles as SparklesIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -27,19 +27,22 @@ const budgetOptions = [
         id: "cheap",
         title: "Cheap",
         desc: "Stay conscious of costs",
-        icon: "💵",
+        icon: Banknote,
+        color: "text-emerald-500",
     },
     {
         id: "moderate",
         title: "Moderate",
         desc: "Keep cost on the average side",
-        icon: "💰",
+        icon: Wallet,
+        color: "text-blue-500",
     },
     {
         id: "luxury",
         title: "Luxury",
         desc: "Don't worry about cost",
-        icon: "💸",
+        icon: Crown,
+        color: "text-amber-500",
     },
 ];
 
@@ -48,28 +51,32 @@ const travelerOptions = [
         id: "just-me",
         title: "Just Me",
         desc: "A sole traveler in exploration",
-        icon: "✈️",
+        icon: User,
+        color: "text-purple-500",
         people: "1",
     },
     {
         id: "couple",
         title: "A Couple",
-        desc: "Two traveles in tandem",
-        icon: "🥂",
+        desc: "Two travelers in tandem",
+        icon: Heart,
+        color: "text-rose-500",
         people: "2 People",
     },
     {
         id: "family",
         title: "Family",
-        desc: "A group of fun loving adv",
-        icon: "🏡",
+        desc: "A group of fun loving adventurers",
+        icon: Home,
+        color: "text-sky-500",
         people: "3 to 5 People",
     },
     {
         id: "friends",
         title: "Friends",
-        desc: "A bunch of thrill-seekes",
-        icon: "⛵",
+        desc: "A bunch of thrill-seekers",
+        icon: Ship,
+        color: "text-teal-500",
         people: "5 to 10 People",
     },
 ];
@@ -78,25 +85,29 @@ const vibeOptions = [
     {
         id: "relaxed",
         title: "Relaxed",
-        icon: "🏖️",
+        icon: Palmtree,
+        color: "text-emerald-500",
         desc: "Chill & Peace",
     },
     {
         id: "adventure",
         title: "Adventure",
-        icon: "🏔️",
+        icon: Mountain,
+        color: "text-orange-500",
         desc: "Thrills & Nature",
     },
     {
         id: "foodie",
         title: "Foodie",
-        icon: "🍜",
+        icon: UtensilsCrossed,
+        color: "text-red-500",
         desc: "Eat Everything",
     },
     {
         id: "spiritual",
         title: "Spiritual",
-        icon: "🕉️",
+        icon: SparklesIcon,
+        color: "text-violet-500",
         desc: "Inner Peace",
     },
 ];
@@ -192,10 +203,10 @@ export function TripWizard() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <h2 className="mb-2 text-4xl font-bold font-serif text-slate-900">
+                    <h2 className="mb-2 text-4xl font-bold font-serif text-slate-900 dark:text-white">
                         Start Planning new <span className="text-orange-500">Trip</span> using AI
                     </h2>
-                    <p className="mb-8 text-slate-500">
+                    <p className="mb-8 text-slate-500 dark:text-slate-400">
                         Discover personalized travel itineraries, find the best destinations, and plan your dream vacation effortlessly with the power of AI.
                     </p>
 
@@ -210,25 +221,25 @@ export function TripWizard() {
                                 travelers: "",
                                 vibe: "",
                             })}
-                            className="rounded-full border border-orange-500 bg-orange-50 px-4 py-2 text-sm font-medium text-orange-600 hover:bg-orange-100 transition-colors"
+                            className="rounded-full border border-orange-500 bg-orange-50 dark:bg-orange-500/20 px-4 py-2 text-sm font-medium text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-500/30 transition-colors"
                         >
                             Create New Trip
                         </button>
                         <button
                             onClick={() => setFormData(prev => ({ ...prev, destination: "Surprise Me", vibe: "Relaxed" }))}
-                            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:border-orange-500 hover:text-orange-500 transition-colors"
+                            className="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:border-orange-500 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
                         >
                             Inspire me where to go
                         </button>
                         <button
                             onClick={() => setFormData(prev => ({ ...prev, destination: "Hidden Gem", vibe: "Relaxed" }))}
-                            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:border-orange-500 hover:text-orange-500 transition-colors"
+                            className="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:border-orange-500 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
                         >
                             Discover Hidden gems
                         </button>
                         <button
                             onClick={() => setFormData(prev => ({ ...prev, destination: "Adventure Capital", vibe: "Adventure" }))}
-                            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:border-orange-500 hover:text-orange-500 transition-colors"
+                            className="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:border-orange-500 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
                         >
                             Adventure Destination
                         </button>
@@ -236,16 +247,16 @@ export function TripWizard() {
 
                     {/* Step 1: Origin Input (Always visible initially) */}
                     <div className="mb-6">
-                        <label className="mb-2 block text-sm font-medium text-slate-700">
+                        <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                             From where? (Origin)
                         </label>
                         <div className="relative">
-                            <Plane className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5 z-10" />
+                            <Plane className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 h-5 w-5 z-10" />
                             <PlaceAutocomplete
                                 placeholder="City, Airport, or Country"
                                 value={formData.origin}
                                 onChange={(val) => handleInputChange("origin", val)}
-                                className="h-14 pl-12 rounded-xl border-slate-200 text-lg shadow-sm focus-visible:ring-orange-500"
+                                className="h-14 pl-12 rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-lg shadow-sm focus-visible:ring-orange-500"
                             />
                         </div>
                     </div>
@@ -329,22 +340,27 @@ export function TripWizard() {
                                         What is your budget? <span className="text-slate-400 font-normal">(Per Person)</span>
                                     </label>
                                     <div className="grid grid-cols-3 gap-4 mb-4">
-                                        {budgetOptions.map((option) => (
-                                            <div
-                                                key={option.id}
-                                                onClick={() => handleInputChange("budget", option.title)}
-                                                className={cn(
-                                                    "cursor-pointer rounded-xl border p-4 transition-all hover:shadow-md",
-                                                    formData.budget === option.title
-                                                        ? "border-orange-500 bg-orange-50 shadow-md"
-                                                        : "border-slate-200 bg-white"
-                                                )}
-                                            >
-                                                <div className="mb-2 text-2xl">{option.icon}</div>
-                                                <h3 className="font-bold text-slate-900">{option.title}</h3>
-                                                <p className="text-xs text-slate-500">{option.desc}</p>
-                                            </div>
-                                        ))}
+                                        {budgetOptions.map((option) => {
+                                            const IconComponent = option.icon;
+                                            return (
+                                                <div
+                                                    key={option.id}
+                                                    onClick={() => handleInputChange("budget", option.title)}
+                                                    className={cn(
+                                                        "cursor-pointer rounded-xl border p-4 transition-all hover:shadow-md hover:-translate-y-1",
+                                                        formData.budget === option.title
+                                                            ? "border-orange-500 bg-orange-50 dark:bg-orange-500/20 shadow-md"
+                                                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+                                                    )}
+                                                >
+                                                    <div className={cn("mb-2", option.color)}>
+                                                        <IconComponent className="h-7 w-7" />
+                                                    </div>
+                                                    <h3 className="font-bold text-slate-900 dark:text-white">{option.title}</h3>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400">{option.desc}</p>
+                                                </div>
+                                            )
+                                        })}
                                     </div>
 
                                     {/* Manual Budget Input */}
@@ -371,22 +387,27 @@ export function TripWizard() {
                                         Who are you traveling with? <span className="text-slate-400 font-normal">(Optional)</span>
                                     </label>
                                     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-4">
-                                        {travelerOptions.map((option) => (
-                                            <div
-                                                key={option.id}
-                                                onClick={() => handleInputChange("travelers", option.people)}
-                                                className={cn(
-                                                    "cursor-pointer rounded-xl border p-4 transition-all hover:shadow-md",
-                                                    formData.travelers === option.people
-                                                        ? "border-orange-500 bg-orange-50 shadow-md"
-                                                        : "border-slate-200 bg-white"
-                                                )}
-                                            >
-                                                <div className="mb-2 text-2xl">{option.icon}</div>
-                                                <h3 className="font-bold text-slate-900">{option.title}</h3>
-                                                <p className="text-xs text-slate-500">{option.desc}</p>
-                                            </div>
-                                        ))}
+                                        {travelerOptions.map((option) => {
+                                            const IconComponent = option.icon;
+                                            return (
+                                                <div
+                                                    key={option.id}
+                                                    onClick={() => handleInputChange("travelers", option.people)}
+                                                    className={cn(
+                                                        "cursor-pointer rounded-xl border p-4 transition-all hover:shadow-md hover:-translate-y-1",
+                                                        formData.travelers === option.people
+                                                            ? "border-orange-500 bg-orange-50 dark:bg-orange-500/20 shadow-md"
+                                                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+                                                    )}
+                                                >
+                                                    <div className={cn("mb-2", option.color)}>
+                                                        <IconComponent className="h-7 w-7" />
+                                                    </div>
+                                                    <h3 className="font-bold text-slate-900 dark:text-white">{option.title}</h3>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400">{option.desc}</p>
+                                                </div>
+                                            )
+                                        })}
                                     </div>
 
                                     {/* Manual Travelers Input */}
@@ -452,22 +473,27 @@ export function TripWizard() {
                                         Select your travel vibe
                                     </label>
                                     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                                        {vibeOptions.map((option) => (
-                                            <div
-                                                key={option.id}
-                                                onClick={() => handleInputChange("vibe", option.title)}
-                                                className={cn(
-                                                    "cursor-pointer rounded-xl border p-4 transition-all hover:shadow-md",
-                                                    formData.vibe === option.title
-                                                        ? "border-orange-500 bg-orange-50 shadow-md"
-                                                        : "border-slate-200 bg-white"
-                                                )}
-                                            >
-                                                <div className="mb-2 text-2xl">{option.icon}</div>
-                                                <h3 className="font-bold text-slate-900">{option.title}</h3>
-                                                <p className="text-xs text-slate-500">{option.desc}</p>
-                                            </div>
-                                        ))}
+                                        {vibeOptions.map((option) => {
+                                            const IconComponent = option.icon;
+                                            return (
+                                                <div
+                                                    key={option.id}
+                                                    onClick={() => handleInputChange("vibe", option.title)}
+                                                    className={cn(
+                                                        "cursor-pointer rounded-xl border p-4 transition-all hover:shadow-md hover:-translate-y-1",
+                                                        formData.vibe === option.title
+                                                            ? "border-orange-500 bg-orange-50 dark:bg-orange-500/20 shadow-md"
+                                                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+                                                    )}
+                                                >
+                                                    <div className={cn("mb-2", option.color)}>
+                                                        <IconComponent className="h-7 w-7" />
+                                                    </div>
+                                                    <h3 className="font-bold text-slate-900 dark:text-white">{option.title}</h3>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400">{option.desc}</p>
+                                                </div>
+                                            )
+                                        })}
                                     </div>
                                 </div>
 

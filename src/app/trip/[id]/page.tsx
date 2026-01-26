@@ -50,10 +50,10 @@ export default function TripPage() {
 
     if (loading) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-white">
+            <div className="flex min-h-screen items-center justify-center bg-white dark:bg-slate-900">
                 <div className="flex flex-col items-center gap-4">
                     <div className="h-12 w-12 animate-spin rounded-full border-4 border-orange-500 border-t-transparent"></div>
-                    <p className="text-lg font-medium text-slate-600">Loading your adventure...</p>
+                    <p className="text-lg font-medium text-slate-600 dark:text-slate-400">Loading your adventure...</p>
                 </div>
             </div>
         );
@@ -61,11 +61,13 @@ export default function TripPage() {
 
     if (!trip) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-white px-4">
+            <div className="flex min-h-screen items-center justify-center bg-white dark:bg-slate-900 px-4">
                 <div className="max-w-md text-center">
-                    <div className="mb-6 text-6xl">🗺️</div>
-                    <h1 className="mb-4 text-3xl font-serif font-bold text-slate-900">Trip Not Found</h1>
-                    <p className="mb-6 text-slate-600">
+                    <div className="mb-6 flex justify-center">
+                        <MapPin className="h-16 w-16 text-orange-500" />
+                    </div>
+                    <h1 className="mb-4 text-3xl font-serif font-bold text-slate-900 dark:text-white">Trip Not Found</h1>
+                    <p className="mb-6 text-slate-600 dark:text-slate-400">
                         This trip doesn't exist or has been deleted.
                     </p>
                     <Button onClick={() => router.push("/")} className="bg-orange-500 text-white hover:bg-orange-600">
@@ -89,7 +91,7 @@ export default function TripPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
             {/* Hero Section */}
             <div className="relative h-[60vh] w-full overflow-hidden">
                 <div className="absolute inset-0 bg-slate-900/40 z-10" />

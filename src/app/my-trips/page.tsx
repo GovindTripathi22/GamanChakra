@@ -53,26 +53,26 @@ export default function MyTripsPage() {
 
     if (loading) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-slate-50">
+            <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-900">
                 <div className="animate-pulse text-xl text-slate-400">Loading your adventures...</div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 py-20 px-4">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-20 px-4">
             <div className="container mx-auto max-w-6xl">
                 <div className="mb-12 flex items-center justify-between">
                     <div>
-                        <h1 className="font-serif text-4xl font-bold text-slate-900 md:text-5xl">
+                        <h1 className="font-serif text-4xl font-bold text-slate-900 dark:text-white md:text-5xl">
                             My <span className="text-orange-500">Trips</span>
                         </h1>
-                        <p className="mt-2 text-lg text-slate-600">
+                        <p className="mt-2 text-lg text-slate-600 dark:text-slate-400">
                             Your collection of AI-planned adventures.
                         </p>
                     </div>
                     <Link href="/create-trip">
-                        <Button className="bg-orange-500 text-white hover:bg-orange-600">
+                        <Button className="bg-orange-500 text-white hover:bg-orange-600 shadow-lg shadow-orange-500/25">
                             + Plan New Trip
                         </Button>
                     </Link>
@@ -82,13 +82,13 @@ export default function MyTripsPage() {
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-white py-20 text-center"
+                        className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-20 text-center"
                     >
-                        <div className="mb-6 rounded-full bg-orange-50 p-6">
+                        <div className="mb-6 rounded-full bg-orange-50 dark:bg-orange-500/20 p-6">
                             <MapPin className="h-12 w-12 text-orange-500" />
                         </div>
-                        <h3 className="mb-2 text-2xl font-bold text-slate-900">No trips saved yet</h3>
-                        <p className="mb-8 max-w-md text-slate-500">
+                        <h3 className="mb-2 text-2xl font-bold text-slate-900 dark:text-white">No trips saved yet</h3>
+                        <p className="mb-8 max-w-md text-slate-500 dark:text-slate-400">
                             You haven't generated any trips yet. Start your journey by creating your first AI-powered itinerary!
                         </p>
                         <Link href="/create-trip">
@@ -105,10 +105,10 @@ export default function MyTripsPage() {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.1 }}
-                                    className="group relative h-full overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-all hover:shadow-lg hover:-translate-y-1"
+                                    className="group relative h-full overflow-hidden rounded-2xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm transition-all hover:shadow-lg hover:-translate-y-1"
                                 >
                                     {/* Card Header / Image Placeholder */}
-                                    <div className="relative h-48 w-full overflow-hidden bg-slate-200">
+                                    <div className="relative h-48 w-full overflow-hidden bg-slate-200 dark:bg-slate-700">
                                         <img
                                             src={`https://source.unsplash.com/800x600/?${encodeURIComponent(trip.trip_details?.destination || "travel")}`}
                                             alt={trip.trip_details?.destination}
@@ -120,7 +120,7 @@ export default function MyTripsPage() {
                                         <div className="absolute top-4 right-4">
                                             <button
                                                 onClick={(e) => deleteTrip(e, trip.id)}
-                                                className="rounded-full bg-white/90 p-2 text-red-500 shadow-sm backdrop-blur-sm transition-colors hover:bg-red-50 hover:text-red-600"
+                                                className="rounded-full bg-white/90 dark:bg-slate-900/90 p-2 text-red-500 shadow-sm backdrop-blur-sm transition-colors hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600"
                                                 title="Delete Trip"
                                             >
                                                 <Trash2 className="h-4 w-4" />
@@ -135,26 +135,26 @@ export default function MyTripsPage() {
 
                                     {/* Card Content */}
                                     <div className="p-6">
-                                        <h3 className="mb-4 text-xl font-bold text-slate-900 line-clamp-1">
+                                        <h3 className="mb-4 text-xl font-bold text-slate-900 dark:text-white line-clamp-1">
                                             {trip.trip_details?.destination}
                                         </h3>
 
                                         <div className="space-y-3">
-                                            <div className="flex items-center gap-3 text-sm text-slate-600">
+                                            <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
                                                 <Calendar className="h-4 w-4 text-orange-500" />
                                                 <span>{trip.trip_details?.duration}</span>
                                             </div>
-                                            <div className="flex items-center gap-3 text-sm text-slate-600">
+                                            <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
                                                 <Wallet className="h-4 w-4 text-orange-500" />
                                                 <span>{trip.trip_details?.budget} Budget</span>
                                             </div>
-                                            <div className="flex items-center gap-3 text-sm text-slate-600">
+                                            <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
                                                 <Sparkles className="h-4 w-4 text-orange-500" />
                                                 <span>{trip.trip_details?.total_estimated_cost} Est. Cost</span>
                                             </div>
                                         </div>
 
-                                        <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4">
+                                        <div className="mt-6 flex items-center justify-between border-t border-slate-100 dark:border-slate-700 pt-4">
                                             <span className="text-xs text-slate-400">
                                                 Created {new Date(trip.createdAt).toLocaleDateString()}
                                             </span>
