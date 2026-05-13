@@ -10,6 +10,14 @@ interface PdfExportButtonProps {
     trip: GeneratedTrip;
 }
 
+const sanitizePrice = (price: string | undefined): string => {
+    if (!price) return "N/A";
+    return price
+        .replace(/₹/g, "Rs.")
+        .replace(/\s+/g, " ")
+        .trim();
+};
+
 export function PdfExportButton({ trip }: PdfExportButtonProps) {
     const generatePdf = () => {
         const doc = new jsPDF();
@@ -38,7 +46,7 @@ export function PdfExportButton({ trip }: PdfExportButtonProps) {
         const hotelData = trip.hotels.map((hotel) => [
             hotel.name,
             hotel.address,
-            hotel.price,
+            sanitizePrice(hotel.price),
             hotel.rating + " Stars",
         ]);
 
@@ -75,7 +83,7 @@ export function PdfExportButton({ trip }: PdfExportButtonProps) {
                 activity.time,
                 activity.place_name,
                 activity.details,
-                activity.ticket_price,
+                sanitizePrice(activity.ticket_price),
             ]);
 
             autoTable(doc, {
@@ -106,7 +114,7 @@ export function PdfExportButton({ trip }: PdfExportButtonProps) {
                 step.mode,
                 step.details,
                 step.duration,
-                step.estimated_cost
+                sanitizePrice(step.estimated_cost)
             ]);
 
             autoTable(doc, {

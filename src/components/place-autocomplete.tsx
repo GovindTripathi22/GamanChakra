@@ -106,15 +106,15 @@ export function PlaceAutocomplete({
             </div>
 
             {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-md border border-slate-200 bg-white shadow-lg">
+                <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg transition-colors duration-300">
                     {suggestions.map((item, index) => (
                         <button
                             key={index}
                             onClick={() => handleSelect(item)}
-                            className="flex w-full items-start gap-2 px-4 py-2 text-left text-sm hover:bg-slate-50 transition-colors"
+                            className="flex w-full items-start gap-2 px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                         >
-                            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-                            <span className="line-clamp-1 text-slate-700">
+                            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400 dark:text-slate-500" />
+                            <span className="line-clamp-1 text-slate-700 dark:text-slate-300">
                                 {item.display_name}
                             </span>
                         </button>

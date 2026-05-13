@@ -7,7 +7,7 @@ import { MapPin, ArrowRight } from "lucide-react";
 
 export default function HiddenGemsPage() {
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-white dark:bg-slate-900 transition-colors duration-500">
             <div className="relative h-[60vh] w-full overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30 z-10" />
                 <img
@@ -120,7 +120,7 @@ export default function HiddenGemsPage() {
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: i * 0.1 }}
-                                className="aspect-square flex items-center justify-center rounded-3xl bg-slate-50 border border-slate-100 p-6 text-xl font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-all cursor-pointer hover:shadow-lg"
+                                className="aspect-square flex items-center justify-center rounded-3xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-6 text-xl font-bold text-slate-700 dark:text-slate-200 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-600 dark:hover:text-orange-400 hover:border-orange-200 dark:hover:border-orange-500/50 transition-all cursor-pointer hover:shadow-lg"
                             >
                                 {item.name}
                             </motion.div>

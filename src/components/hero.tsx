@@ -31,7 +31,7 @@ export function Hero() {
         <div className="relative flex min-h-[85vh] flex-col items-center justify-center overflow-hidden bg-slate-900 pt-20 pb-10">
             {/* Background - Video or Fallback Gradient */}
             <div className="absolute inset-0 z-0">
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-orange-900/30 z-10" />
+                <div className="absolute inset-0 bg-black/40 z-10" />
 
                 {/* Animated gradient fallback (shows while video loads or on error) */}
                 <AnimatePresence>
@@ -51,7 +51,7 @@ export function Hero() {
                             <img
                                 src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop"
                                 alt="Travel background"
-                                className="h-full w-full object-cover opacity-40"
+                                className="h-full w-full object-cover opacity-100"
                                 onLoad={() => { }}
                             />
                         </motion.div>
@@ -65,7 +65,7 @@ export function Hero() {
                         loop
                         muted
                         playsInline
-                        className={`h-full w-full object-cover transition-opacity duration-1000 ${videoLoaded ? 'opacity-60' : 'opacity-0'}`}
+                        className={`h-full w-full object-cover transition-opacity duration-1000 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
                         poster="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop"
                         onLoadedData={() => setVideoLoaded(true)}
                         onError={() => setVideoError(true)}

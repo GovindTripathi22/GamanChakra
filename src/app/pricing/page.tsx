@@ -77,18 +77,18 @@ export default function PricingPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 py-20">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-20 transition-colors duration-500">
             <div className="container mx-auto px-4">
                 {/* Beta Disclaimer Banner */}
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mx-auto mb-12 max-w-3xl rounded-xl border border-orange-200 bg-orange-50 p-4 text-center text-orange-800"
+                    className="mx-auto mb-12 max-w-3xl rounded-xl border border-orange-200 dark:border-orange-500/20 bg-orange-50 dark:bg-orange-500/10 p-4 text-center text-orange-800 dark:text-orange-400 backdrop-blur-sm"
                 >
-                    <p className="font-semibold">
+                    <p className="font-semibold text-orange-900 dark:text-orange-300">
                         🚀 Currently in Beta: All features are FREE for testing!
                     </p>
-                    <p className="text-sm opacity-80">
+                    <p className="text-sm opacity-80 text-orange-800 dark:text-orange-400/80">
                         The prices below are for future reference only. Enjoy full access while we build the best travel experience for you.
                     </p>
                 </motion.div>
@@ -97,7 +97,7 @@ export default function PricingPage() {
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mb-4 inline-block rounded-full bg-orange-100 px-4 py-1.5 text-sm font-semibold text-orange-600"
+                        className="mb-4 inline-block rounded-full bg-orange-100 dark:bg-orange-500/20 px-4 py-1.5 text-sm font-semibold text-orange-600 dark:text-orange-400"
                     >
                         Future Pricing
                     </motion.div>
@@ -105,7 +105,7 @@ export default function PricingPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="mb-4 font-serif text-4xl font-bold text-slate-900 md:text-5xl"
+                        className="mb-4 font-serif text-4xl font-bold text-slate-900 dark:text-white md:text-5xl"
                     >
                         Simple, Transparent Pricing
                     </motion.h1>
@@ -113,7 +113,7 @@ export default function PricingPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="mx-auto max-w-2xl text-lg text-slate-600"
+                        className="mx-auto max-w-2xl text-lg text-slate-600 dark:text-slate-400"
                     >
                         Choose the plan that fits your travel style. Upgrade anytime as your journey expands.
                     </motion.p>
@@ -127,8 +127,8 @@ export default function PricingPage() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 * (index + 1) }}
                             className={`relative flex flex-col rounded-3xl border p-8 shadow-sm transition-all hover:shadow-xl ${plan.popular
-                                ? "border-orange-500 bg-white ring-4 ring-orange-500/10"
-                                : "border-slate-200 bg-white"
+                                ? "border-orange-500 bg-white dark:bg-slate-800 ring-4 ring-orange-500/10"
+                                : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50"
                                 }`}
                         >
                             {plan.popular && (
@@ -138,12 +138,12 @@ export default function PricingPage() {
                             )}
 
                             <div className="mb-8">
-                                <h3 className="mb-2 text-xl font-bold text-slate-900">{plan.name}</h3>
-                                <p className="mb-6 text-sm text-slate-500">{plan.description}</p>
+                                <h3 className="mb-2 text-xl font-bold text-slate-900 dark:text-white">{plan.name}</h3>
+                                <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">{plan.description}</p>
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-4xl font-bold text-slate-900">{plan.price}</span>
+                                    <span className="text-4xl font-bold text-slate-900 dark:text-white">{plan.price}</span>
                                     {plan.period && (
-                                        <span className="text-slate-500">{plan.period}</span>
+                                        <span className="text-slate-500 dark:text-slate-500">{plan.period}</span>
                                     )}
                                 </div>
                             </div>
@@ -151,18 +151,18 @@ export default function PricingPage() {
                             <div className="mb-8 flex-1 space-y-4">
                                 {plan.features.map((feature) => (
                                     <div key={feature} className="flex items-start gap-3">
-                                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
+                                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400">
                                             <Check className="h-3.5 w-3.5" />
                                         </div>
-                                        <span className="text-sm text-slate-700">{feature}</span>
+                                        <span className="text-sm text-slate-700 dark:text-slate-300">{feature}</span>
                                     </div>
                                 ))}
                                 {plan.notIncluded.map((feature) => (
                                     <div key={feature} className="flex items-start gap-3 opacity-50">
-                                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500">
                                             <X className="h-3.5 w-3.5" />
                                         </div>
-                                        <span className="text-sm text-slate-500">{feature}</span>
+                                        <span className="text-sm text-slate-500 dark:text-slate-400">{feature}</span>
                                     </div>
                                 ))}
                             </div>

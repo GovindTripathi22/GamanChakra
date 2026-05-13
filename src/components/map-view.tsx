@@ -126,8 +126,8 @@ export function MapView({ destination, hotels, itinerary }: MapViewProps) {
     return (
         <div className="h-[500px] w-full rounded-3xl overflow-hidden z-0 relative">
             {isLoading && (
-                <div className="absolute inset-0 bg-slate-100 animate-pulse flex items-center justify-center">
-                    <span className="text-slate-500">Loading map...</span>
+                <div className="absolute inset-0 bg-slate-100 dark:bg-slate-800 animate-pulse flex items-center justify-center">
+                    <span className="text-slate-500 dark:text-slate-400">Loading map...</span>
                 </div>
             )}
             <div ref={mapContainerRef} className="h-full w-full" />

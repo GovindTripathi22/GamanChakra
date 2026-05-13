@@ -7,7 +7,7 @@ import { Sparkles, ArrowRight } from "lucide-react";
 
 export default function InspirePage() {
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-white dark:bg-slate-900 transition-colors duration-500">
             <div className="relative h-[60vh] w-full overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30 z-10" />
                 <img
@@ -65,11 +65,11 @@ export default function InspirePage() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: i * 0.2 }}
-                            className="rounded-3xl border border-slate-100 bg-slate-50 p-8 text-center hover:shadow-lg transition-shadow"
+                            className="rounded-3xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-8 text-center hover:shadow-lg transition-all"
                         >
                             <div className="mb-6 text-5xl">{item.icon}</div>
-                            <h3 className="mb-4 text-xl font-bold text-slate-900">{item.title}</h3>
-                            <p className="text-slate-600">{item.desc}</p>
+                            <h3 className="mb-4 text-xl font-bold text-slate-900 dark:text-white transition-colors duration-300">{item.title}</h3>
+                            <p className="text-slate-600 dark:text-slate-400">{item.desc}</p>
                         </motion.div>
                     ))}
                 </div>

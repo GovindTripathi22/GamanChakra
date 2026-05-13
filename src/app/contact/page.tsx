@@ -8,17 +8,17 @@ import { Textarea } from "@/components/ui/textarea";
 
 export default function ContactPage() {
     return (
-        <div className="min-h-screen bg-slate-50 py-20">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-20 transition-colors duration-500">
             <div className="container mx-auto px-4">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="mb-16 text-center"
                 >
-                    <h1 className="mb-4 font-serif text-4xl font-bold text-slate-900 md:text-5xl">
+                    <h1 className="mb-4 font-serif text-4xl font-bold text-slate-900 dark:text-white md:text-5xl">
                         Get in Touch
                     </h1>
-                    <p className="mx-auto max-w-2xl text-lg text-slate-600">
+                    <p className="mx-auto max-w-2xl text-lg text-slate-600 dark:text-slate-400">
                         Have questions about your trip? Need help with our AI planner? We're here to help you explore the world.
                     </p>
                 </motion.div>
@@ -31,14 +31,14 @@ export default function ContactPage() {
                         transition={{ delay: 0.2 }}
                         className="space-y-8"
                     >
-                        <div className="rounded-3xl bg-white p-8 shadow-sm border border-slate-100 text-center py-12">
+                        <div className="rounded-3xl bg-white dark:bg-slate-800 p-8 shadow-sm border border-slate-100 dark:border-slate-700 text-center py-12">
                             <div className="mb-4 flex justify-center">
-                                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-300">
                                     <MapPin className="h-8 w-8" />
                                 </div>
                             </div>
-                            <h3 className="mb-2 text-2xl font-bold text-slate-900">Contact Info</h3>
-                            <p className="text-lg text-slate-500 font-medium">Coming Soon</p>
+                            <h3 className="mb-2 text-2xl font-bold text-slate-900 dark:text-white">Contact Info</h3>
+                            <p className="text-lg text-slate-500 dark:text-slate-400 font-medium">Coming Soon</p>
                         </div>
 
                         <div className="rounded-3xl bg-orange-500 p-8 text-white shadow-lg">
@@ -57,31 +57,31 @@ export default function ContactPage() {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.4 }}
-                        className="rounded-3xl bg-white p-8 shadow-lg border border-slate-100"
+                        className="rounded-3xl bg-white dark:bg-slate-800 p-8 shadow-lg border border-slate-100 dark:border-slate-700"
                     >
-                        <h3 className="mb-6 text-2xl font-bold text-slate-900">Send us a Message</h3>
+                        <h3 className="mb-6 text-2xl font-bold text-slate-900 dark:text-white">Send us a Message</h3>
                         <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
                             <div className="grid gap-6 md:grid-cols-2">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700">First Name</label>
-                                    <Input placeholder="John" className="bg-slate-50" />
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">First Name</label>
+                                    <Input placeholder="John" className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700" />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700">Last Name</label>
-                                    <Input placeholder="Doe" className="bg-slate-50" />
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Last Name</label>
+                                    <Input placeholder="Doe" className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700" />
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700">Email</label>
-                                <Input type="email" placeholder="john@example.com" className="bg-slate-50" />
+                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Email</label>
+                                <Input type="email" placeholder="john@example.com" className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700" />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700">Subject</label>
-                                <Input placeholder="How can we help?" className="bg-slate-50" />
+                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Subject</label>
+                                <Input placeholder="How can we help?" className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700" />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700">Message</label>
-                                <Textarea placeholder="Tell us more about your inquiry..." className="min-h-[150px] bg-slate-50" />
+                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Message</label>
+                                <Textarea placeholder="Tell us more about your inquiry..." className="min-h-[150px] bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700" />
                             </div>
                             <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-6 text-lg">
                                 <Send className="mr-2 h-5 w-5" /> Send Message

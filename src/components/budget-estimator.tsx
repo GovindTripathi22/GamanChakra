@@ -69,19 +69,19 @@ export function BudgetEstimator({
     const transport = Math.round(totalCost * 0.15);
 
     return (
-        <Card className="border-slate-200 bg-white p-6 shadow-sm">
+        <Card className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 backdrop-blur-sm p-6 shadow-sm transition-colors duration-300">
             <div className="mb-6 flex items-center gap-3">
                 <Wallet className="h-6 w-6 text-orange-500" />
-                <h2 className="text-2xl font-semibold text-slate-900">Estimated Budget</h2>
+                <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">Estimated Budget</h2>
             </div>
 
             <div className="mb-8 text-center">
-                <p className="text-sm text-slate-500">Total Estimated Cost</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Total Estimated Cost</p>
                 <div className="flex items-center justify-center gap-1 text-4xl font-bold text-orange-500">
                     <span>₹</span>
                     <span>{totalCost.toLocaleString('en-IN')}</span>
                 </div>
-                <p className="mt-2 text-xs text-slate-500">
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-500">
                     *Estimates for {duration} days, {travelers}
                 </p>
             </div>
@@ -130,10 +130,10 @@ function BudgetRow({
     return (
         <div>
             <div className="mb-1 flex justify-between text-sm">
-                <span className="text-slate-600">{label}</span>
-                <span className="font-medium text-slate-900">₹{amount.toLocaleString('en-IN')}</span>
+                <span className="text-slate-600 dark:text-slate-400">{label}</span>
+                <span className="font-medium text-slate-900 dark:text-slate-200">₹{amount.toLocaleString('en-IN')}</span>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                 <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${percent}%` }}

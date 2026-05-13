@@ -166,33 +166,33 @@ export default function TripPage() {
                             <motion.section
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="rounded-3xl bg-white p-8 shadow-sm border border-slate-100"
+                                className="rounded-3xl bg-white dark:bg-slate-800 p-8 shadow-sm border border-slate-100 dark:border-slate-700 transition-colors duration-300"
                             >
-                                <div className="mb-6 flex items-center gap-3 border-b border-slate-100 pb-4">
+                                <div className="mb-6 flex items-center gap-3 border-b border-slate-100 dark:border-slate-700 pb-4">
                                     <Navigation className="h-6 w-6 text-orange-500" />
-                                    <h2 className="font-serif text-2xl font-bold text-slate-900">
+                                    <h2 className="font-serif text-2xl font-bold text-slate-900 dark:text-white">
                                         Getting There
                                     </h2>
                                 </div>
                                 <div className="space-y-4">
                                     {trip.transportation_plan.map((step, index) => (
-                                        <div key={index} className="flex gap-4 rounded-xl border border-slate-100 bg-slate-50 p-6 transition-all hover:border-orange-200 hover:shadow-md">
-                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white shadow-sm text-orange-600">
+                                        <div key={index} className="flex gap-4 rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 p-6 transition-all hover:border-orange-200 dark:hover:border-orange-500/50 hover:shadow-md">
+                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-orange-600">
                                                 {getTransportIcon(step.mode)}
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                                                    <h3 className="text-lg font-bold text-slate-900">{step.mode}</h3>
+                                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">{step.mode}</h3>
                                                     <div className="flex gap-2">
-                                                        <Badge variant="secondary" className="bg-white text-slate-700 border border-slate-200">
+                                                        <Badge variant="secondary" className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                                                             {step.duration}
                                                         </Badge>
-                                                        <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-200">
+                                                        <Badge className="bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400 border-none">
                                                             {step.estimated_cost}
                                                         </Badge>
                                                     </div>
                                                 </div>
-                                                <p className="text-slate-600 leading-relaxed">{step.details}</p>
+                                                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{step.details}</p>
                                                 {step.distance && (
                                                     <div className="mt-3 flex items-center gap-2 text-sm text-slate-500 font-medium">
                                                         <MapPin className="h-4 w-4 text-orange-500" />
@@ -215,7 +215,7 @@ export default function TripPage() {
                             <div className="mb-6 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <Hotel className="h-6 w-6 text-orange-500" />
-                                    <h2 className="font-serif text-3xl font-bold text-slate-900">
+                                    <h2 className="font-serif text-3xl font-bold text-slate-900 dark:text-white">
                                         Where to Stay
                                     </h2>
                                 </div>
@@ -228,7 +228,7 @@ export default function TripPage() {
                                         initial={{ opacity: 0, scale: 0.95 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         transition={{ delay: 0.1 * index }}
-                                        className="group overflow-hidden rounded-2xl bg-white shadow-sm border border-slate-100 hover:shadow-xl transition-all duration-300"
+                                        className="group overflow-hidden rounded-2xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-xl transition-all duration-300"
                                     >
                                         <div className="relative h-48 w-full overflow-hidden">
                                             {hotel.image_url ? (
@@ -241,33 +241,32 @@ export default function TripPage() {
                                                     }}
                                                 />
                                             ) : (
-                                                <div className="h-full w-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                                <div className="h-full w-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-slate-400">
                                                     No Image
                                                 </div>
                                             )}
-                                            <div className="absolute top-4 right-4 rounded-full bg-white/90 px-2 py-1 text-sm font-bold text-orange-600 backdrop-blur-sm shadow-sm flex items-center gap-1">
+                                            <div className="absolute top-4 right-4 rounded-full bg-white/90 dark:bg-slate-900/90 px-2 py-1 text-sm font-bold text-orange-600 backdrop-blur-sm shadow-sm flex items-center gap-1">
                                                 <Star className="h-3 w-3 fill-orange-500" />
                                                 {hotel.rating}
                                             </div>
                                         </div>
-                                        <div className="p-6">
-                                            <h3 className="mb-2 text-xl font-bold text-slate-900 group-hover:text-orange-600 transition-colors">
+                                        <div className="p-5">
+                                            <h3 className="mb-2 text-xl font-bold text-slate-900 dark:text-white group-hover:text-orange-600 transition-colors">
                                                 {hotel.name}
                                             </h3>
-                                            <p className="mb-4 text-sm text-slate-500 line-clamp-2">{hotel.address}</p>
-                                            <p className="mb-4 text-sm text-slate-600 line-clamp-3">
-                                                {hotel.description}
-                                            </p>
-                                            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                                                <span className="text-lg font-bold text-slate-900">
-                                                    {hotel.price}
-                                                </span>
-                                                <Button
-                                                    size="sm"
-                                                    className="bg-slate-900 text-white hover:bg-orange-500 transition-colors"
+                                            <div className="mb-4 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                                                <MapPin className="h-4 w-4 shrink-0 text-orange-500" />
+                                                <span className="line-clamp-1">{hotel.address}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-700 pt-4">
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs text-slate-400 uppercase tracking-wide">Per Night</span>
+                                                    <span className="text-xl font-bold text-orange-600">{hotel.price}</span>
+                                                </div>
+                                                <Button size="sm" variant="outline" className="rounded-full border-orange-200 dark:border-orange-500/30 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-500/10"
                                                     onClick={() => window.open(`https://www.google.com/search?q=book ${encodeURIComponent(hotel.name + " " + trip.trip_details.destination)}`, '_blank')}
                                                 >
-                                                    Book Now
+                                                    View Details
                                                 </Button>
                                             </div>
                                         </div>
@@ -283,13 +282,13 @@ export default function TripPage() {
                             transition={{ delay: 0.4 }}
                         >
                             <div className="mb-8 flex items-center gap-3">
-                                <MapPin className="h-6 w-6 text-orange-500" />
-                                <h2 className="font-serif text-3xl font-bold text-slate-900">
-                                    Your Daily Itinerary
+                                <Sparkles className="h-6 w-6 text-orange-500" />
+                                <h2 className="font-serif text-3xl font-bold text-slate-900 dark:text-white">
+                                    Day-by-Day Journey
                                 </h2>
                             </div>
 
-                            <div className="relative border-l-2 border-slate-200 pl-8 space-y-12 ml-4">
+                            <div className="relative border-l-2 border-orange-200 dark:border-slate-700 ml-4 pl-8 space-y-16 pb-12">
                                 {trip.itinerary.map((day, dayIndex) => (
                                     <motion.div
                                         key={day.day}
@@ -298,12 +297,12 @@ export default function TripPage() {
                                         transition={{ delay: 0.1 * dayIndex }}
                                         className="relative"
                                     >
-                                        <div className="absolute -left-[41px] top-0 flex h-10 w-10 items-center justify-center rounded-full bg-orange-500 text-white font-bold shadow-md border-4 border-white">
+                                        <div className="absolute -left-[41px] top-0 flex h-10 w-10 items-center justify-center rounded-full bg-orange-500 text-white font-bold shadow-md border-4 border-white dark:border-slate-900">
                                             {day.day}
                                         </div>
 
                                         <div className="mb-6">
-                                            <h3 className="text-2xl font-bold text-slate-900">Day {day.day}</h3>
+                                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white transition-colors duration-300">Day {day.day}</h3>
                                             <p className="text-lg text-orange-600 font-medium">{day.theme}</p>
                                         </div>
 
@@ -311,7 +310,7 @@ export default function TripPage() {
                                             {day.activities.map((activity, actIndex) => (
                                                 <div
                                                     key={actIndex}
-                                                    className="group flex flex-col md:flex-row gap-6 rounded-2xl bg-white p-4 shadow-sm border border-slate-100 hover:shadow-lg transition-all"
+                                                    className="group flex flex-col md:flex-row gap-6 rounded-2xl bg-white dark:bg-slate-800 p-4 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-lg transition-all"
                                                 >
                                                     <div className="relative h-48 w-full md:w-48 shrink-0 overflow-hidden rounded-xl">
                                                         {activity.image_url ? (
@@ -324,7 +323,7 @@ export default function TripPage() {
                                                                 }}
                                                             />
                                                         ) : (
-                                                            <div className="h-full w-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                                            <div className="h-full w-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-slate-400">
                                                                 No Image
                                                             </div>
                                                         )}
@@ -335,21 +334,21 @@ export default function TripPage() {
 
                                                     <div className="flex flex-1 flex-col">
                                                         <div className="flex justify-between items-start mb-2">
-                                                            <h4 className="text-xl font-bold text-slate-900 group-hover:text-orange-600 transition-colors">
+                                                            <h4 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-orange-600 transition-colors">
                                                                 {activity.place_name}
                                                             </h4>
-                                                            <Badge variant="outline" className="border-orange-200 text-orange-700 bg-orange-50">
+                                                            <Badge variant="outline" className="border-orange-200 dark:border-orange-500/30 text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10">
                                                                 {activity.ticket_price}
                                                             </Badge>
                                                         </div>
 
-                                                        <p className="mb-4 text-slate-600 text-sm leading-relaxed">
+                                                        <p className="mb-4 text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
                                                             {activity.details}
                                                         </p>
 
                                                         {activity.logistics && (
-                                                            <div className="mt-auto rounded-lg bg-slate-50 p-3 text-sm text-slate-600 border border-slate-100">
-                                                                <span className="font-semibold text-slate-900 mr-1">Getting there:</span>
+                                                            <div className="mt-auto rounded-lg bg-slate-50 dark:bg-slate-900/50 p-3 text-sm text-slate-600 dark:text-slate-400 border border-slate-100 dark:border-slate-700">
+                                                                <span className="font-semibold text-slate-900 dark:text-white mr-1">Getting there:</span>
                                                                 {activity.logistics}
                                                             </div>
                                                         )}
@@ -358,7 +357,7 @@ export default function TripPage() {
                                                             <Button
                                                                 variant="ghost"
                                                                 size="sm"
-                                                                className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                                                                className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-500/10"
                                                                 onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activity.place_name + " " + trip.trip_details.destination)}`, '_blank')}
                                                             >
                                                                 View on Map <ArrowRight className="ml-1 h-3 w-3" />
@@ -403,7 +402,7 @@ export default function TripPage() {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.7 }}
-                            className="sticky top-24 rounded-3xl border border-slate-200 bg-white p-2 shadow-sm"
+                            className="sticky top-24 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-2 shadow-sm"
                         >
                             <MapView
                                 destination={trip.trip_details.destination}

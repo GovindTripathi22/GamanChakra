@@ -37,15 +37,15 @@ export function WeatherWidget({ destination }: WeatherWidgetProps) {
     };
 
     return (
-        <Card className="border-slate-200 bg-white p-6 shadow-sm">
+        <Card className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 backdrop-blur-sm p-6 shadow-sm transition-colors duration-300">
             <div className="mb-6 flex items-center gap-3">
                 <CloudSun className="h-6 w-6 text-orange-500" />
-                <h2 className="text-2xl font-semibold text-slate-900">Weather Forecast</h2>
+                <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">Weather Forecast</h2>
             </div>
 
             <div className="mb-4">
-                <p className="text-sm text-slate-500">5-Day Forecast for</p>
-                <p className="text-lg font-medium text-slate-900">{destination}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">5-Day Forecast for</p>
+                <p className="text-lg font-medium text-slate-900 dark:text-slate-200">{destination}</p>
             </div>
 
             <div className="flex justify-between gap-2">
@@ -55,11 +55,11 @@ export function WeatherWidget({ destination }: WeatherWidgetProps) {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="flex flex-col items-center rounded-lg bg-slate-50 p-2 text-center"
+                        className="flex flex-col items-center rounded-lg bg-slate-50 dark:bg-slate-700/50 p-2 text-center"
                     >
-                        <span className="mb-2 text-xs text-slate-500">{item.day}</span>
+                        <span className="mb-2 text-xs text-slate-500 dark:text-slate-400">{item.day}</span>
                         <div className="mb-2">{getWeatherIcon(item.condition)}</div>
-                        <span className="text-sm font-bold text-slate-900">{item.temp}°</span>
+                        <span className="text-sm font-bold text-slate-900 dark:text-white">{item.temp}°</span>
                     </motion.div>
                 ))}
             </div>

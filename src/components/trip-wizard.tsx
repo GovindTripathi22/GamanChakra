@@ -247,7 +247,7 @@ export function TripWizard() {
 
                     {/* Step 1: Origin Input (Always visible initially) */}
                     <div className="mb-6">
-                        <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                        <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors">
                             From where? (Origin)
                         </label>
                         <div className="relative">
@@ -271,11 +271,10 @@ export function TripWizard() {
                                 className="space-y-6 overflow-hidden"
                             >
                                 {/* Step 2: Destination Input */}
-                                <div>
-                                    <label className="mb-2 block text-sm font-medium text-slate-700">
-                                        To where? (Destinations)
+                                <div className="mb-8 space-y-6">
+                                    <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors">
+                                        Where do you want to go?
                                     </label>
-
                                     {/* Added Destinations List */}
                                     {addedDestinations.length > 0 && (
                                         <div className="mb-3 flex flex-wrap gap-2">
@@ -315,14 +314,14 @@ export function TripWizard() {
                                             +
                                         </Button>
                                     </div>
-                                    <p className="mt-2 text-xs text-slate-500">
+                                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 italic">
                                         Tip: Add multiple cities to create a full route!
                                     </p>
                                 </div>
 
                                 {/* Step 3: Duration */}
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-slate-700">
+                                    <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors">
                                         How many days?
                                     </label>
                                     <Input
@@ -336,8 +335,8 @@ export function TripWizard() {
 
                                 {/* Step 4: Budget */}
                                 <div>
-                                    <label className="mb-4 block text-sm font-medium text-slate-700">
-                                        What is your budget? <span className="text-slate-400 font-normal">(Per Person)</span>
+                                    <label className="mb-4 block text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors">
+                                        What is your budget? <span className="text-slate-400 dark:text-slate-500 font-normal">(Per Person)</span>
                                     </label>
                                     <div className="grid grid-cols-3 gap-4 mb-4">
                                         {budgetOptions.map((option) => {
@@ -366,25 +365,22 @@ export function TripWizard() {
                                     {/* Manual Budget Input */}
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                            <span className="text-gray-500 sm:text-sm">₹</span>
+                                            <span className="text-gray-500 dark:text-slate-400 sm:text-sm">₹</span>
                                         </div>
                                         <Input
                                             type="number"
-                                            placeholder="Or enter custom budget per person (e.g. 20000)"
-                                            value={formData.budget.match(/^\d+$/) ? formData.budget : ""}
+                                            placeholder="Or enter custom budget..."
+                                            value={formData.budget === "Cheap" || formData.budget === "Moderate" || formData.budget === "Luxury" ? "" : formData.budget}
                                             onChange={(e) => handleInputChange("budget", e.target.value)}
-                                            className={cn(
-                                                "h-14 pl-8 rounded-xl border-slate-200 text-lg shadow-sm focus-visible:ring-orange-500",
-                                                formData.budget.match(/^\d+$/) ? "border-orange-500 ring-1 ring-orange-500" : ""
-                                            )}
+                                            className="h-14 pl-8 rounded-xl border-slate-200 dark:border-slate-700 text-lg shadow-sm focus-visible:ring-orange-500 bg-white dark:bg-slate-900"
                                         />
                                     </div>
                                 </div>
 
                                 {/* Step 5: Travelers (Optional) */}
                                 <div>
-                                    <label className="mb-4 block text-sm font-medium text-slate-700">
-                                        Who are you traveling with? <span className="text-slate-400 font-normal">(Optional)</span>
+                                    <label className="mb-4 block text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors">
+                                        Who are you traveling with?
                                     </label>
                                     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-4">
                                         {travelerOptions.map((option) => {
@@ -469,8 +465,8 @@ export function TripWizard() {
 
                                 {/* Step 7: Vibe */}
                                 <div>
-                                    <label className="mb-4 block text-sm font-medium text-slate-700">
-                                        Select your travel vibe
+                                    <label className="mb-4 block text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors">
+                                        What's the vibe?
                                     </label>
                                     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                                         {vibeOptions.map((option) => {

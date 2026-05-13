@@ -7,7 +7,7 @@ import { Compass, ArrowRight } from "lucide-react";
 
 export default function AdventurePage() {
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-white dark:bg-slate-900 transition-colors duration-500">
             <div className="relative h-[60vh] w-full overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30 z-10" />
                 <img

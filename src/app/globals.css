@@ -128,24 +128,50 @@
   .hover-lift {
     @apply transition-all duration-300 ease-out;
   }
-  
+
   .hover-lift:hover {
     @apply -translate-y-1 shadow-lg;
   }
-  
+
   .hover-glow {
     @apply transition-all duration-300;
   }
-  
+
   .hover-glow:hover {
-    @apply shadow-[0_0_20px_rgba(249,115,22,0.3)];
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
   }
-  
+
   .glass {
     @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/20 dark:border-white/10;
   }
-  
+
   .glass-dark {
     @apply bg-slate-900/80 backdrop-blur-xl border border-white/10;
   }
+}
+
+/* Leaflet Dark Mode Optimization */
+.dark .leaflet-popup-content-wrapper,
+.dark .leaflet-popup-tip {
+  background-color: hsl(222.2, 84%, 10%) !important;
+  color: hsl(210, 40%, 98%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .leaflet-container {
+  background: #1a1a1a !important;
+}
+
+.dark .leaflet-tile-pane {
+  filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+}
+
+.dark .leaflet-bar a {
+  background-color: hsl(222.2, 84%, 10%) !important;
+  color: hsl(210, 40%, 98%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .leaflet-bar a:hover {
+  background-color: hsl(222.2, 84%, 20%) !important;
 }

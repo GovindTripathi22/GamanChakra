@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { MapPin, Calendar, Clock, ArrowRight, CheckCircle2 } from "lucide-react";
+import { MapPin, Calendar, Clock, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // Mock data store (in a real app, this would be a database or API)
@@ -65,34 +65,33 @@ export default function DestinationPage() {
     const displayName = data === destinationsData.default && slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : data.name;
 
     return (
-        <main className="min-h-screen bg-white pb-20">
+        <main className="min-h-screen bg-white dark:bg-slate-950 pb-20 transition-colors duration-300">
             {/* Hero Section */}
-            <div className="relative h-[60vh] w-full overflow-hidden">
+            <div className="relative h-[65vh] w-full overflow-hidden">
                 <Image
                     src={data.image}
                     alt={displayName}
                     fill
-                    className="object-cover"
+                    className="object-cover scale-105"
                     priority
                 />
-                <div className="absolute inset-0 bg-black/40" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-white dark:to-slate-950" />
                 <div className="absolute bottom-0 left-0 w-full p-8 md:p-16">
                     <div className="container mx-auto">
-                        <motion.h1
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="mb-4 font-serif text-5xl font-bold text-white md:text-7xl"
-                        >
-                            {displayName}
-                        </motion.h1>
                         <motion.div
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="flex items-center gap-2 text-white/90"
+                            transition={{ duration: 0.8 }}
                         >
-                            <MapPin className="h-5 w-5 text-orange-500" />
-                            <span className="text-lg">Top Rated Destination</span>
+                            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-orange-500/20 px-4 py-1.5 backdrop-blur-md border border-orange-500/30">
+                                <MapPin className="h-4 w-4 text-orange-500" />
+                                <span className="text-sm font-semibold uppercase tracking-wider text-orange-200">
+                                    Top Rated Destination
+                                </span>
+                            </div>
+                            <h1 className="mb-4 font-serif text-6xl font-bold text-white md:text-8xl drop-shadow-2xl">
+                                {displayName}
+                            </h1>
                         </motion.div>
                     </div>
                 </div>
@@ -101,26 +100,40 @@ export default function DestinationPage() {
             <div className="container mx-auto mt-12 grid gap-12 px-4 lg:grid-cols-3">
                 {/* Main Content */}
                 <div className="lg:col-span-2">
-                    <section className="mb-12">
-                        <h2 className="mb-6 text-3xl font-bold text-slate-900">About {displayName}</h2>
-                        <p className="text-lg leading-relaxed text-slate-600">
-                            {data.description}
-                        </p>
-                    </section>
+                    <motion.section
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="mb-16"
+                    >
+                        <h2 className="mb-6 font-serif text-4xl font-bold text-slate-900 dark:text-white">About {displayName}</h2>
+                        <div className="relative">
+                            <div className="absolute -left-4 top-0 bottom-0 w-1 bg-orange-500 rounded-full" />
+                            <p className="text-xl leading-relaxed text-slate-600 dark:text-slate-300 pl-4">
+                                {data.description}
+                            </p>
+                        </div>
+                    </motion.section>
 
                     <section className="mb-12">
-                        <h2 className="mb-6 text-3xl font-bold text-slate-900">3-Day Highlights</h2>
-                        <div className="space-y-6">
+                        <h2 className="mb-8 font-serif text-4xl font-bold text-slate-900 dark:text-white">3-Day Sample <span className="text-orange-500">Experience</span></h2>
+                        <div className="space-y-8">
                             {data.itinerary.map((item: any, index: number) => (
-                                <div key={index} className="flex gap-4 rounded-xl border border-slate-100 bg-slate-50 p-6 transition-shadow hover:shadow-md">
-                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-orange-100 text-orange-600 font-bold">
-                                        Day {item.day}
+                                <motion.div
+                                    key={index}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: index * 0.1 }}
+                                    className="group relative flex gap-6 rounded-3xl border border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 p-8 backdrop-blur-sm transition-all hover:shadow-2xl hover:shadow-orange-500/10 hover:-translate-y-1"
+                                >
+                                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-orange-500 text-white font-bold text-xl shadow-lg shadow-orange-500/30">
+                                        {item.day}
                                     </div>
                                     <div>
-                                        <h3 className="mb-2 text-xl font-semibold text-slate-900">{item.title}</h3>
-                                        <p className="text-slate-600">{item.desc}</p>
+                                        <h3 className="mb-3 text-2xl font-bold text-slate-900 dark:text-white group-hover:text-orange-500 transition-colors">{item.title}</h3>
+                                        <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">{item.desc}</p>
                                     </div>
-                                </div>
+                                </motion.div>
                             ))}
                         </div>
                     </section>
@@ -129,33 +142,55 @@ export default function DestinationPage() {
                 {/* Sidebar */}
                 <div className="space-y-8">
                     {/* Highlights Card */}
-                    <div className="rounded-2xl border border-slate-200 p-6 shadow-sm">
-                        <h3 className="mb-4 text-xl font-bold text-slate-900">Key Highlights</h3>
-                        <ul className="space-y-3">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8 shadow-sm backdrop-blur-sm"
+                    >
+                        <h3 className="mb-6 text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <Sparkles className="h-6 w-6 text-orange-500" />
+                            Key Highlights
+                        </h3>
+                        <ul className="space-y-4">
                             {data.highlights.map((highlight: string, index: number) => (
-                                <li key={index} className="flex items-start gap-3 text-slate-600">
-                                    <CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-green-500" />
+                                <li key={index} className="flex items-start gap-4 text-lg text-slate-600 dark:text-slate-400">
+                                    <div className="mt-1.5 h-2 w-2 rounded-full bg-orange-500 shrink-0" />
                                     <span>{highlight}</span>
                                 </li>
                             ))}
                         </ul>
-                    </div>
+                    </motion.div>
 
                     {/* Call to Action Card */}
-                    <div className="sticky top-24 rounded-2xl bg-slate-900 p-8 text-white shadow-xl">
-                        <h3 className="mb-4 text-2xl font-bold">Plan your trip to {displayName}</h3>
-                        <p className="mb-6 text-slate-300">
-                            Get a personalized itinerary crafted by AI in seconds. Flights, hotels, and activities included.
-                        </p>
-                        <Link href={`/create-trip?destination=${encodeURIComponent(displayName)}`}>
-                            <Button className="w-full bg-orange-500 hover:bg-orange-600 text-lg py-6">
-                                Plan My Trip Now <ArrowRight className="ml-2 h-5 w-5" />
-                            </Button>
-                        </Link>
-                        <p className="mt-4 text-center text-xs text-slate-400">
-                            100% Free • AI Powered • Instant Results
-                        </p>
-                    </div>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="sticky top-24 overflow-hidden rounded-3xl bg-slate-900 dark:bg-orange-500 p-8 text-white shadow-2xl transition-all duration-500 hover:scale-[1.02]"
+                    >
+                        {/* Abstract background pattern for CTA */}
+                        <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
+
+                        <div className="relative z-10">
+                            <h3 className="mb-4 text-3xl font-bold leading-tight">Plan your trip to {displayName}</h3>
+                            <p className="mb-8 text-slate-300 dark:text-orange-50 text-lg opacity-90">
+                                Get a complete personalized itinerary crafted by AI in seconds.
+                            </p>
+                            <Link href={`/create-trip?destination=${encodeURIComponent(displayName)}`}>
+                                <Button className="w-full bg-orange-500 dark:bg-slate-950 hover:bg-orange-600 dark:hover:bg-slate-900 text-white text-xl py-8 rounded-2xl shadow-xl transition-all hover:shadow-orange-500/25">
+                                    Plan Now <ArrowRight className="ml-2 h-6 w-6" />
+                                </Button>
+                            </Link>
+                            <div className="mt-6 flex items-center justify-center gap-4 text-sm font-medium text-slate-400 dark:text-orange-100">
+                                <span className="flex items-center gap-1.5">
+                                    <CheckCircle2 className="h-4 w-4 text-green-400 dark:text-white" /> AI Results
+                                </span>
+                                <span className="h-1 w-1 rounded-full bg-slate-700 dark:bg-white/30" />
+                                <span className="flex items-center gap-1.5">
+                                    <Clock className="h-4 w-4 text-orange-400 dark:text-white" /> 5 Seconds
+                                </span>
+                            </div>
+                        </div>
+                    </motion.div>
                 </div>
             </div>
         </main>
