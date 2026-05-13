@@ -67,6 +67,7 @@ export function MapView({ destination, hotels, itinerary }: MapViewProps) {
         const initMap = async () => {
             try {
                 const L = await import("leaflet");
+                // @ts-ignore
                 await import("leaflet/dist/leaflet.css");
 
                 if (isCancelled || !mapContainerRef.current) return;
