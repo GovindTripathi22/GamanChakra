@@ -96,9 +96,10 @@ export default function TripPage() {
     };
 
     // Filter displayed days based on selected tab
+    // Safely compare day numbers even if Gemini returns them as strings
     const displayedDays = activeDay === "all" 
         ? trip.itinerary 
-        : trip.itinerary.filter(d => d.day === activeDay);
+        : trip.itinerary.filter(d => Number(d.day) === Number(activeDay));
 
     return (
         <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-200">
@@ -109,6 +110,9 @@ export default function TripPage() {
                     src={`https://image.pollinations.ai/prompt/cinematic%20photo%20of%20${encodeURIComponent(trip.trip_details.destination)}%20famous%20landmark%20sunset%20aesthetic%204k?width=1600&height=900&nologo=true`}
                     alt={trip.trip_details.destination}
                     className="h-full w-full object-cover object-center scale-105 animate-subtle-zoom"
+                    onError={(e) => {
+                        e.currentTarget.src = "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1600&q=80";
+                    }}
                 />
                 
                 {/* Floating Navigation & Controls */}
@@ -260,7 +264,7 @@ export default function TripPage() {
                                                     alt={hotel.name}
                                                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                                                     onError={(e) => {
-                                                        e.currentTarget.src = "https://placehold.co/600x400?text=Premium+Stay";
+                                                        e.currentTarget.src = "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80";
                                                     }}
                                                 />
                                             ) : (
@@ -335,7 +339,7 @@ export default function TripPage() {
                                             key={day.day}
                                             onClick={() => setActiveDay(day.day)}
                                             className={`px-4 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all duration-300 ${
-                                                activeDay === day.day
+                                                Number(activeDay) === Number(day.day)
                                                     ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
                                                     : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                                             }`}
@@ -382,7 +386,7 @@ export default function TripPage() {
                                                                     alt={activity.place_name}
                                                                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                                                                     onError={(e) => {
-                                                                        e.currentTarget.src = "https://placehold.co/600x400?text=Spot";
+                                                                        e.currentTarget.src = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80";
                                                                     }}
                                                                 />
                                                             ) : (
