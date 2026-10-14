@@ -1,0 +1,784 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Trip {
+  id          String     @id @default(cuid())
+  ownerId     String
+  title       String
+  origin      String
+  destination String
+  startDate   String?
+  endDate     String?
+  travelers   String?
+  budgetMax   Float?
+  destLat     Float?
+  destLng     Float?
+  orgId       String?
+  status      String     @default("planned") // planned | active | completed | cancelled
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  items       TripItem[]
+  costLines   CostLine[]
+  alerts      Alert[]
+  actions     Action[]
+  groupRooms  GroupRoom[]
+
+  @@index([ownerId])
+}
+
+model TripItem {
+  id          String   @id @default(cuid())
+  tripId      String
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  type        String   // flight | train | bus | stay | activity | transfer | meal
+  title       String
+  startAt     String?
+  endAt       String?
+  placeRef    String?  // osm:node:... or place identifier
+  provider    String?
+  bookingRef  String?  // encrypted booking reference
+  status      String   @default("planned") // planned | booked | at_risk | disrupted | completed | cancelled
+  dependsOn   String   @default("[]") // JSON array of prerequisite item IDs
+  costMin     Float    @default(0)
+  costMax     Float    @default(0)
+  costStatus  String   @default("estimated") // confirmed | estimated
+  meta        String   @default("{}") // JSON metadata (crowd, weatherSensitivity, coordinates)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  verifications Verification[]
+  alerts        Alert[]
+
+  @@index([tripId])
+  @@index([type])
+  @@index([status])
+}
+
+model Verification {
+  id          String   @id @default(cuid())
+  itemId      String
+  item        TripItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  status      String   @default("unverified") // verified | unverified | fixed | failed
+  checks      String   @default("{}") // JSON: { openingHoursChecked, coordinatesMatch, gapFeasible }
+  source      String
+  checkedAt   DateTime @default(now())
+  confidence  Float    @default(1.0)
+
+  @@index([itemId])
+}
+
+model CostLine {
+  id         String   @id @default(cuid())
+  tripId     String
+  trip       Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  category   String   // transport | stay | food | local_transport | activities | taxes_fees | buffer
+  title      String
+  amountMin  Float
+  amountMax  Float
+  status     String   @default("estimated") // confirmed | estimated
+  source     String
+  asOf       DateTime @default(now())
+
+  @@index([tripId])
+}
+
+model Alert {
+  id         String   @id @default(cuid())
+  tripId     String
+  trip       Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  itemId     String?
+  item       TripItem? @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  kind       String   // delay | cancellation | weather | road_closure | price_change
+  severity   String   @default("moderate") // minor | moderate | critical
+  source     String
+  payload    String   @default("{}") // JSON details
+  detectedAt DateTime @default(now())
+
+  recoveryOptions RecoveryOption[]
+
+  @@index([tripId])
+}
+
+model RecoveryOption {
+  id              String   @id @default(cuid())
+  alertId         String
+  alert           Alert    @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  plan            String   // JSON updated item states
+  addedCost       Float    @default(0)
+  arrivalDeltaMin Int      @default(0)
+  reliability     Float    @default(0.9)
+  score           Float    @default(0)
+  explanation     String
+  createdAt       DateTime @default(now())
+
+  @@index([alertId])
+}
+
+model Action {
+  id              String   @id @default(cuid())
+  tripId          String
+  trip            Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  kind            String   // resequence | substitute | buffer_relax | refund_claim
+  payload         String   @default("{}") // JSON
+  autonomyLevel   String   @default("L2") // L0 | L1 | L2
+  status          String   @default("proposed") // proposed | approved | executing | succeeded | failed | cancelled
+  idempotencyKey  String   @unique
+  approvedAt      DateTime?
+  result          String?  // JSON
+  createdAt       DateTime @default(now())
+
+  @@index([tripId])
+  @@index([idempotencyKey])
+}
+
+model AuditEvent {
+  id        String   @id @default(cuid())
+  actor     String   // USER | SYSTEM | AGENT
+  actorId   String?
+  entity    String   // Trip | TripItem | Action | Policy
+  entityId  String
+  event     String   // created | updated | approved | rejected | executed
+  data      String   @default("{}") // JSON
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
+
+model PredictionOutcome {
+  id            String   @id @default(cuid())
+  kind          String   // verification | cost | delay | waitlist | recovery
+  subjectRef    String
+  features      String   @default("{}") // JSON input features
+  predicted     String   @default("{}") // JSON predicted values
+  actual        String?  // JSON observed ground truth
+  accuracyScore Float?
+  observedAt    DateTime?
+  createdAt     DateTime @default(now())
+
+  @@index([kind])
+  @@index([subjectRef])
+}
+
+model GroupRoom {
+  id          String   @id @default(cuid())
+  tripId      String
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  title       String
+  inviteCode  String   @unique
+  createdAt   DateTime @default(now())
+
+  members     GroupMember[]
+  polls       GroupPoll[]
+  expenses    Expense[]
+  settlements Settlement[]
+
+  @@index([tripId])
+}
+
+model GroupMember {
+  id          String    @id @default(cuid())
+  roomId      String
+  room        GroupRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId      String?   // optional Clerk user ID
+  guestName   String    // unauthenticated join name
+  role        String    @default("member") // organizer | member
+  budgetCap   Float?    // private blind budget cap
+  joinedAt    DateTime  @default(now())
+
+  votes       PollVote[]
+  paidExpenses Expense[]
+  splits      ExpenseSplit[]
+
+  @@index([roomId])
+}
+
+model GroupPoll {
+  id          String    @id @default(cuid())
+  roomId      String
+  room        GroupRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  title       String
+  category    String    // destination | dates | activity
+  options     String    // JSON array of string options
+  isOpen      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  votes       PollVote[]
+
+  @@index([roomId])
+}
+
+model PollVote {
+  id          String      @id @default(cuid())
+  pollId      String
+  poll        GroupPoll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  memberId    String
+  member      GroupMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  selected    String      // selected option string
+  createdAt   DateTime    @default(now())
+
+  @@unique([pollId, memberId])
+}
+
+model Expense {
+  id          String         @id @default(cuid())
+  roomId      String
+  room        GroupRoom      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  payerId     String
+  payer       GroupMember    @relation(fields: [payerId], references: [id], onDelete: Cascade)
+  amount      Float
+  currency    String         @default("INR")
+  description String
+  splitRule   String         @default("equal") // equal | custom | by_item
+  createdAt   DateTime       @default(now())
+
+  splits      ExpenseSplit[]
+
+  @@index([roomId])
+}
+
+model ExpenseSplit {
+  id          String      @id @default(cuid())
+  expenseId   String
+  expense     Expense     @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  memberId    String
+  member      GroupMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  amount      Float
+
+  @@unique([expenseId, memberId])
+}
+
+model Settlement {
+  id          String    @id @default(cuid())
+  roomId      String
+  room        GroupRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  fromName    String
+  toName      String
+  toVPA       String?   // UPI ID / VPA
+  amount      Float
+  status      String    @default("pending") // pending | paid
+  upiQrUrl    String?
+  paidAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([roomId])
+}
+
+model AgentClient {
+  id          String   @id @default(cuid())
+  name        String
+  keyHash     String   @unique
+  scopes      String   // JSON array: ["verify_itinerary", "get_trip_cost", "get_trip_status"]
+  rateLimit   Int      @default(60) // requests per minute
+  spendCap    Float    @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model CostBenchmark {
+  id            String   @id @default(cuid())
+  destination   String
+  style         String   // budget | standard | comfort
+  durationDays  Int
+  travelers     Int
+  transportMin  Float
+  transportMax  Float
+  stayMin       Float
+  stayMax       Float
+  foodMin       Float
+  foodMax       Float
+  localTransitMin Float
+  localTransitMax Float
+  activitiesMin Float
+  activitiesMax Float
+  taxesFeesMin  Float
+  taxesFeesMax  Float
+  bufferPercent Float    @default(10.0)
+  sourceLabel   String   @default("Voyage Historical Benchmark Dataset")
+  updatedAt     DateTime @default(now())
+
+  @@unique([destination, style, durationDays, travelers])
+}
+
+// ==============================================================================
+// BREAKTHROUGH 1: KLYP WORLD MODEL
+// ==============================================================================
+
+model WorldEntity {
+  id              String             @id @default(cuid())
+  category        String             // destination | airport | station | hub | venue
+  name            String
+  code            String?            // IATA, IRCTC code, or OSM ref
+  lat             Float
+  lng             Float
+  state           String
+  country         String             @default("India")
+  metadata        String             @default("{}") // JSON
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  outgoingRoutes  WorldRoute[]       @relation("OriginEntity")
+  incomingRoutes  WorldRoute[]       @relation("DestinationEntity")
+  observations    WorldObservation[]
+
+  @@index([category])
+  @@index([code])
+}
+
+model WorldRoute {
+  id              String      @id @default(cuid())
+  originId        String
+  destinationId   String
+  mode            String      // air | rail | road
+  distanceKm      Float
+  transitMinutes  Int
+  frequencyDaily  Int         @default(1)
+  capacityScore   Float       @default(1.0)
+  source          String      @default("Curated Network Timetable")
+  createdAt       DateTime    @default(now())
+
+  origin          WorldEntity @relation("OriginEntity", fields: [originId], references: [id], onDelete: Cascade)
+  destination     WorldEntity @relation("DestinationEntity", fields: [destinationId], references: [id], onDelete: Cascade)
+
+  @@unique([originId, destinationId, mode])
+}
+
+model WorldObservation {
+  id              String      @id @default(cuid())
+  entityId        String
+  metricType      String      // weather | aqi | congestion | delay_risk | capacity_stress
+  value           Float
+  unit            String
+  condition       String?
+  confidence      Float       @default(0.9)
+  source          String
+  observedAt      DateTime    @default(now())
+  expiresAt       DateTime?
+
+  entity          WorldEntity @relation(fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@index([entityId, metricType])
+}
+
+// ==============================================================================
+// BREAKTHROUGH 2: AUTONOMOUS EXECUTION ENGINE
+// ==============================================================================
+
+model ExecutionWorkflow {
+  id               String   @id @default(cuid())
+  tripId           String
+  actionId         String?
+  idempotencyKey   String   @unique
+  state            String   @default("requested") // requested | validating | awaiting_approval | approved | executing | succeeded | failed | compensation_required | reconciliation_required | cancelled
+  actor            String   // USER | AGENT | SYSTEM
+  actorId          String?
+  steps            String   @default("[]") // JSON array of step details
+  providerRef      String?
+  error            String?
+  compensationLog  String   @default("[]") // JSON rollback evidence
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([tripId])
+  @@index([state])
+}
+
+// ==============================================================================
+// BREAKTHROUGH 3: KLYP TRAVEL LIQUIDITY EXCHANGE
+// ==============================================================================
+
+model Supplier {
+  id                 String             @id @default(cuid())
+  name               String
+  type               String             // hotel | bus_operator | cab_fleet | tour_operator | airline
+  verificationStatus String             @default("verified_sandbox")
+  rating             Float              @default(4.5)
+  contactEmail       String?
+  contractRef        String?
+  createdAt          DateTime           @default(now())
+
+  listings           InventoryListing[]
+}
+
+model InventoryListing {
+  id                 String          @id @default(cuid())
+  supplierId         String
+  supplier           Supplier        @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  category           String          // stay | transit_bus | transit_cab | flight_seat | activity
+  title              String
+  description        String
+  destination        String
+  unitsAvailable     Int             @default(10)
+  unitPriceINR       Float
+  validFrom          DateTime
+  validTo            DateTime
+  cancellationPolicy String          @default("moderate_72h")
+  isSandbox          Boolean         @default(true)
+  createdAt          DateTime        @default(now())
+
+  holds              InventoryHold[]
+  reservations       Reservation[]
+
+  @@index([destination, category])
+}
+
+model InventoryHold {
+  id            String           @id @default(cuid())
+  listingId     String
+  listing       InventoryListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyerId       String
+  units         Int              @default(1)
+  status        String           @default("active") // active | expired | converted | released
+  holdExpiresAt DateTime
+  createdAt     DateTime         @default(now())
+
+  reservations  Reservation[]
+
+  @@index([listingId])
+  @@index([status])
+}
+
+model Reservation {
+  id             String           @id @default(cuid())
+  listingId      String
+  listing        InventoryListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  holdId         String?
+  hold           InventoryHold?   @relation(fields: [holdId], references: [id], onDelete: SetNull)
+  buyerId        String
+  bookingRef     String           @unique
+  units          Int              @default(1)
+  totalAmountINR Float
+  status         String           @default("confirmed") // confirmed | cancelled | refund_pending
+  createdAt      DateTime         @default(now())
+
+  @@index([buyerId])
+}
+
+// ==============================================================================
+// BREAKTHROUGH 5: KLYP JOURNEY IDENTITY GRAPH
+// ==============================================================================
+
+model TravelerProfile {
+  id                 String         @id @default(cuid())
+  userId             String         @unique
+  displayName        String
+  emergencyContact   String?
+  preferredDiet      String?
+  accessibilityNeeds String?
+  medicalNotes       String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  consentGrants      ConsentGrant[]
+}
+
+model ConsentGrant {
+  id          String          @id @default(cuid())
+  profileId   String
+  profile     TravelerProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  granteeOrg  String
+  purpose     String
+  accessLevel String          // basic_itinerary | emergency_medical | full_booking
+  status      String          @default("active") // active | revoked | expired
+  expiresAt   DateTime
+  createdAt   DateTime        @default(now())
+
+  @@index([profileId, granteeOrg])
+}
+
+// ==============================================================================
+// BREAKTHROUGH 6: KLYP TRAVEL FINANCIAL OS
+// ==============================================================================
+
+model FinancialLedgerEntry {
+  id           String   @id @default(cuid())
+  tripId       String?
+  bookingRef   String?
+  type         String   // estimate | quote | booking | charge | refund | fee | commission | tax | settlement
+  amountPaise  Int      // Decimal-safe integer paise (1 INR = 100 paise)
+  currency     String   @default("INR")
+  status       String   @default("reconciled") // pending | captured | reconciled | disputed
+  source       String
+  providerRef  String?
+  metadata     String   @default("{}") // JSON
+  createdAt    DateTime @default(now())
+
+  @@index([tripId])
+  @@index([type])
+  @@index([bookingRef])
+}
+
+model ReconciliationRecord {
+  id                  String   @id @default(cuid())
+  externalInvoiceRef  String
+  internalBookingRef  String
+  expectedPaise       Int
+  invoicedPaise       Int
+  discrepancyPaise    Int      @default(0)
+  status              String   @default("matched") // matched | mismatched | investigating
+  reconciledAt        DateTime @default(now())
+
+  @@index([status])
+}
+
+// ==============================================================================
+// BREAKTHROUGH 7: KLYP DESTINATION INTELLIGENCE
+// ==============================================================================
+
+model DestinationMetric {
+  id                 String   @id @default(cuid())
+  destination        String
+  period             String   // e.g. "2026-Q1", "2026-10"
+  observedVisitors   Int
+  hotelOccupancyRate Float
+  avgRoomRateINR     Float
+  transitStressIndex Float
+  modelVersion       String   @default("v1.0")
+  updatedAt          DateTime @default(now())
+
+  @@unique([destination, period])
+}
+
+
+// =============================================================================
+// CHAKRA OS v3 — Accounts, Orgs, Real-time World News, Autonomous Agent
+// =============================================================================
+
+model Organization {
+  id             String   @id @default(cuid())
+  name           String
+  slug           String   @unique
+  kind           String   @default("personal") // personal | tmc | corporate | tour_operator | ota
+  plan           String   @default("free")     // free | pro | business | enterprise
+  autonomyLevel  String   @default("L2")       // L0 observe | L1 notify | L2 propose | L3 act-reversible | L4 full
+  homeRegion     String   @default("IN")
+  createdAt      DateTime @default(now())
+
+  users          User[]
+  travelers      Traveler[]
+  rules          AutomationRule[]
+  webhooks       WebhookEndpoint[]
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  name           String
+  passwordHash   String
+  role           String   @default("owner") // owner | admin | agent | viewer
+  plan           String   @default("free")
+  orgId          String
+  org            Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  sessionVersion Int      @default(1)
+  preferredLang  String   @default("en-IN")
+  createdAt      DateTime @default(now())
+  lastSeenAt     DateTime?
+
+  @@index([orgId])
+}
+
+model Traveler {
+  id              String   @id @default(cuid())
+  orgId           String
+  org             Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name            String
+  email           String?
+  phone           String?
+  department      String?
+  homeCity        String?
+  destinationCity String
+  destLat         Float
+  destLng         Float
+  tripStart       DateTime
+  tripEnd         DateTime
+  transportMode   String   @default("flight") // flight | train | bus | car
+  safetyStatus    String   @default("unknown") // unknown | safe | needs_help | unreachable
+  exposureScore   Int      @default(0)
+  lastCheckinAt   DateTime?
+  createdAt       DateTime @default(now())
+
+  checkins        CheckinRequest[]
+
+  @@index([orgId])
+  @@index([destinationCity])
+}
+
+model CheckinRequest {
+  id           String   @id @default(cuid())
+  token        String   @unique
+  travelerId   String
+  traveler     Traveler @relation(fields: [travelerId], references: [id], onDelete: Cascade)
+  newsEventId  String?
+  reason       String
+  status       String   @default("pending") // pending | safe | needs_help | expired
+  message      String?
+  respondedAt  DateTime?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  @@index([travelerId])
+}
+
+model NewsEvent {
+  id            String   @id @default(cuid())
+  fingerprint   String   @unique
+  title         String
+  summary       String   @default("")
+  url           String
+  source        String
+  sourceKind    String   // gdelt | rss | usgs | gdacs | google_news | sample
+  publishedAt   DateTime
+  ingestedAt    DateTime @default(now())
+  lang          String   @default("en")
+  category      String   // see src/lib/slm/labels.ts
+  severity      String   // low | moderate | high | critical
+  confidence    Float    @default(0.5)
+  impactScore   Int      @default(0)  // 0-100 travel impact
+  placeName     String?
+  countryCode   String?
+  lat           Float?
+  lng           Float?
+  radiusKm      Int      @default(150)
+  tags          String   @default("[]")
+  provenance    String   @default("live") // live | sample
+
+  @@index([publishedAt])
+  @@index([category])
+  @@index([countryCode])
+  @@index([impactScore])
+}
+
+model RiskAssessment {
+  id           String   @id @default(cuid())
+  subjectType  String   // trip | traveler | destination
+  subjectId    String
+  newsEventId  String
+  score        Int
+  distanceKm   Int?
+  reason       String
+  status       String   @default("open") // open | acknowledged | resolved
+  createdAt    DateTime @default(now())
+
+  @@unique([subjectType, subjectId, newsEventId])
+  @@index([subjectType, subjectId])
+}
+
+model AgentRun {
+  id           String   @id @default(cuid())
+  orgId        String?
+  trigger      String   // schedule | manual | news | voice | automation
+  goal         String
+  status       String   @default("running") // running | succeeded | failed
+  summary      String?
+  eventsSeen   Int      @default(0)
+  actionsTaken Int      @default(0)
+  model        String   @default("chakra-nano")
+  startedAt    DateTime @default(now())
+  finishedAt   DateTime?
+
+  steps        AgentStep[]
+  tasks        AgentTask[]
+
+  @@index([orgId, startedAt])
+}
+
+model AgentStep {
+  id         String   @id @default(cuid())
+  runId      String
+  run        AgentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  idx        Int
+  phase      String   // sense | think | plan | act | reflect
+  thought    String
+  tool       String?
+  input      String   @default("{}")
+  output     String   @default("{}")
+  durationMs Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([runId])
+}
+
+model AgentTask {
+  id            String   @id @default(cuid())
+  runId         String?
+  run           AgentRun? @relation(fields: [runId], references: [id], onDelete: SetNull)
+  orgId         String?
+  subjectType   String   // trip | traveler | org
+  subjectId     String
+  newsEventId   String?
+  kind          String   // notify | advisory | checkin | reroute | hold_rebooking | compensation_claim | reschedule | escalate
+  title         String
+  detail        String
+  payload       String   @default("{}")
+  autonomyLevel String   @default("L2")
+  status        String   @default("proposed") // proposed | approved | executed | rejected | failed | recorded (L0)
+  idempotencyKey String  @unique
+  decidedBy     String?
+  decidedAt     DateTime?
+  result        String?
+  createdAt     DateTime @default(now())
+
+  @@index([orgId, status])
+}
+
+model Notification {
+  id         String   @id @default(cuid())
+  orgId      String?
+  userId     String?
+  channel    String   @default("in_app") // in_app | webhook | email | whatsapp_link
+  title      String
+  body       String
+  severity   String   @default("moderate")
+  link       String?
+  readAt     DateTime?
+  createdAt  DateTime @default(now())
+
+  @@index([orgId, createdAt])
+}
+
+model AutomationRule {
+  id          String   @id @default(cuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name        String
+  enabled     Boolean  @default(true)
+  trigger     String   // news_event | risk_threshold | checkin_overdue | schedule
+  conditions  String   @default("{}") // JSON: { categories, minSeverity, minImpact, radiusKm, countries }
+  actions     String   @default("[]") // JSON: [{ type: notify|checkin|advisory|reroute|webhook|escalate }]
+  runCount    Int      @default(0)
+  lastRunAt   DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([orgId])
+}
+
+model WebhookEndpoint {
+  id        String   @id @default(cuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  url       String
+  secret    String
+  events    String   @default("[\"*\"]")
+  isActive  Boolean  @default(true)
+  lastStatus Int?
+  createdAt DateTime @default(now())
+
+  @@index([orgId])
+}
+
+model SystemEvent {
+  id        String   @id @default(cuid())
+  orgId     String?
+  type      String   // news.ingested | agent.step | agent.task | risk.alert | checkin.update
+  payload   String   @default("{}")
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:gdacs="http://www.gdacs.org" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:georss="http://www.georss.org/georss" version="2.0">
+<channel><title>GDACS RSS information</title>
+<item>
+<title>Red alert for tropical cyclone DANA-26 in India, Bangladesh</title>
+<description>On 13/10/2026, a tropical cyclone with maximum wind speed of 185 km/h was located near the Odisha coast.</description>
+<link>https://www.gdacs.org/report.aspx?eventtype=TC&amp;eventid=1001</link>
+<pubDate>Tue, 13 Oct 2026 03:00:00 GMT</pubDate>
+<gdacs:alertlevel>Red</gdacs:alertlevel>
+<gdacs:eventtype>TC</gdacs:eventtype>
+<geo:Point><geo:lat>19.9</geo:lat><geo:long>86.4</geo:long></geo:Point>
+</item>
+<item>
+<title>Green flood alert in Kenya</title>
+<description>Minor flooding reported.</description>
+<link>https://www.gdacs.org/report.aspx?eventtype=FL&amp;eventid=1002</link>
+<pubDate>Tue, 13 Oct 2026 01:00:00 GMT</pubDate>
+<gdacs:alertlevel>Green</gdacs:alertlevel>
+<gdacs:eventtype>FL</gdacs:eventtype>
+<georss:point>-1.29 36.82</georss:point>
+</item>
+</channel></rss>

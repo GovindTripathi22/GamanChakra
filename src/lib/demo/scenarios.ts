@@ -1,0 +1,9 @@
+/** Crisis scenarios for live client demos. Every title is prefixed "Drill:" and stored as a sample event. */
+export interface Scenario { id: string; label: string; emoji: string; title: string; summary: string; lat: number; lng: number; hint?: { category?: "natural_disaster" | "severe_weather" | "civil_unrest" | "transport_disruption" | "conflict_security"; severity?: "moderate" | "high" | "critical"; radiusKm?: number } }
+
+export const SCENARIOS: Scenario[] = [
+  { id: "dubai_quake", label: "Earthquake near Dubai", emoji: "🌋", title: "Drill: M 6.8 earthquake strikes 60 km off Dubai coast, DXB suspends departures", summary: "Strong shaking felt across the UAE; airport operations halted for inspection.", lat: 25.35, lng: 55.75, hint: { category: "natural_disaster", severity: "critical", radiusKm: 260 } },
+  { id: "delhi_fog", label: "Fog grounds Delhi flights", emoji: "🌫️", title: "Drill: Zero-visibility fog at Delhi airport, 220 flights cancelled or delayed", summary: "Airlines advise passengers not to leave for the airport without checking flight status.", lat: 28.56, lng: 77.1, hint: { category: "transport_disruption", severity: "high", radiusKm: 120 } },
+  { id: "bengaluru_bandh", label: "Bandh in Bengaluru", emoji: "🪧", title: "Drill: Statewide bandh in Karnataka tomorrow — cabs, autos and buses off Bengaluru roads", summary: "Transport unions and opposition parties call a 12-hour shutdown.", lat: 12.97, lng: 77.59, hint: { category: "civil_unrest", severity: "high", radiusKm: 80 } },
+  { id: "paris_strike", label: "Rail strike in France", emoji: "🚆", title: "Drill: Nationwide rail and air-traffic strike paralyses Paris, 40% of flights cancelled", summary: "SNCF and ATC unions walk out for 48 hours.", lat: 48.86, lng: 2.35, hint: { category: "transport_disruption", severity: "high", radiusKm: 150 } },
+];

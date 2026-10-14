@@ -1,0 +1,30 @@
+# docker compose up -d   →  http://localhost:3000
+# Self-contained: SQLite on a volume. Swap DATABASE_URL to Postgres for multi-instance scale.
+services:
+  app:
+    build: .
+    ports: ["3000:3000"]
+    environment:
+      DATABASE_URL: file:/data/voyage.db
+      AUTH_SECRET: ${AUTH_SECRET:?run 'npm run setup' or export AUTH_SECRET}
+      CRON_SECRET: ${CRON_SECRET:-change-me}
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      AGENT_AUTORUN: "true"
+      AGENT_INTERVAL_MIN: "10"
+      NEWS_MODE: auto
+      OLLAMA_URL: http://ollama:11434
+    volumes: ["gc-data:/data"]
+    restart: unless-stopped
+
+  # Optional local generative SLM (no API key). First run:
+  #   docker compose exec ollama ollama pull qwen2.5:1.5b-instruct
+  #   docker compose cp slm/Modelfile ollama:/Modelfile && docker compose exec ollama ollama create chakra -f /Modelfile
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["slm"]
+    volumes: ["ollama:/root/.ollama"]
+    restart: unless-stopped
+
+volumes:
+  gc-data:
+  ollama:
