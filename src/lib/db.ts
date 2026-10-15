@@ -8,6 +8,18 @@ import { PrismaClient } from "@prisma/client";
  * runtime (used by air-gapped CI/sandboxes that cannot download Prisma engines).
  * Normal installs use the standard Prisma engine and need nothing extra.
  */
+// If hosted on Vercel Postgres / Neon, fallback to standard Vercel environment variables
+if (!process.env.DATABASE_URL) {
+  if (process.env.POSTGRES_PRISMA_URL) {
+    process.env.DATABASE_URL = process.env.POSTGRES_PRISMA_URL;
+  } else if (process.env.POSTGRES_URL) {
+    process.env.DATABASE_URL = process.env.POSTGRES_URL;
+  } else {
+    // Safe build-time dummy so next build / prisma client initialization does not error during deployment build
+    process.env.DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/postgres";
+  }
+}
+
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined };
 
 function createClient(): PrismaClient {
