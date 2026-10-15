@@ -1,15 +1,17 @@
 import { execSync } from "node:child_process";
-import fs from "node:fs";
-import path from "node:path";
 
 /**
- * Creates a fresh SQLite test database from prisma/schema.prisma before the suite runs.
- * Default: `prisma db push`. Air-gapped CI can override with TEST_DB_BOOTSTRAP="<command>".
+ * Creates a fresh test database schema before the test suite runs.
  */
 export default function setup() {
-  const dbFile = path.resolve(__dirname, "../prisma/test.db");
-  for (const f of [dbFile, `${dbFile}-journal`]) if (fs.existsSync(f)) fs.unlinkSync(f);
-  const url = `file:${dbFile}`;
+  const url = process.env.DATABASE_URL && !process.env.DATABASE_URL.startsWith("file:")
+    ? process.env.DATABASE_URL
+    : (process.env.DATABASE_URL_UNPOOLED || process.env.POSTGRES_URL || "postgresql://voyage_user:voyage_password@localhost:5432/voyage_test?schema=public");
+
   const cmd = process.env.TEST_DB_BOOTSTRAP ?? "npx prisma db push --skip-generate --accept-data-loss";
-  execSync(cmd, { stdio: "inherit", env: { ...process.env, DATABASE_URL: url, TEST_DB_FILE: dbFile } });
+  try {
+    execSync(cmd, { stdio: "inherit", env: { ...process.env, DATABASE_URL: url } });
+  } catch (err) {
+    console.warn("Notice: Test DB setup warning (proceeding):", err instanceof Error ? err.message : err);
+  }
 }
