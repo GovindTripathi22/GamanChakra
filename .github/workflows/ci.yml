@@ -3,8 +3,22 @@ on: [push, pull_request]
 jobs:
   build-test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: voyage_user
+          POSTGRES_PASSWORD: voyage_password
+          POSTGRES_DB: voyage_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
-      DATABASE_URL: file:./ci.db
+      DATABASE_URL: postgresql://voyage_user:voyage_password@localhost:5432/voyage_test?schema=public
       AUTH_SECRET: ci-secret-ci-secret-ci-secret-ci-secret-1234
       NEWS_MODE: drill
       AGENT_AUTORUN: "false"
