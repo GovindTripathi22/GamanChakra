@@ -96,5 +96,11 @@ export interface FlightStatusResult {
   status: "on_time" | "delayed" | "cancelled";
   gate?: string;
   terminal?: string;
+  distanceKm?: number;
+  flightDurationMinutes?: number;
+  estimatedFare?: {
+    amount: number;
+    currency: string;
+  };
   provenance: FactProvenance;
 }

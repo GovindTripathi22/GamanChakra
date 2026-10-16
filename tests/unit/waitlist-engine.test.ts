@@ -11,11 +11,11 @@ describe("Waitlist Engine & Rail Provider", () => {
     expect(rajdhani.fromStationCode).toBe("NDLS");
     expect(rajdhani.toStationCode).toBe("MMCT");
 
-    // Dynamic unknown 5-digit train fallback
-    const unknownTrain = await getRealTrainInfo("14001");
-    expect(unknownTrain).toBeDefined();
-    expect(unknownTrain.trainNumber).toBe("14001");
-    expect(unknownTrain.fromStationCode).toBe("NDLS");
+    // Open dataset real train lookup (14001 is DLI -> JAT)
+    const realTrain = await getRealTrainInfo("14001");
+    expect(realTrain).toBeDefined();
+    expect(realTrain.trainNumber).toBe("14001");
+    expect(realTrain.fromStationCode).toBe("DLI");
   });
 
   it("produces distinct probabilities for different train types and corridors", async () => {
@@ -43,7 +43,7 @@ describe("Waitlist Engine & Rail Provider", () => {
     expect(resRajdhani.trainName).toContain("Rajdhani");
     expect(resTamilNadu.trainName).toContain("Tamil Nadu");
     // Distinct clearance factor & corridor distance
-    expect(resRajdhani.factors.corridorDemandIndex).toBeGreaterThan(0);
+    expect(resRajdhani.factors?.corridorDemandIndex).toBeGreaterThan(0);
   });
 
   it("applies quota penalties accurately (GNWL > RLWL > PQWL > TQWL)", async () => {
@@ -97,8 +97,22 @@ describe("Waitlist Engine & Rail Provider", () => {
       quota: "GNWL",
     });
 
-    expect(result.alternateCorridorTrains.length).toBeGreaterThan(0);
+    expect(result.alternateCorridorTrains?.length).toBeGreaterThan(0);
     expect(result.alternatives.length).toBeGreaterThan(0);
     expect(result.alternatives.some((a) => a.type === "tatkal_alert")).toBe(true);
   });
+
+  it("calculates realistic Haversine distance and domestic fare for flights", async () => {
+    const { getFlightStatus } = await import("@/lib/providers/flights/mock-flight-provider");
+    const flight = await getFlightStatus("6E-204", { originAirport: "DEL", destinationAirport: "BOM" });
+    expect(flight.airline).toBe("IndiGo");
+    expect(flight.departureAirport).toBe("DEL");
+    expect(flight.arrivalAirport).toBe("BOM");
+    expect(flight.distanceKm).toBeGreaterThan(1000);
+    expect(flight.distanceKm).toBeLessThan(1300);
+    expect(flight.flightDurationMinutes).toBeGreaterThan(100);
+    expect(flight.estimatedFare?.amount).toBeGreaterThan(4000);
+    expect(flight.provenance.isMock).toBe(true);
+  });
 });
+
