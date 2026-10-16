@@ -16,6 +16,9 @@ import {
   Calendar,
   Search,
   ExternalLink,
+  MapPin,
+  TrendingUp,
+  Database,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,21 +32,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { predictWaitlistAction, monitorPnrAction, bookBackupOptionAction } from "@/actions/waitlist-rescue";
-import type { WaitlistPredictionResult, WaitlistAlternative } from "@/types/waitlist";
+import type { WaitlistPredictionResult, WaitlistAlternative, WaitlistQuota } from "@/types/waitlist";
 import { TrustBadge } from "@/components/trust/trust-badge";
 
 const PRESET_SEARCHES = [
-  { trainNumber: "12056", className: "CC", wl: 6, label: "12056 Jan Shatabdi (CC WL 6)" },
-  { trainNumber: "12051", className: "2A", wl: 28, label: "12051 Madgaon Express (2A WL 28)" },
-  { trainNumber: "12952", className: "3A", wl: 14, label: "12952 Mumbai Rajdhani (3A WL 14)" },
-  { trainNumber: "22436", className: "CC", wl: 35, label: "22436 Vande Bharat (CC WL 35)" },
+  { trainNumber: "12952", className: "3A", quota: "GNWL" as WaitlistQuota, wl: 14, label: "12952 Mumbai Rajdhani (3A GNWL 14)" },
+  { trainNumber: "22436", className: "CC", quota: "GNWL" as WaitlistQuota, wl: 35, label: "22436 Vande Bharat (CC GNWL 35)" },
+  { trainNumber: "12301", className: "2A", quota: "RLWL" as WaitlistQuota, wl: 12, label: "12301 Howrah Rajdhani (2A RLWL 12)" },
+  { trainNumber: "12622", className: "SL", quota: "TQWL" as WaitlistQuota, wl: 18, label: "12622 Tamil Nadu Express (SL TQWL 18)" },
+  { trainNumber: "12051", className: "2A", quota: "RAC" as WaitlistQuota, wl: 28, label: "12051 Madgaon Express (2A RAC 28)" },
 ];
 
 export default function WaitlistRescuePage() {
-  const [trainNumber, setTrainNumber] = useState("12051");
+  const [trainNumber, setTrainNumber] = useState("12952");
   const [pnr, setPnr] = useState("");
-  const [travelClass, setTravelClass] = useState("2A");
-  const [waitlistNumber, setWaitlistNumber] = useState("28");
+  const [travelClass, setTravelClass] = useState("3A");
+  const [quota, setQuota] = useState<WaitlistQuota>("GNWL");
+  const [waitlistNumber, setWaitlistNumber] = useState("14");
   const [travelDate, setTravelDate] = useState("2026-10-25");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<WaitlistPredictionResult | null>(null);
@@ -62,6 +67,7 @@ export default function WaitlistRescuePage() {
         pnr: pnr || undefined,
         trainNumber,
         travelClass,
+        quota,
         waitlistNumber: parseInt(waitlistNumber, 10) || 8,
         travelDate,
       });
@@ -76,6 +82,7 @@ export default function WaitlistRescuePage() {
   const handleApplyPreset = (preset: typeof PRESET_SEARCHES[0]) => {
     setTrainNumber(preset.trainNumber);
     setTravelClass(preset.className);
+    setQuota(preset.quota);
     setWaitlistNumber(preset.wl.toString());
   };
 
@@ -94,10 +101,10 @@ export default function WaitlistRescuePage() {
 
   const handleBookBackup = async (opt: WaitlistAlternative) => {
     try {
-      const res = await bookBackupOptionAction("standalone_trip", opt);
+      await bookBackupOptionAction("standalone_trip", opt);
       setBookingSuccess(`Backup Secured: "${opt.title}". Confirmation policy authorized!`);
-    } catch (err: any) {
-      alert(`Booking error: ${err.message}`);
+    } catch (err: unknown) {
+      alert(`Booking error: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
@@ -114,14 +121,14 @@ export default function WaitlistRescuePage() {
             Predict Waitlist Odds & Deploy Plan B
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
-            Never get stranded by an unconfirmed ticket. Predict confirmation probability with historical quota outcome data and secure backup alternatives before chart preparation.
+            Never get stranded by an unconfirmed ticket. Powered by DataMeet 4,775+ train open timetable & actuarial cancellation physics.
           </p>
         </div>
 
         {/* Input Form Card */}
         <Card className="p-6 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
           <form onSubmit={handlePredict} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3.5">
               {/* Train Number */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
@@ -131,7 +138,7 @@ export default function WaitlistRescuePage() {
                   <Train className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                   <Input
                     className="pl-9 h-10 text-xs font-semibold"
-                    placeholder="e.g. 12056"
+                    placeholder="e.g. 12952"
                     value={trainNumber}
                     onChange={(e) => setTrainNumber(e.target.value)}
                     required
@@ -152,9 +159,30 @@ export default function WaitlistRescuePage() {
                     <SelectItem value="1A">1A (AC First)</SelectItem>
                     <SelectItem value="2A">2A (AC 2 Tier)</SelectItem>
                     <SelectItem value="3A">3A (AC 3 Tier)</SelectItem>
+                    <SelectItem value="3E">3E (AC 3 Economy)</SelectItem>
                     <SelectItem value="CC">CC (AC Chair Car)</SelectItem>
+                    <SelectItem value="EC">EC (Exec Chair Car)</SelectItem>
                     <SelectItem value="SL">SL (Sleeper)</SelectItem>
                     <SelectItem value="2S">2S (Second Sitting)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Quota */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Booking Quota
+                </label>
+                <Select value={quota} onValueChange={(v) => setQuota(v as WaitlistQuota)}>
+                  <SelectTrigger className="h-10 text-xs font-semibold">
+                    <SelectValue placeholder="Quota" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="GNWL">GNWL (General Quota)</SelectItem>
+                    <SelectItem value="RLWL">RLWL (Remote Location)</SelectItem>
+                    <SelectItem value="PQWL">PQWL (Pooled Quota)</SelectItem>
+                    <SelectItem value="TQWL">TQWL (Tatkal Waitlist)</SelectItem>
+                    <SelectItem value="RAC">RAC (Reservation Against Can)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -162,13 +190,13 @@ export default function WaitlistRescuePage() {
               {/* Waitlist Number */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Current Waitlist #
+                  Waitlist / RAC #
                 </label>
                 <Input
                   type="number"
                   min="1"
                   className="h-10 text-xs font-semibold"
-                  placeholder="e.g. 8"
+                  placeholder="e.g. 14"
                   value={waitlistNumber}
                   onChange={(e) => setWaitlistNumber(e.target.value)}
                   required
@@ -256,7 +284,7 @@ export default function WaitlistRescuePage() {
               }`}
             >
               <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="space-y-2 text-center md:text-left">
+                <div className="space-y-2.5 text-center md:text-left flex-1">
                   <div className="flex items-center justify-center md:justify-start gap-2 flex-wrap">
                     <Badge
                       className={`text-xs font-bold px-2.5 py-0.5 ${
@@ -269,24 +297,53 @@ export default function WaitlistRescuePage() {
                     >
                       {result.confidenceLabel}
                     </Badge>
-                    <span className="text-xs text-slate-500">
-                      {result.travelClass} • WL#{result.waitlistNumber}
+                    {result.trainType && (
+                      <Badge variant="outline" className="text-xs font-semibold">
+                        {result.trainType}
+                      </Badge>
+                    )}
+                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                      {result.travelClass} • {result.quota || "GNWL"} WL#{result.waitlistNumber}
                     </span>
                   </div>
 
                   <h3 className="text-xl font-bold text-slate-900 dark:text-white">
                     {result.trainName} ({result.trainNumber})
                   </h3>
-                  <p className="text-xs text-slate-500">
-                    {result.originStation} → {result.destinationStation} on{" "}
-                    <strong>{result.travelDate}</strong>
-                  </p>
 
-                  <div className="text-[11px] text-slate-500 space-y-0.5 pt-1">
-                    <div>Basis: {result.basis.historicalClearanceRate}</div>
-                    <div>Seasonality: {result.basis.seasonalityFactor}</div>
-                    <div>Final Charting: {result.basis.chartingTime}</div>
+                  <div className="flex items-center justify-center md:justify-start gap-3 text-xs text-slate-600 dark:text-slate-400 flex-wrap">
+                    <span className="inline-flex items-center gap-1 font-medium">
+                      <MapPin className="h-3.5 w-3.5 text-orange-500" />
+                      {result.originStation} → {result.destinationStation}
+                    </span>
+                    {result.departureTime && result.arrivalTime && (
+                      <span className="inline-flex items-center gap-1">
+                        <Clock className="h-3.5 w-3.5 text-slate-400" />
+                        {result.departureTime} - {result.arrivalTime}
+                      </span>
+                    )}
+                    {result.distanceKm && (
+                      <span>• {result.distanceKm} km</span>
+                    )}
                   </div>
+
+                  {/* Telemetry Factors Grid */}
+                  {result.factors && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400">
+                      <div>
+                        <span className="text-slate-400 block">Expected Berth Clearance:</span>
+                        <strong className="text-slate-800 dark:text-slate-200">~{result.factors.expectedClearanceBerths} berths</strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block">Class Berth Pool:</span>
+                        <strong className="text-slate-800 dark:text-slate-200">{result.factors.classBerthPool} berths/train</strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block">Season / Rush Factor:</span>
+                        <strong className="text-slate-800 dark:text-slate-200">{result.factors.seasonalityLabel}</strong>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Probability Score Pill */}
@@ -306,7 +363,7 @@ export default function WaitlistRescuePage() {
                     {result.confirmationProbability}%
                   </div>
                   <span className="text-[10px] text-slate-400 mt-1">
-                    Based on {result.basis.sampleSize} verified outcomes
+                    {result.factors?.dataSource === "OPEN_TIMETABLE_DATASET" ? "Open Timetable Verified" : "Actuarial Calculation"}
                   </span>
 
                   <Button
@@ -330,7 +387,36 @@ export default function WaitlistRescuePage() {
               )}
             </Card>
 
-            {/* Rescue Plan B Section (Shown when probability < 60%) */}
+            {/* Alternate Trains on Same Corridor */}
+            {result.alternateCorridorTrains && result.alternateCorridorTrains.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Train className="h-4 w-4 text-orange-500" />
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                    Alternative Trains on the Same Corridor ({result.alternateCorridorTrains.length} found)
+                  </h4>
+                </div>
+                <div className="grid gap-2.5 sm:grid-cols-2">
+                  {result.alternateCorridorTrains.map((train) => (
+                    <Card key={train.trainNumber} className="p-3.5 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+                      <div>
+                        <div className="font-bold text-slate-900 dark:text-white">
+                          {train.trainName} ({train.trainNumber})
+                        </div>
+                        <div className="text-[11px] text-slate-500">
+                          {train.departureTime} → {train.arrivalTime} • {train.trainType}
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] font-semibold text-orange-600 border-orange-200 dark:border-orange-900/40">
+                        {Math.floor(train.durationMinutes / 60)}h {train.durationMinutes % 60}m
+                      </Badge>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Rescue Plan B Section (Shown when probability < 65%) */}
             {result.isRescueNeeded && (
               <div className="space-y-4 pt-2">
                 <div className="flex items-center gap-2.5">
@@ -342,7 +428,7 @@ export default function WaitlistRescuePage() {
                       Waitlist Rescue Plan B Deployed
                     </h3>
                     <p className="text-xs text-slate-500">
-                      Odds are under 60%. Lock in verified backup travel before seats run out.
+                      Odds are under 65%. Lock in verified backup travel before seats run out.
                     </p>
                   </div>
                 </div>

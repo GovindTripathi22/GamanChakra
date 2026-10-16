@@ -3,9 +3,20 @@ import type { PlaceResolutionResult } from "../types";
 /**
  * OpenStreetMap Nominatim Place Resolution Provider
  * 100% Free, Zero API Key Required, Respects OSM Usage Policy
+ * Includes in-memory caching to comply with Nominatim's 1 req/sec limit.
  */
+const placeCache = new Map<string, { result: PlaceResolutionResult | null; timestamp: number }>();
+const CACHE_TTL_MS = 1000 * 60 * 60 * 24; // 24 hours
+
 export async function resolvePlace(query: string): Promise<PlaceResolutionResult | null> {
+  const normalizedQuery = query.toLowerCase().trim();
   const now = new Date().toISOString();
+
+  // Check cache first
+  const cached = placeCache.get(normalizedQuery);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+    return cached.result;
+  }
 
   try {
     const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&addressdetails=1`;
@@ -27,11 +38,12 @@ export async function resolvePlace(query: string): Promise<PlaceResolutionResult
 
     const results = await res.json();
     if (!Array.isArray(results) || results.length === 0) {
+      placeCache.set(normalizedQuery, { result: null, timestamp: Date.now() });
       return null;
     }
 
     const first = results[0];
-    return {
+    const resolution: PlaceResolutionResult = {
       name: first.name || query,
       displayName: first.display_name,
       placeRef: `osm:${first.osm_type || "node"}:${first.osm_id}`,
@@ -49,8 +61,10 @@ export async function resolvePlace(query: string): Promise<PlaceResolutionResult
         confidence: 0.95,
       },
     };
-  } catch (error) {
-    // If offline or query fails, return null so verification pipeline can flag as unverified per P1
+
+    placeCache.set(normalizedQuery, { result: resolution, timestamp: Date.now() });
+    return resolution;
+  } catch {
     return null;
   }
 }

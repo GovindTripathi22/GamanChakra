@@ -22,6 +22,7 @@ export async function predictWaitlistAction(
         trainNumber: params.trainNumber,
         class: params.travelClass,
         waitlist: params.waitlistNumber,
+        quota: params.quota,
         probability: result.confirmationProbability,
         isRescueNeeded: result.isRescueNeeded,
       },
