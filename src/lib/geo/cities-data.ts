@@ -54,6 +54,7 @@ Indore||IN|22.72|75.86|IDR|Madhya Pradesh
 Khajuraho||IN|24.85|79.93|HJR|Madhya Pradesh
 Ujjain|Mahakal|IN|23.18|75.78||Madhya Pradesh
 Nagpur||IN|21.15|79.09|NAG|Maharashtra
+Amravati|अमरावती|IN|20.93|77.75|NAG|Maharashtra
 Aurangabad|Ajanta;Ellora;Chhatrapati Sambhajinagar|IN|19.88|75.34|IXU|Maharashtra
 Nashik||IN|20.00|73.79|ISK|Maharashtra
 Lonavala|Khandala|IN|18.75|73.41||Maharashtra

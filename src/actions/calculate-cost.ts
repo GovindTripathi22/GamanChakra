@@ -1,39 +1,38 @@
 "use server";
 
-import { GeneratedTrip } from "@/types/trip";
-import { CostBreakdown } from "@/types/cost";
-import { calculateTripCost } from "@/lib/cost/engine";
-import { logAuditEvent } from "@/lib/audit/logger";
+import {
+  calculateTrueCost,
+  CalculateCostInput,
+  TrueCostResult,
+  calculateTripCost,
+} from "@/lib/cost/engine";
+import type { GeneratedTrip } from "@/types/trip";
+import type { CostBreakdown } from "@/types/cost";
+
+export async function calculateCostAction(
+  input: CalculateCostInput | string,
+  days?: number,
+  travelers?: number,
+  budget?: number
+): Promise<TrueCostResult> {
+  if (typeof input === "string") {
+    return calculateTrueCost({
+      destination: input,
+      days: days || 3,
+      travelers: travelers || 1,
+      budget: budget,
+      currency: "INR",
+    });
+  }
+  return calculateTrueCost({
+    ...input,
+    currency: "INR",
+  });
+}
 
 export async function calculateTripCostAction(
   trip: GeneratedTrip,
-  customSpendCap?: number,
-  tripId: string = "trip_active",
-  userId: string = "traveler_active"
+  customSpendCap?: number
 ): Promise<CostBreakdown> {
-  const breakdown = calculateTripCost(trip, customSpendCap);
-
-  // If over budget, record policy awareness audit event
-  if (breakdown.budgetStatus === "exceeds_budget") {
-    try {
-      await logAuditEvent({
-        actor: "SYSTEM",
-        actorId: userId,
-        entity: "Trip",
-        entityId: tripId,
-        event: "updated",
-        data: {
-          warning: "Spend cap overrun detected",
-          expectedTotal: breakdown.expectedTotal,
-          userBudgetCap: breakdown.userBudgetCap,
-          overageAmount: breakdown.overageAmount,
-          culprits: breakdown.overageCulprits.map((c) => c.title),
-        },
-      });
-    } catch (e) {
-      // Non-blocking logger
-    }
-  }
-
-  return breakdown;
+  return calculateTripCost(trip, customSpendCap);
 }

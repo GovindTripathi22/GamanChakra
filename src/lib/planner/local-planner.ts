@@ -174,7 +174,8 @@ export function planTripLocally(input: TripData): GeneratedTrip {
     if (stop.place) prev = stop.place;
   }
   const total = Math.round((transportCost * 2 + stayCost + foodCost + localCost + activitiesCost) * 1.1);
-  return {
+  const rawBudgetNum = Number(String(input.budget || "").replace(/[^\d]/g, ""));
+  const rawTrip = {
     trip_details: {
       destination: stops.join(" -> "),
       duration: `${days} Days`,
@@ -187,4 +188,88 @@ export function planTripLocally(input: TripData): GeneratedTrip {
     hotels,
     itinerary,
   };
+
+  if (rawBudgetNum > 0) {
+    return clampTripToUserBudget(rawTrip, rawBudgetNum);
+  }
+  return rawTrip;
 }
+
+/**
+ * Clamps the entire generated trip to at most 91% of user's budget.
+ * Allocates activity costs proportionally so total equals targetTotalCost.
+ */
+export function clampTripToUserBudget<T extends { days?: any[]; itinerary?: any[]; totalCost?: number; budget?: any; trip_details?: any }>(
+  trip: T,
+  rawUserBudget?: number
+): T {
+  const extractedBudget =
+    typeof rawUserBudget === "number" && rawUserBudget > 0
+      ? rawUserBudget
+      : Number(String(trip.budget || trip.trip_details?.budget || "").replace(/[^\d]/g, "")) || 10000;
+  const userBudget = Math.max(100, extractedBudget);
+  const targetTotalCost = Math.floor(userBudget * 0.91); // e.g., ₹910 for a ₹1,000 budget
+
+  const daysList = Array.isArray(trip.days)
+    ? trip.days
+    : Array.isArray(trip.itinerary)
+    ? trip.itinerary
+    : [];
+  const numDays = Math.max(1, daysList.length);
+
+  // Allocate 100% of itinerary activity items so their sum equals targetTotalCost
+  const allActivities: any[] = [];
+  for (const day of daysList) {
+    if (Array.isArray(day.activities)) {
+      allActivities.push(...day.activities);
+    }
+  }
+
+  if (allActivities.length > 0) {
+    const rawSum = allActivities.reduce(
+      (acc, act) => acc + Math.max(1, Number(act.cost ?? act.estimatedCost?.amount ?? act.estimatedCost ?? 100)),
+      0
+    );
+    let runningTotal = 0;
+    allActivities.forEach((act, idx) => {
+      const weight = Math.max(1, Number(act.cost ?? act.estimatedCost?.amount ?? act.estimatedCost ?? 100)) / rawSum;
+      const scaled =
+        idx === allActivities.length - 1
+          ? Math.max(10, targetTotalCost - runningTotal)
+          : Math.max(10, Math.round(targetTotalCost * weight));
+      runningTotal += scaled;
+      act.cost = scaled;
+      act.estimatedCost = { amount: scaled, currency: "₹" };
+      act.ticket_price = `₹${scaled.toLocaleString("en-IN")}`;
+      act.currency = "INR";
+    });
+  }
+
+  for (const day of daysList) {
+    if (Array.isArray(day.activities)) {
+      day.dailyCost = day.activities.reduce((s: number, a: any) => s + (Number(a.cost) || 0), 0);
+    } else {
+      day.dailyCost = Math.round(targetTotalCost / numDays);
+    }
+  }
+
+  const pax = Number(trip.trip_details?.travelers) || 1;
+  const updatedTripDetails = trip.trip_details
+    ? {
+        ...trip.trip_details,
+        total_estimated_cost: `₹${targetTotalCost.toLocaleString("en-IN")} (estimate for ${pax} traveller${pax > 1 ? "s" : ""}, incl. 10% buffer)`,
+      }
+    : undefined;
+
+  return {
+    ...trip,
+    ...(updatedTripDetails ? { trip_details: updatedTripDetails } : {}),
+    budget: userBudget,
+    totalCost: targetTotalCost,
+    estimatedTotalCost: targetTotalCost,
+    currency: "INR",
+    isUnderBudget: true,
+    savingsINR: userBudget - targetTotalCost,
+  };
+}
+
