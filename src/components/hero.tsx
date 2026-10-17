@@ -2,20 +2,36 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Globe, MapPin, Compass, Sparkles, Loader2, Mic, Radar } from "lucide-react";
+import { Send, Globe, MapPin, Compass, Sparkles, Loader2, Mic, Radar, Camera } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+const HERO_BACKDROPS = [
+    { id: "kerala", name: "Kerala Backwaters", url: "/hero-kerala-hd.jpg" },
+    { id: "mountains", name: "Misty Sunrise", url: "/hero-travel-hd.jpg" },
+    { id: "lake", name: "Alpine Lake", url: "/hero-lake-boat.jpg" },
+    { id: "taj", name: "Taj Mahal Dawn", url: "/hero-monument-hd.jpg" },
+    { id: "ladakh", name: "Ladakh Highway", url: "/hero-ladakh-hd.jpg" },
+];
+
 export function Hero() {
     const router = useRouter();
     const [destination, setDestination] = useState("");
-    const [videoLoaded, setVideoLoaded] = useState(false);
-    const [videoError, setVideoError] = useState(false);
+    const [activeBackdropIndex, setActiveBackdropIndex] = useState(0);
     const [isNavigating, setIsNavigating] = useState(false);
     const [risk, setRisk] = useState<{ place: string; score: number; band: string } | null>(null);
     const [alerts, setAlerts] = useState<{ id: string; title: string; placeName: string | null; severity: string }[]>([]);
+
+    // Auto-cycle through scenic backdrops slowly every 25 seconds
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setActiveBackdropIndex((prev) => (prev + 1) % HERO_BACKDROPS.length);
+        }, 25000);
+        return () => clearInterval(timer);
+    }, []);
 
     // Live risk preview for whatever the traveller types (debounced, keyless)
     useEffect(() => {
@@ -60,51 +76,35 @@ export function Hero() {
 
     return (
         <div className="relative flex min-h-[85vh] flex-col items-center justify-center overflow-hidden bg-slate-900 pt-20 pb-10">
-            {/* Background - Video or Fallback Gradient */}
-            <div className="absolute inset-0 z-0">
-                <div className="absolute inset-0 z-10 bg-[linear-gradient(180deg,rgba(7,11,22,.55)_0%,rgba(7,11,22,.35)_45%,var(--gc-bg)_100%)]" />
-                <div className="absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_50%_35%,rgba(255,106,26,.22),transparent_60%)]" />
+            {/* Background - Ultra-HD Cinematic Travel Imagery */}
+            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+                <div className="absolute inset-0 z-10 bg-[linear-gradient(180deg,rgba(7,11,22,.60)_0%,rgba(7,11,22,.35)_45%,var(--gc-bg)_100%)] pointer-events-none" />
+                <div className="absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_50%_35%,rgba(255,106,26,.18),transparent_65%)] pointer-events-none" />
 
-                {/* Animated gradient fallback (shows while video loads or on error) */}
-                <AnimatePresence>
-                    {(!videoLoaded || videoError) && (
-                        <motion.div
-                            initial={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 1 }}
-                            className="absolute inset-0"
-                        >
-                            {/* Animated gradient orbs */}
-                            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl animate-pulse" />
-                            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-600/10 rounded-full blur-3xl" />
+                {/* Animated gradient orbs for ambient glow */}
+                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500/15 rounded-full blur-3xl animate-pulse pointer-events-none z-10" />
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl animate-pulse delay-1000 pointer-events-none z-10" />
 
-                            {/* Static fallback image */}
-                            <img
-                                src="/destinations/kerala.jpg"
-                                alt="Travel background"
-                                className="h-full w-full object-cover opacity-100"
-                                onLoad={() => { }}
-                            />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                {/* Video background */}
-                {!videoError && (
-                    <video
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        className={`h-full w-full object-cover transition-opacity duration-1000 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
-                        poster="/destinations/kerala.jpg"
-                        onLoadedData={() => setVideoLoaded(true)}
-                        onError={() => setVideoError(true)}
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={HERO_BACKDROPS[activeBackdropIndex].id}
+                        initial={{ opacity: 0, scale: 1.05 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 1.0, ease: "easeOut" }}
+                        className="absolute inset-0"
                     >
-                        <source src="https://cdn.pixabay.com/video/2024/02/09/199958-911693663_large.mp4" type="video/mp4" />
-                    </video>
-                )}
+                        <Image
+                            src={HERO_BACKDROPS[activeBackdropIndex].url}
+                            alt={HERO_BACKDROPS[activeBackdropIndex].name}
+                            fill
+                            priority
+                            quality={90}
+                            sizes="100vw"
+                            className="object-cover"
+                        />
+                    </motion.div>
+                </AnimatePresence>
             </div>
 
             {/* Content */}
@@ -256,16 +256,38 @@ export function Hero() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.5 }}
-                className="absolute bottom-8 left-1/2 -translate-x-1/2"
+                className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none"
             >
                 <motion.div
-                    animate={{ y: [0, 10, 0] }}
+                    animate={{ y: [0, 8, 0] }}
                     transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                    className="w-6 h-10 rounded-full border-2 border-white/30 flex items-start justify-center p-2"
+                    className="w-5 h-9 rounded-full border-2 border-white/30 flex items-start justify-center p-1.5"
                 >
                     <motion.div className="w-1 h-2 rounded-full bg-white/60" />
                 </motion.div>
             </motion.div>
+
+            {/* Scenic View Switcher */}
+            <div className="absolute bottom-4 right-4 z-20 hidden md:flex items-center gap-1.5 rounded-full border border-white/15 bg-black/60 px-3.5 py-1.5 backdrop-blur-md text-xs text-white/90 shadow-2xl">
+                <span className="text-white/50 mr-1 flex items-center gap-1 text-[11px] font-medium">
+                    <Camera className="h-3 w-3 text-orange-400" />
+                    Scenic View:
+                </span>
+                {HERO_BACKDROPS.map((b, idx) => (
+                    <button
+                        key={b.id}
+                        type="button"
+                        onClick={() => setActiveBackdropIndex(idx)}
+                        className={`rounded-full px-2.5 py-0.5 transition-all text-[11px] font-medium cursor-pointer ${
+                            activeBackdropIndex === idx
+                                ? "bg-orange-500 text-white font-semibold shadow-sm shadow-orange-500/50"
+                                : "text-white/60 hover:text-white hover:bg-white/10"
+                        }`}
+                    >
+                        {b.name}
+                    </button>
+                ))}
+            </div>
         </div>
     );
 }
