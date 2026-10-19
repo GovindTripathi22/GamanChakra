@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { findPlace } from "@/lib/geo/gazetteer";
 
 export const dynamic = "force-dynamic";
 
@@ -179,6 +180,17 @@ export async function GET(req: Request | NextRequest, _ctx?: any) {
     return NextResponse.json({ error: "place is required" }, { status: 400 });
   }
 
+  // If place is explicitly specified, validate that it is known in gazetteer or default hubs
+  let knownPlace: any = null;
+  if (hasPlace) {
+    knownPlace =
+      DEFAULT_CITIES.find((c) => c.city.toLowerCase() === placeParam.toLowerCase()) ||
+      findPlace(placeParam);
+    if (!knownPlace) {
+      return NextResponse.json({ error: `Unknown place: ${placeParam}` }, { status: 404 });
+    }
+  }
+
   const searchQuery = (qParam === "all" ? "" : (qParam || placeParam)).trim();
   const quakes = await fetchUSGSEarthquakes();
 
@@ -194,12 +206,23 @@ export async function GET(req: Request | NextRequest, _ctx?: any) {
       const [matched] = targetList.splice(existingIndex, 1);
       targetList.unshift(matched);
     } else if (existingIndex === -1) {
-      const geo = await geocodeCustomCity(searchQuery);
-      if (geo) {
-        targetList.unshift(geo);
-      } else if (hasPlace) {
-        // Requested place not found
-        return NextResponse.json({ error: `Unknown place: ${placeParam}` }, { status: 404 });
+      if (hasPlace && knownPlace && "lng" in knownPlace) {
+        targetList.unshift({
+          city: knownPlace.name,
+          stateOrRegion: knownPlace.region || knownPlace.countryName,
+          country: knownPlace.countryName,
+          lat: knownPlace.lat,
+          lon: knownPlace.lng,
+          baseSec: 18,
+        });
+      } else {
+        const geo = await geocodeCustomCity(searchQuery);
+        if (geo) {
+          targetList.unshift(geo);
+        } else if (hasPlace) {
+          // Requested place not found
+          return NextResponse.json({ error: `Unknown place: ${placeParam}` }, { status: 404 });
+        }
       }
     }
     customAdvisories = await fetchCityNewsAdvisories(searchQuery);
