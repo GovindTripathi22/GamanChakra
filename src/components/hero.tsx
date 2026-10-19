@@ -13,7 +13,7 @@ const HERO_BACKDROPS = [
     { id: "kerala", name: "Kerala Backwaters", url: "/hero-kerala-hd.jpg" },
     { id: "mountains", name: "Misty Sunrise", url: "/hero-travel-hd.jpg" },
     { id: "lake", name: "Alpine Lake", url: "/hero-lake-boat.jpg" },
-    { id: "taj", name: "Taj Mahal Dawn", url: "/hero-monument-hd.jpg" },
+    { id: "srirangam", name: "Srirangam Temple", url: "/hero-srirangam-hd.jpg" },
     { id: "ladakh", name: "Ladakh Highway", url: "/hero-ladakh-hd.jpg" },
 ];
 
