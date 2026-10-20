@@ -158,23 +158,46 @@ export function planTripLocally(input: TripData): GeneratedTrip {
     localCost += tr[tier === 2 ? 1 : 0] * stop.days;
   }
 
+  const rawBudgetNum = Number(String(input.budget || "").replace(/[^\d]/g, ""));
+  const isBudgetRestricted = tier === 0 || (rawBudgetNum > 0 && rawBudgetNum <= 18000);
+
   const transportation_plan: TransportationStep[] = [];
   let transportCost = 0;
   let prev: Place | null = origin;
   for (const stop of perStop) {
     if (stop.place && prev && prev.id !== stop.place.id) {
-      const alts = findAlternatives({ origin: prev, destination: stop.place, travelers: pax }).filter((a) => a.mode !== "wait");
-      const best = alts[0];
+      const rawAlts = findAlternatives({ origin: prev, destination: stop.place, travelers: pax }).filter((a) => a.mode !== "wait");
+      
+      let best = rawAlts[0];
+      if (rawAlts.length > 1) {
+        if (isBudgetRestricted) {
+          // For budget travelers or budgets <= 18k, prioritize Train or Bus over costly flights
+          const nonFlight = rawAlts.filter((a) => a.mode !== "flight");
+          if (nonFlight.length > 0) {
+            best = nonFlight[0];
+          }
+        } else if (rawBudgetNum > 0) {
+          const withinBudget = rawAlts.filter((a) => a.costInr[0] <= rawBudgetNum * 0.40);
+          if (withinBudget.length > 0) {
+            best = withinBudget[0];
+          }
+        }
+      }
+
       if (best) {
         const mode = ({ flight: "Flight", train: "Train", bus: "Bus", cab: "Taxi" } as const)[best.mode as "flight"] ?? "Local";
-        transportation_plan.push({ mode, details: `${best.title}. ${best.note}`, estimated_cost: `₹${best.costInr[0].toLocaleString("en-IN")}–${best.costInr[1].toLocaleString("en-IN")} (estimate, all travellers)`, duration: `${best.durationHours} hours` });
+        transportation_plan.push({
+          mode,
+          details: `${best.title}. ${best.note}`,
+          estimated_cost: `₹${best.costInr[0].toLocaleString("en-IN")}–${best.costInr[1].toLocaleString("en-IN")} (estimate, all travellers)`,
+          duration: `${best.durationHours} hours`,
+        });
         transportCost += (best.costInr[0] + best.costInr[1]) / 2;
       }
     }
     if (stop.place) prev = stop.place;
   }
   const total = Math.round((transportCost * 2 + stayCost + foodCost + localCost + activitiesCost) * 1.1);
-  const rawBudgetNum = Number(String(input.budget || "").replace(/[^\d]/g, ""));
   const rawTrip = {
     trip_details: {
       destination: stops.join(" -> "),
@@ -197,18 +220,26 @@ export function planTripLocally(input: TripData): GeneratedTrip {
 
 /**
  * Clamps the entire generated trip to at most 91% of user's budget.
- * Allocates activity costs proportionally so total equals targetTotalCost.
+ * Harmonizes transportation, stays, and activities so all individual line items
+ * are consistent with the user's budget (e.g. ₹5,000 budget -> no ₹9,000 flights).
  */
-export function clampTripToUserBudget<T extends { days?: any[]; itinerary?: any[]; totalCost?: number; budget?: any; trip_details?: any }>(
-  trip: T,
-  rawUserBudget?: number
-): T {
+export function clampTripToUserBudget<
+  T extends {
+    days?: any[];
+    itinerary?: any[];
+    totalCost?: number;
+    budget?: any;
+    trip_details?: any;
+    transportation_plan?: any[];
+    hotels?: any[];
+  }
+>(trip: T, rawUserBudget?: number): T {
   const extractedBudget =
     typeof rawUserBudget === "number" && rawUserBudget > 0
       ? rawUserBudget
       : Number(String(trip.budget || trip.trip_details?.budget || "").replace(/[^\d]/g, "")) || 10000;
   const userBudget = Math.max(100, extractedBudget);
-  const targetTotalCost = Math.floor(userBudget * 0.91); // e.g., ₹910 for a ₹1,000 budget
+  const targetTotalCost = Math.floor(userBudget * 0.91); // e.g., ₹4,550 for a ₹5,000 budget
 
   const daysList = Array.isArray(trip.days)
     ? trip.days
@@ -216,8 +247,49 @@ export function clampTripToUserBudget<T extends { days?: any[]; itinerary?: any[
     ? trip.itinerary
     : [];
   const numDays = Math.max(1, daysList.length);
+  const pax = Number(trip.trip_details?.travelers) || 1;
 
-  // Allocate 100% of itinerary activity items so their sum equals targetTotalCost
+  // Realistic category allocations matching calculateTrueCost in cost engine
+  const targetTransport = Math.round(targetTotalCost * 0.27);
+  const targetStay = Math.round(targetTotalCost * 0.31);
+  const targetFood = Math.round(targetTotalCost * 0.16);
+  const targetActivities = Math.round(targetTotalCost * 0.12);
+  const targetLocalTransit = Math.round(targetTotalCost * 0.06);
+
+  // 1. Harmonize Transportation Plan: Ensure mode and prices fit within budget
+  if (Array.isArray(trip.transportation_plan) && trip.transportation_plan.length > 0) {
+    const isBudgetRestricted = userBudget <= 18000;
+    trip.transportation_plan.forEach((step: any) => {
+      if (isBudgetRestricted && (step.mode === "Flight" || /flight|plane/i.test(step.mode))) {
+        step.mode = "Train";
+        step.details = `Superfast / Express Train connecting your route comfortably within budget. Use Tatkal / IRCTC booking.`;
+      }
+      const minT = Math.max(150, Math.round(targetTransport * 0.85));
+      const maxT = Math.max(minT + 100, Math.round(targetTransport * 1.15));
+      step.estimated_cost = `₹${minT.toLocaleString("en-IN")}–₹${maxT.toLocaleString("en-IN")} (estimate, all travellers)`;
+    });
+  }
+
+  // 2. Harmonize Hotels: Nightly rate fits accommodation allocation
+  if (Array.isArray(trip.hotels) && trip.hotels.length > 0) {
+    const rooms = Math.ceil(pax / 2);
+    const nightlyStay = Math.max(250, Math.round(targetStay / (numDays * rooms)));
+    const minH = Math.round(nightlyStay * 0.85);
+    const maxH = Math.round(nightlyStay * 1.15);
+    trip.hotels.forEach((hotel: any) => {
+      hotel.price = `₹${minH.toLocaleString("en-IN")}–₹${maxH.toLocaleString("en-IN")}/night (estimate)`;
+      if (nightlyStay < 1000) {
+        if (!/hostel|homestay|guesthouse/i.test(hotel.name)) {
+          hotel.name = `Budget Traveler Homestay / Hostel · Central`;
+        }
+        hotel.description = `Clean, verified budget stay or homestay fitting within your ₹${userBudget.toLocaleString("en-IN")} trip budget.`;
+      } else if (nightlyStay < 2500) {
+        hotel.description = `Comfortable hotel fitting within your ₹${userBudget.toLocaleString("en-IN")} trip budget.`;
+      }
+    });
+  }
+
+  // 3. Harmonize Activities: Scale activity ticket costs realistically
   const allActivities: any[] = [];
   for (const day of daysList) {
     if (Array.isArray(day.activities)) {
@@ -227,37 +299,37 @@ export function clampTripToUserBudget<T extends { days?: any[]; itinerary?: any[
 
   if (allActivities.length > 0) {
     const rawSum = allActivities.reduce(
-      (acc, act) => acc + Math.max(1, Number(act.cost ?? act.estimatedCost?.amount ?? act.estimatedCost ?? 100)),
+      (acc, act) => acc + Math.max(1, Number(act.cost ?? act.estimatedCost?.amount ?? act.estimatedCost ?? 50)),
       0
     );
     let runningTotal = 0;
     allActivities.forEach((act, idx) => {
-      const weight = Math.max(1, Number(act.cost ?? act.estimatedCost?.amount ?? act.estimatedCost ?? 100)) / rawSum;
+      const weight = Math.max(1, Number(act.cost ?? act.estimatedCost?.amount ?? act.estimatedCost ?? 50)) / rawSum;
       const scaled =
         idx === allActivities.length - 1
-          ? Math.max(10, targetTotalCost - runningTotal)
-          : Math.max(10, Math.round(targetTotalCost * weight));
+          ? Math.max(10, targetActivities - runningTotal)
+          : Math.max(10, Math.round(targetActivities * weight));
       runningTotal += scaled;
       act.cost = scaled;
       act.estimatedCost = { amount: scaled, currency: "₹" };
-      act.ticket_price = `₹${scaled.toLocaleString("en-IN")}`;
+      act.ticket_price = scaled <= 20 ? "Free" : `₹${scaled.toLocaleString("en-IN")}`;
       act.currency = "INR";
     });
   }
 
+  const dailyAllowance = Math.round((targetActivities + targetFood + targetLocalTransit) / numDays);
   for (const day of daysList) {
     if (Array.isArray(day.activities)) {
-      day.dailyCost = day.activities.reduce((s: number, a: any) => s + (Number(a.cost) || 0), 0);
+      day.dailyCost = day.activities.reduce((s: number, a: any) => s + (Number(a.cost) || 0), 0) + Math.round((targetFood + targetLocalTransit) / numDays);
     } else {
-      day.dailyCost = Math.round(targetTotalCost / numDays);
+      day.dailyCost = dailyAllowance;
     }
   }
 
-  const pax = Number(trip.trip_details?.travelers) || 1;
   const updatedTripDetails = trip.trip_details
     ? {
         ...trip.trip_details,
-        total_estimated_cost: `₹${targetTotalCost.toLocaleString("en-IN")} (estimate for ${pax} traveller${pax > 1 ? "s" : ""}, incl. 10% buffer)`,
+        total_estimated_cost: `₹${targetTotalCost.toLocaleString("en-IN")} (estimate for ${pax} traveller${pax > 1 ? "s" : ""}, incl. all transport, stay, meals & activities)`,
       }
     : undefined;
 
