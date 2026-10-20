@@ -8,7 +8,6 @@ import {
   Radar,
   TrainFront,
   ShieldAlert,
-  Wallet,
   Sparkles,
   Menu,
   X,
@@ -33,7 +32,6 @@ const CONSUMER_NAV = [
   { href: "/my-trips", label: "My Trips", icon: MapPin },
   { href: "/waitlist-rescue", label: "Waitlist Rescue", icon: TrainFront },
   { href: "/risk", label: "Risk Radar", icon: ShieldAlert },
-  { href: "/financial-os", label: "Financial OS", icon: Wallet },
   { href: "/destination-intelligence", label: "Destinations", icon: Sparkles },
   { href: "/pricing", label: "Pricing", icon: CreditCard },
 ];

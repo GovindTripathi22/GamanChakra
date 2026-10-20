@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySession } from "@/lib/auth/token";
 
 /** Route protection (replaces Clerk middleware). Verifies the signed session cookie. */
-const PROTECTED = [/^\/command/, /^\/duty-of-care/, /^\/automations/, /^\/agent/, /^\/my-trips/, /^\/settings/, /^\/control-tower/, /^\/financial-os/, /^\/execution/, /^\/exchange/, /^\/profile/, /^\/world-model/, /^\/destination-intelligence/];
+const PROTECTED = [/^\/command/, /^\/duty-of-care/, /^\/automations/, /^\/agent/, /^\/my-trips/, /^\/settings/, /^\/control-tower/, /^\/execution/, /^\/exchange/, /^\/profile/, /^\/world-model/, /^\/destination-intelligence/];
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
