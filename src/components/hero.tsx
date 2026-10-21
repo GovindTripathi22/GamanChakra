@@ -268,25 +268,27 @@ export function Hero() {
             </motion.div>
 
             {/* Scenic View Switcher */}
-            <div className="absolute bottom-4 right-4 z-20 hidden md:flex items-center gap-1.5 rounded-full border border-white/15 bg-black/60 px-3.5 py-1.5 backdrop-blur-md text-xs text-white/90 shadow-2xl">
-                <span className="text-white/50 mr-1 flex items-center gap-1 text-[11px] font-medium">
-                    <Camera className="h-3 w-3 text-orange-400" />
+            <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 z-20 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/75 px-3.5 py-1.5 backdrop-blur-md text-xs text-white/90 shadow-2xl max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-none">
+                <span className="text-white/60 mr-1 flex items-center gap-1.5 text-[11px] font-medium whitespace-nowrap shrink-0">
+                    <Camera className="h-3.5 w-3.5 text-orange-400" />
                     Scenic View:
                 </span>
-                {HERO_BACKDROPS.map((b, idx) => (
-                    <button
-                        key={b.id}
-                        type="button"
-                        onClick={() => setActiveBackdropIndex(idx)}
-                        className={`rounded-full px-2.5 py-0.5 transition-all text-[11px] font-medium cursor-pointer ${
-                            activeBackdropIndex === idx
-                                ? "bg-orange-500 text-white font-semibold shadow-sm shadow-orange-500/50"
-                                : "text-white/60 hover:text-white hover:bg-white/10"
-                        }`}
-                    >
-                        {b.name}
-                    </button>
-                ))}
+                <div className="flex items-center gap-1 shrink-0">
+                    {HERO_BACKDROPS.map((b, idx) => (
+                        <button
+                            key={b.id}
+                            type="button"
+                            onClick={() => setActiveBackdropIndex(idx)}
+                            className={`rounded-full px-3 py-1 transition-all text-[11px] font-medium cursor-pointer whitespace-nowrap shrink-0 ${
+                                activeBackdropIndex === idx
+                                    ? "bg-orange-500 text-white font-semibold shadow-sm shadow-orange-500/50"
+                                    : "text-white/70 hover:text-white hover:bg-white/10"
+                            }`}
+                        >
+                            {b.name}
+                        </button>
+                    ))}
+                </div>
             </div>
         </div>
     );
