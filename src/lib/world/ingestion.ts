@@ -71,7 +71,7 @@ export async function ingestWorldObservations(): Promise<IngestionResult> {
           unit: "/100",
           condition: congestionValue > 70 ? "high_congestion" : "moderate_flow",
           confidence: 0.85,
-          source: "KLYP Transit Stress Model",
+          source: "Voyage Transit Stress Model",
           observedAt: now,
           expiresAt,
         },

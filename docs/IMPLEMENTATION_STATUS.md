@@ -1,4 +1,4 @@
-# 📊 KLYP / Voyage — Implementation Status & Capability Matrix
+# 📊 Voyage — Implementation Status & Capability Matrix
 
 *Last Updated: 2026-10-13 | Source of Truth: Codebase Implementation*
 
@@ -24,7 +24,7 @@ This document tracks the verified implementation status of all platform capabili
 | **Core Foundations** | Agent Protocol & MCP Server | ✅ Implemented | Prisma DB (`AgentClient`, `Action`) | Scoped API Keys (SHA-256) | Per-tool required scopes; anonymous calls rejected in prod |
 | **Core Foundations** | Active Trip Guardian Poller | ✅ Implemented | Prisma DB (`Alert`, `Action`, `AuditEvent`) | Owner / Background Worker | 12h alert deduplication; real destination coordinates |
 | **Core Foundations** | Offline PWA Service Worker | ✅ Implemented | Browser Cache API (`sw.js`) | Public Static / Emergency Passes Only | Private APIs & user data strictly excluded from cache |
-| **Breakthrough 1** | KLYP World Model Entities | ✅ Implemented | Prisma DB (`WorldEntity`, `WorldRoute`) | Public / Authenticated Read | Normalized IATA, IRCTC, OSM hubs (DEL, JAI, BOM, GOI, COK, VNS) |
+| **Breakthrough 1** | Voyage World Model Entities | ✅ Implemented | Prisma DB (`WorldEntity`, `WorldRoute`) | Public / Authenticated Read | Normalized IATA, IRCTC, OSM hubs (DEL, JAI, BOM, GOI, COK, VNS) |
 | **Breakthrough 1** | World Observations & Ingestion | ✅ Implemented | Prisma DB (`WorldObservation`) | Automated Worker | Open-Meteo, OSRM, curated rail schedules with TTL |
 | **Breakthrough 1** | Scenario Simulation Engine | ✅ Implemented | In-Memory / DB (`WorldScenario`) | Authenticated | Fog closures, monsoon washouts, festival spikes |
 | **Breakthrough 2** | Autonomous Execution State Machine | ✅ Implemented | Prisma DB (`ExecutionWorkflow`, `WorkflowStep`) | Autonomy Policy Engine (P3) | 10 explicit states; idempotency keys; rollback compensation |

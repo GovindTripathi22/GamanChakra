@@ -1,9 +1,9 @@
 /**
- * KLYP / Voyage Autonomous Travel Economy Client SDK
+ * Voyage Autonomous Travel Economy Client SDK
  * Official TypeScript SDK for external autonomous agents and partner systems.
  */
 
-export interface KlypClientConfig {
+export interface VoyageClientConfig {
   baseUrl?: string;
   apiKey: string;
 }
@@ -25,11 +25,11 @@ export interface McpResponse<T = any> {
   };
 }
 
-export class KlypTravelClient {
+export class VoyageTravelClient {
   private baseUrl: string;
   private apiKey: string;
 
-  constructor(config: KlypClientConfig) {
+  constructor(config: VoyageClientConfig) {
     this.baseUrl = (config.baseUrl || "http://localhost:3000").replace(/\/$/, "");
     this.apiKey = config.apiKey;
   }

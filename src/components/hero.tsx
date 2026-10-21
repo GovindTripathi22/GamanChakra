@@ -10,10 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const HERO_BACKDROPS = [
+    { id: "srirangam", name: "Srirangam Temple", url: "/hero-srirangam-hd.jpg" },
     { id: "kerala", name: "Kerala Backwaters", url: "/hero-kerala-hd.jpg" },
     { id: "mountains", name: "Misty Sunrise", url: "/hero-travel-hd.jpg" },
     { id: "lake", name: "Alpine Lake", url: "/hero-lake-boat.jpg" },
-    { id: "srirangam", name: "Srirangam Temple", url: "/hero-srirangam-hd.jpg" },
     { id: "ladakh", name: "Ladakh Highway", url: "/hero-ladakh-hd.jpg" },
 ];
 
@@ -21,17 +21,19 @@ export function Hero() {
     const router = useRouter();
     const [destination, setDestination] = useState("");
     const [activeBackdropIndex, setActiveBackdropIndex] = useState(0);
+    const [userPaused, setUserPaused] = useState(false);
     const [isNavigating, setIsNavigating] = useState(false);
     const [risk, setRisk] = useState<{ place: string; score: number; band: string } | null>(null);
     const [alerts, setAlerts] = useState<{ id: string; title: string; placeName: string | null; severity: string }[]>([]);
 
-    // Auto-cycle through scenic backdrops slowly every 25 seconds
+    // Auto-cycle through scenic backdrops slowly every 30 seconds unless user selected a view
     useEffect(() => {
+        if (userPaused) return;
         const timer = setInterval(() => {
             setActiveBackdropIndex((prev) => (prev + 1) % HERO_BACKDROPS.length);
-        }, 25000);
+        }, 30000);
         return () => clearInterval(timer);
-    }, []);
+    }, [userPaused]);
 
     // Live risk preview for whatever the traveller types (debounced, keyless)
     useEffect(() => {
@@ -278,7 +280,10 @@ export function Hero() {
                         <button
                             key={b.id}
                             type="button"
-                            onClick={() => setActiveBackdropIndex(idx)}
+                            onClick={() => {
+                                setActiveBackdropIndex(idx);
+                                setUserPaused(true);
+                            }}
                             className={`rounded-full px-3 py-1 transition-all text-[11px] font-medium cursor-pointer whitespace-nowrap shrink-0 ${
                                 activeBackdropIndex === idx
                                     ? "bg-orange-500 text-white font-semibold shadow-sm shadow-orange-500/50"

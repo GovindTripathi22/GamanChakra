@@ -308,7 +308,7 @@ model CostBenchmark {
 }
 
 // ==============================================================================
-// BREAKTHROUGH 1: KLYP WORLD MODEL
+// BREAKTHROUGH 1: VOYAGE WORLD MODEL
 // ==============================================================================
 
 model WorldEntity {
@@ -391,7 +391,7 @@ model ExecutionWorkflow {
 }
 
 // ==============================================================================
-// BREAKTHROUGH 3: KLYP TRAVEL LIQUIDITY EXCHANGE
+// BREAKTHROUGH 3: VOYAGE TRAVEL LIQUIDITY EXCHANGE
 // ==============================================================================
 
 model Supplier {
@@ -462,7 +462,7 @@ model Reservation {
 }
 
 // ==============================================================================
-// BREAKTHROUGH 5: KLYP JOURNEY IDENTITY GRAPH
+// BREAKTHROUGH 5: VOYAGE JOURNEY IDENTITY GRAPH
 // ==============================================================================
 
 model TravelerProfile {
@@ -494,7 +494,7 @@ model ConsentGrant {
 }
 
 // ==============================================================================
-// BREAKTHROUGH 6: KLYP TRAVEL FINANCIAL OS
+// BREAKTHROUGH 6: VOYAGE TRAVEL FINANCIAL OS
 // ==============================================================================
 
 model FinancialLedgerEntry {
@@ -529,7 +529,7 @@ model ReconciliationRecord {
 }
 
 // ==============================================================================
-// BREAKTHROUGH 7: KLYP DESTINATION INTELLIGENCE
+// BREAKTHROUGH 7: VOYAGE DESTINATION INTELLIGENCE
 // ==============================================================================
 
 model DestinationMetric {

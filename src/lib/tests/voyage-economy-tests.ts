@@ -53,9 +53,9 @@ import {
   simulateDestinationScenario,
 } from "../destination-intelligence/analytics";
 
-export async function runAllKlypEconomyTests() {
+export async function runAllVoyageEconomyTests() {
   console.log("--------------------------------------------------------------------------------");
-  console.log("  RUNNING SUITE: KLYP AUTONOMOUS TRAVEL ECONOMY (12 CORE CAPABILITIES)");
+  console.log("  RUNNING SUITE: VOYAGE AUTONOMOUS TRAVEL ECONOMY (12 CORE CAPABILITIES)");
   console.log("--------------------------------------------------------------------------------");
 
   let passed = 0;

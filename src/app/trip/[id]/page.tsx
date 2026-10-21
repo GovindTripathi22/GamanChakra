@@ -572,7 +572,7 @@ export default function TripPage() {
                             </div>
                         </motion.section>
 
-                        {/* KLYP Autonomous Control Tower & Sentinel HUD */}
+                        {/* Voyage Autonomous Control Tower & Sentinel HUD */}
                         <motion.section
                             initial={{ opacity: 0, y: 15 }}
                             animate={{ opacity: 1, y: 0 }}

@@ -72,7 +72,7 @@ export function TripShieldCard({ tripId, destination }: TripShieldCardProps) {
               </Badge>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 max-w-xl">
-              Backed by KLYP risk-prediction models: If your train or flight is delayed by &gt;60 mins and breaks your scheduled itinerary, receive an <strong>instant ₹1,500 UPI compensation</strong> with zero claim paperwork.
+              Backed by Voyage risk-prediction models: If your train or flight is delayed by &gt;60 mins and breaks your scheduled itinerary, receive an <strong>instant ₹1,500 UPI compensation</strong> with zero claim paperwork.
             </p>
           </div>
         </div>

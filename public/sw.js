@@ -1,8 +1,8 @@
-// KLYP Service Worker — Safe Offline Mode
+// Voyage Service Worker — Safe Offline Mode
 // Principle P5: Restricts caching strictly to static assets and public emergency passes.
 // Strictly prevents caching of authenticated API responses, payments, or private traveler data.
 
-const CACHE_NAME = "klyp-offline-v2";
+const CACHE_NAME = "voyage-offline-v2";
 const OFFLINE_STATIC_URLS = [
   "/favicon.ico",
   "/manifest.json",

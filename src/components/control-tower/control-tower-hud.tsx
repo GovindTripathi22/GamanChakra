@@ -63,7 +63,7 @@ export function ControlTowerHud({
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white flex items-center gap-1.5">
-                KLYP Autonomous Control Tower
+                Voyage Autonomous Control Tower
               </h3>
               <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px]">
                 Sentinel Live

@@ -6,11 +6,11 @@ import { runAllWaitlistTests } from "./waitlist-tests";
 import { runAllGroupTests } from "./group-tests";
 import { runAllEmergencyTests } from "./emergency-tests";
 import { runAllProtocolTests } from "./protocol-tests";
-import { runAllKlypEconomyTests } from "./klyp-economy-tests";
+import { runAllVoyageEconomyTests } from "./voyage-economy-tests";
 
 export async function runEntirePlatformVerification() {
   console.log("================================================================================");
-  console.log("  VOYAGE MASTER VERIFICATION SUITE: RUNNING ALL PHASES 1 THROUGH 8 & KLYP ECONOMY");
+  console.log("  VOYAGE MASTER VERIFICATION SUITE: RUNNING ALL PHASES 1 THROUGH 8 & VOYAGE ECONOMY");
   console.log("================================================================================");
 
   const contract = await runAllContractTests();
@@ -21,7 +21,7 @@ export async function runEntirePlatformVerification() {
   const group = await runAllGroupTests();
   const emergency = await runAllEmergencyTests();
   const protocol = await runAllProtocolTests();
-  const klypEconomy = await runAllKlypEconomyTests();
+  const voyageEconomy = await runAllVoyageEconomyTests();
 
   const allSuites = [
     { name: "Phase 1: Foundation & Adapters (P1, P2)", ...contract },
@@ -32,7 +32,7 @@ export async function runEntirePlatformVerification() {
     { name: "Phase 6: Group Trip Room & Splitwise (F5)", ...group },
     { name: "Phase 7: Route Risk & Offline Emergency Card (F6)", ...emergency },
     { name: "Phase 8: Agent Protocol & Outcome Learning Engine", ...protocol },
-    { name: "Breakthroughs: KLYP Autonomous Travel Economy 12-Suites", ...klypEconomy },
+    { name: "Breakthroughs: Voyage Autonomous Travel Economy 12-Suites", ...voyageEconomy },
   ];
 
   let totalTests = 0;

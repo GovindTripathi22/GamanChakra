@@ -77,7 +77,7 @@ export default function WorldModelPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-200 dark:border-slate-800">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-xs font-semibold uppercase tracking-wider mb-2">
-              <Globe2 className="h-3.5 w-3.5" /> Breakthrough 1: KLYP World Model
+              <Globe2 className="h-3.5 w-3.5" /> Breakthrough 1: Voyage World Model
             </div>
             <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               World Intelligence Workspace

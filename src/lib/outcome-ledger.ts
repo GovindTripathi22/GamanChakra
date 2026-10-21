@@ -120,7 +120,7 @@ export function getTripOutcomeLedger(tripId: string): OutcomeRecord[] {
 }
 
 /**
- * Computes global telemetry statistics across all trips to demonstrate KLYP outcome learning.
+ * Computes global telemetry statistics across all trips to demonstrate Voyage outcome learning.
  */
 export function getGlobalTelemetryStats(): GlobalTelemetryStats {
   if (typeof window === "undefined") {

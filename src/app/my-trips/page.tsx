@@ -115,7 +115,7 @@ export default function MyTripsPage() {
                     <div>
                         <div className="flex items-center gap-2 mb-1">
                             <Badge className="bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/30 text-xs">
-                                KLYP Execution Engine
+                                Voyage Execution Engine
                             </Badge>
                             <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-xs flex items-center gap-1">
                                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -136,12 +136,12 @@ export default function MyTripsPage() {
                     </Link>
                 </div>
 
-                {/* KLYP Global Telemetry Banner */}
+                {/* Voyage Global Telemetry Banner */}
                 <div className="mb-10 rounded-2xl border border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-800/60 p-5 shadow-sm">
                     <div className="flex items-center justify-between mb-3 border-b border-slate-100 dark:border-slate-700/60 pb-2.5">
                         <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                             <Activity className="h-4 w-4 text-orange-500" />
-                            KLYP Ground-Truth Outcome Ledger (Proprietary Dataset)
+                            Voyage Ground-Truth Outcome Ledger (Proprietary Dataset)
                         </span>
                         <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
                             Self-Improving World Model

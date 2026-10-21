@@ -141,7 +141,7 @@ export default function ControlTowerPage() {
               </div>
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white flex items-center gap-2">
-                  KLYP Travel Control Tower
+                  Voyage Travel Control Tower
                   <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-mono font-medium border border-blue-500/30">
                     Breakthrough 4
                   </span>
