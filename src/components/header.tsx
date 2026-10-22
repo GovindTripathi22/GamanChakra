@@ -41,7 +41,6 @@ const ENTERPRISE_NAV = [
   { href: "/agent", label: "Agent", icon: Bot },
   { href: "/automations", label: "Automations", icon: Workflow },
   { href: "/claims", label: "Claims", icon: Scale },
-  { href: "/control-tower", label: "Control Tower", icon: Radio },
   { href: "/risk", label: "Risk Radar", icon: ShieldAlert },
 ];
 

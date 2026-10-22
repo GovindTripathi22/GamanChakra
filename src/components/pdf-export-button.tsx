@@ -1,6 +1,6 @@
 "use client";
-import { localDestinationImage } from "@/lib/destination-image";
 
+import { localDestinationImage } from "@/lib/destination-image";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
@@ -11,27 +11,50 @@ interface PdfExportButtonProps {
     trip: GeneratedTrip;
 }
 
-const sanitizePrice = (price: string | undefined): string => {
-    if (!price) return "N/A";
-    return price
+/**
+ * Strips non-ASCII, converts currency symbols, and replaces unicode arrows
+ * so standard jsPDF Helvetica never renders corrupted glyphs like '!'
+ */
+const cleanText = (text: string | undefined | null): string => {
+    if (!text) return "";
+    return text
+        .replace(/[→➔➜➝]/g, " -> ")
+        .replace(/!['"]/g, " -> ")
+        .replace(/!/g, " - ")
+        .replace(/[•●]/g, "-")
         .replace(/₹/g, "Rs. ")
+        .replace(/[^\x20-\x7E\n\r]/g, " ") // restrict to safe printable ASCII
         .replace(/\s+/g, " ")
         .trim();
 };
 
-// Canvas-based image loader that targets browser cache to prevent fetch timeout and CORS issues
+const sanitizePrice = (price: string | undefined | null): string => {
+    if (!price) return "N/A";
+    return cleanText(price);
+};
+
+/**
+ * Normalizes destination strings like "Srirangam, India" -> "Srirangam"
+ */
+const extractCityName = (fullDestination: string): string => {
+    if (!fullDestination) return "Your Destination";
+    const parts = fullDestination.split(/->|,|\|/).map((p) => p.trim());
+    const valid = parts.find((p) => p && p.toLowerCase() !== "india");
+    return valid || parts[0] || fullDestination;
+};
+
+// Canvas-based image loader with safety timeout
 const getBase64ImageFromUrl = (url: string): Promise<string | null> => {
+    if (!url) return Promise.resolve(null);
     return new Promise((resolve) => {
         const img = new Image();
         img.setAttribute("crossOrigin", "anonymous");
-        
-        // Timeout handler
+
         const timeoutId = setTimeout(() => {
-            img.src = ""; // Abort loading
-            console.warn("PDF Image load timeout:", url);
+            img.src = "";
             resolve(null);
-        }, 15000); // 15 seconds timeout
-        
+        }, 3500); // 3.5s timeout for fast generation
+
         img.onload = () => {
             clearTimeout(timeoutId);
             try {
@@ -41,23 +64,20 @@ const getBase64ImageFromUrl = (url: string): Promise<string | null> => {
                 const ctx = canvas.getContext("2d");
                 if (ctx) {
                     ctx.drawImage(img, 0, 0);
-                    const dataURL = canvas.toDataURL("image/jpeg");
-                    resolve(dataURL);
+                    resolve(canvas.toDataURL("image/jpeg"));
                 } else {
                     resolve(null);
                 }
-            } catch (e) {
-                console.warn("Canvas error for PDF image conversion:", e);
+            } catch {
                 resolve(null);
             }
         };
-        
+
         img.onerror = () => {
             clearTimeout(timeoutId);
-            console.warn("Failed to load image for PDF:", url);
             resolve(null);
         };
-        
+
         img.src = url;
     });
 };
@@ -69,53 +89,50 @@ export function PdfExportButton({ trip }: PdfExportButtonProps) {
         setGenerating(true);
 
         try {
-            // Get exact matching URLs used in the results page to hit browser cache
-            const localHero = localDestinationImage(trip.trip_details.destination);
+            const rawDestination = trip.trip_details.destination || "Destination";
+            const primaryCity = extractCityName(rawDestination);
+
+            // Fetch local hero image if available
+            const localHero = localDestinationImage(rawDestination);
             const heroImageUrl = localHero ? `${window.location.origin}${localHero}` : "";
-            
-            // Start fetching hero image in parallel
             const heroPromise = getBase64ImageFromUrl(heroImageUrl);
 
             // Fetch hotel images in parallel
-            const hotelPromises = trip.hotels.map(async (hotel) => {
-                if (hotel.image_url) {
-                    return getBase64ImageFromUrl(hotel.image_url);
-                }
-                return null;
-            });
+            const hotelPromises = (trip.hotels || []).map((hotel) =>
+                hotel.image_url ? getBase64ImageFromUrl(hotel.image_url) : Promise.resolve(null)
+            );
 
             // Fetch activity images in parallel
             const activityPromises: Promise<{ key: string; base64: string | null }>[] = [];
-            trip.itinerary.forEach((day, dayIndex) => {
+            (trip.itinerary || []).forEach((day, dayIndex) => {
                 (day.activities || []).forEach((activity, actIndex) => {
                     if (activity.image_url) {
                         activityPromises.push(
                             getBase64ImageFromUrl(activity.image_url).then((base64) => ({
                                 key: `${dayIndex}_${actIndex}`,
-                                base64
+                                base64,
                             }))
                         );
                     }
                 });
             });
 
-            // Resolve all image downloads in parallel
             const [heroImageBase64, hotelImages, resolvedActivities] = await Promise.all([
                 heroPromise,
                 Promise.all(hotelPromises),
-                Promise.all(activityPromises)
+                Promise.all(activityPromises),
             ]);
 
-            const activityImages: { [key: string]: string | null } = {};
+            const activityImages: Record<string, string | null> = {};
             resolvedActivities.forEach((item) => {
                 activityImages[item.key] = item.base64;
             });
 
-            // Create A4 PDF Document
+            // Initialize A4 PDF
             const doc = new jsPDF({
                 orientation: "portrait",
                 unit: "mm",
-                format: "a4"
+                format: "a4",
             });
 
             let yPos = 20;
@@ -123,301 +140,370 @@ export function PdfExportButton({ trip }: PdfExportButtonProps) {
             const checkPageOverflow = (heightNeeded: number): boolean => {
                 if (yPos + heightNeeded > 270) {
                     doc.addPage();
-                    yPos = 22; // Leave margin for page header
+                    yPos = 22;
                     return true;
                 }
                 return false;
             };
 
-            // --- TITLE & SUBTITLE ---
+            // =================================================================
+            // PAGE 1: HEADER & TITLE
+            // =================================================================
             doc.setFont("helvetica", "bold");
             doc.setFontSize(22);
             doc.setTextColor(15, 23, 42); // slate-900
             doc.text("VOYAGE ITINERARY", 15, yPos + 2);
 
             doc.setFont("helvetica", "normal");
-            doc.setFontSize(9);
+            doc.setFontSize(8.5);
             doc.setTextColor(100, 116, 139); // slate-500
-            doc.text("YOUR EXCLUSIVE CAPACITY-OPTIMIZED TRAVEL GUIDE", 15, yPos + 8);
+            doc.text("AUTONOMOUS TRAVEL COMPANION - CAPACITY & BUDGET OPTIMIZED", 15, yPos + 7.5);
 
-            yPos += 14;
+            yPos += 13;
 
-            // Hero Image
+            // Hero Banner: Use real photo if loaded, otherwise render an executive gradient card
             if (heroImageBase64) {
                 try {
-                    doc.addImage(heroImageBase64, "JPEG", 15, yPos, 180, 55);
-                    yPos += 60;
-                } catch (e) {
-                    doc.setFillColor(241, 245, 249);
-                    doc.roundedRect(15, yPos, 180, 40, 2, 2, "F");
-                    yPos += 45;
+                    doc.addImage(heroImageBase64, "JPEG", 15, yPos, 180, 48);
+                    yPos += 53;
+                } catch {
+                    renderExecutiveHeroCard();
                 }
             } else {
-                doc.setFillColor(241, 245, 249);
-                doc.roundedRect(15, yPos, 180, 40, 2, 2, "F");
-                yPos += 45;
+                renderExecutiveHeroCard();
             }
 
-            // Destination Heading
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(16);
-            doc.setTextColor(234, 88, 12); // Orange-600
-            doc.text(`Journey to ${trip.trip_details.destination}`, 15, yPos);
-            yPos += 8;
+            function renderExecutiveHeroCard() {
+                // Sleek slate-navy banner with orange accent strip
+                doc.setFillColor(15, 23, 42); // slate-900
+                doc.roundedRect(15, yPos, 180, 36, 2, 2, "F");
 
-            // Summary cards
+                // Orange accent strip
+                doc.setFillColor(234, 88, 12); // orange-600
+                doc.rect(15, yPos, 4, 36, "F");
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(9);
+                doc.setTextColor(249, 115, 22); // orange-500
+                doc.text("OFFICIAL EXPEDITION DOSSIER", 24, yPos + 9);
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(16);
+                doc.setTextColor(255, 255, 255);
+                const bannerDest = cleanText(trip.trip_details.destination);
+                const wrappedDest = doc.splitTextToSize(bannerDest, 160);
+                doc.text(wrappedDest.slice(0, 2), 24, yPos + 18);
+
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(8);
+                doc.setTextColor(148, 163, 184); // slate-400
+                doc.text("Synchronized with IRCTC Rail Schedules, Flight Radars & Parametric Delay Shield", 24, yPos + 30);
+
+                yPos += 42;
+            }
+
+            // Summary Info Badges (Duration, Vibe, Budget, Estimated Cost)
             const cardWidth = 42;
-            const cardHeight = 18;
+            const cardHeight = 16;
             const cardGap = 4;
             const startX = 15;
 
-            const details = [
-                { label: "DURATION", value: trip.trip_details.duration },
-                { label: "VIBE", value: trip.trip_details.vibe },
-                { label: "BUDGET", value: trip.trip_details.budget },
-                { label: "EST. COST", value: trip.trip_details.total_estimated_cost || "N/A" }
+            const summaryStats = [
+                { label: "DURATION", value: trip.trip_details.duration || "N/A" },
+                { label: "VIBE", value: trip.trip_details.vibe || "General" },
+                { label: "BUDGET", value: trip.trip_details.budget ? `Rs. ${trip.trip_details.budget}` : "Flexible" },
+                { label: "EST. TOTAL", value: trip.trip_details.total_estimated_cost || "Rs. 0" },
             ];
 
-            details.forEach((item, index) => {
-                const x = startX + index * (cardWidth + cardGap);
-                doc.setFillColor(248, 250, 252);
-                doc.setDrawColor(241, 245, 249);
+            summaryStats.forEach((stat, idx) => {
+                const x = startX + idx * (cardWidth + cardGap);
+                doc.setFillColor(248, 250, 252); // slate-50
+                doc.setDrawColor(226, 232, 240); // slate-200
                 doc.roundedRect(x, yPos, cardWidth, cardHeight, 1.5, 1.5, "FD");
 
-                doc.setFont("helvetica", "normal");
+                doc.setFont("helvetica", "bold");
                 doc.setFontSize(6.5);
                 doc.setTextColor(100, 116, 139);
-                doc.text(item.label, x + 3, yPos + 5);
+                doc.text(stat.label, x + 3.5, yPos + 5);
 
                 doc.setFont("helvetica", "bold");
-                const val = sanitizePrice(item.value);
-                doc.setFontSize(val.length > 15 ? 7.5 : 8.5);
+                doc.setFontSize(8.5);
                 doc.setTextColor(15, 23, 42);
-                const wrappedVal = doc.splitTextToSize(val, cardWidth - 6);
-                doc.text(wrappedVal, x + 3, yPos + 10.5);
+                const cleanVal = cleanText(stat.value);
+                const wrappedVal = doc.splitTextToSize(cleanVal, cardWidth - 7);
+                doc.text(wrappedVal[0] || cleanVal, x + 3.5, yPos + 11);
             });
 
-            yPos += cardHeight + 10;
+            yPos += cardHeight + 8;
 
-            // --- TRANSPORTATION ---
+            // =================================================================
+            // SECTION: TRANSPORTATION / GETTING THERE (NO OVERLAPPING TEXT)
+            // =================================================================
             if (trip.transportation_plan && trip.transportation_plan.length > 0) {
                 doc.setFont("helvetica", "bold");
-                doc.setFontSize(13);
+                doc.setFontSize(12);
                 doc.setTextColor(15, 23, 42);
-                doc.text("Getting There", 15, yPos);
-                yPos += 6;
+                doc.text("Getting There & Transit Plan", 15, yPos);
+                yPos += 5.5;
 
                 trip.transportation_plan.forEach((step) => {
-                    const detailsWrapped = doc.splitTextToSize(step.details, 110);
-                    const textHeight = detailsWrapped.length * 3.8;
-                    const transCardHeight = Math.max(12, textHeight + 5);
+                    const cleanDetails = cleanText(step.details);
+                    const cleanCost = sanitizePrice(step.estimated_cost);
+                    const cleanDuration = cleanText(step.duration);
 
-                    checkPageOverflow(transCardHeight + 4);
+                    // Allow details max 105mm so it never collides with the right cost column (x=140 to 195)
+                    const detailsLines = doc.splitTextToSize(cleanDetails, 105);
+                    const textHeight = detailsLines.length * 3.7;
+                    const cardHeight = Math.max(16, textHeight + 6);
 
-                    // Card Background
+                    checkPageOverflow(cardHeight + 4);
+
+                    // Card Container
                     doc.setFillColor(255, 255, 255);
-                    doc.setDrawColor(241, 245, 249);
-                    doc.roundedRect(15, yPos, 180, transCardHeight, 1.5, 1.5, "FD");
+                    doc.setDrawColor(226, 232, 240);
+                    doc.roundedRect(15, yPos, 180, cardHeight, 1.5, 1.5, "FD");
 
-                    // Trans Mode Title
+                    // Left Transit Mode Pill
+                    const mode = (step.mode || "Transit").toUpperCase();
+                    const isFlight = mode.includes("FLIGHT") || mode.includes("AIR");
+                    const isTrain = mode.includes("TRAIN") || mode.includes("RAIL");
+
+                    doc.setFillColor(isFlight ? 239 : isTrain ? 240 : 241, isFlight ? 246 : isTrain ? 253 : 245, isFlight ? 255 : isTrain ? 244 : 249);
+                    doc.setDrawColor(isFlight ? 191 : isTrain ? 187 : 203, isFlight ? 219 : isTrain ? 247 : 213, isFlight ? 254 : isTrain ? 208 : 225);
+                    doc.roundedRect(18, yPos + 3.5, 20, 7, 1, 1, "FD");
+
                     doc.setFont("helvetica", "bold");
-                    doc.setFontSize(9.5);
-                    doc.setTextColor(234, 88, 12);
-                    doc.text(step.mode, 19, yPos + Math.max(6, (transCardHeight / 2) - 1.5));
+                    doc.setFontSize(7);
+                    doc.setTextColor(isFlight ? 29 : isTrain ? 21 : 71, isFlight ? 78 : isTrain ? 128 : 85, isFlight ? 216 : isTrain ? 61 : 105);
+                    doc.text(mode.slice(0, 7), 28, yPos + 8, { align: "center" });
 
-                    // Transit details
+                    // Center Details
                     doc.setFont("helvetica", "normal");
-                    doc.setFontSize(8);
-                    doc.setTextColor(71, 85, 105);
-                    doc.text(detailsWrapped, 55, yPos + 4.5);
+                    doc.setFontSize(7.5);
+                    doc.setTextColor(51, 65, 85); // slate-700
+                    doc.text(detailsLines, 42, yPos + 5.5);
 
-                    // Duration / Cost on Right
+                    // Right Side: Price on top line, Duration on second line (Aligned right at 190mm)
                     doc.setFont("helvetica", "bold");
                     doc.setFontSize(8);
-                    doc.setTextColor(15, 23, 42);
-                    doc.text(`${sanitizePrice(step.estimated_cost)}  |  ${step.duration}`, 191, yPos + Math.max(6, (transCardHeight / 2) - 1.5), { align: "right" });
+                    doc.setTextColor(234, 88, 12); // Orange-600
+                    doc.text(cleanCost, 190, yPos + 6, { align: "right" });
 
-                    yPos += transCardHeight + 3;
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(7);
+                    doc.setTextColor(100, 116, 139);
+                    doc.text(cleanDuration, 190, yPos + 10.5, { align: "right" });
+
+                    yPos += cardHeight + 3;
                 });
+
                 yPos += 4;
             }
 
-            // --- HOTELS ---
-            checkPageOverflow(20);
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(13);
-            doc.setTextColor(15, 23, 42);
-            doc.text("Recommended Accommodations", 15, yPos);
-            yPos += 7;
-
-            for (let index = 0; index < trip.hotels.length; index++) {
-                const hotel = trip.hotels[index];
-                
-                const wrappedAddress = doc.splitTextToSize(hotel.address, 115);
-                const addressHeight = wrappedAddress.length * 3.8;
-                const textBlockHeight = 5 + 2 + addressHeight + 4 + 4;
-                const hotelCardHeight = Math.max(30, textBlockHeight);
-
-                checkPageOverflow(hotelCardHeight + 4);
-
-                // Card Background
-                doc.setFillColor(255, 255, 255);
-                doc.setDrawColor(241, 245, 249);
-                doc.roundedRect(15, yPos, 180, hotelCardHeight, 2, 2, "FD");
-
-                // Draw Image
-                const imgBase64 = hotelImages[index];
-                const imageY = yPos + (hotelCardHeight - 24) / 2;
-                if (imgBase64) {
-                    try {
-                        doc.addImage(imgBase64, "JPEG", 18, imageY, 36, 24);
-                    } catch (e) {
-                        doc.setFillColor(241, 245, 249);
-                        doc.rect(18, imageY, 36, 24, "F");
-                    }
-                } else {
-                    doc.setFillColor(248, 250, 252);
-                    doc.roundedRect(18, imageY, 36, 24, 1, 1, "F");
-                    doc.setFont("helvetica", "bold");
-                    doc.setFontSize(7.5);
-                    doc.setTextColor(148, 163, 184);
-                    doc.text("PREVIEW", 36, imageY + 13, { align: "center" });
-                }
-
-                // Name
+            // =================================================================
+            // SECTION: RECOMMENDED ACCOMMODATIONS (NO UGLY "PREVIEW" BOXES)
+            // =================================================================
+            if (trip.hotels && trip.hotels.length > 0) {
+                checkPageOverflow(20);
                 doc.setFont("helvetica", "bold");
-                doc.setFontSize(10.5);
+                doc.setFontSize(12);
                 doc.setTextColor(15, 23, 42);
-                doc.text(hotel.name, 58, yPos + 7);
+                doc.text("Recommended Accommodations", 15, yPos);
+                yPos += 5.5;
 
-                // Address
-                doc.setFont("helvetica", "normal");
-                doc.setFontSize(8);
-                doc.setTextColor(100, 116, 139);
-                doc.text(wrappedAddress, 58, yPos + 12.5);
+                trip.hotels.forEach((hotel, idx) => {
+                    const cleanName = cleanText(hotel.name || "Well-rated Stay");
+                    const cleanAddress = cleanText(hotel.address || "City Centre");
+                    const cleanPrice = sanitizePrice(hotel.price || "₹3,000/night");
+                    const rating = hotel.rating ? `${hotel.rating} / 5` : "4.0 / 5";
 
-                // Rating & Price at the bottom
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(8.5);
-                doc.setTextColor(234, 88, 12);
-                doc.text(`Rating: ${hotel.rating} / 5`, 58, yPos + hotelCardHeight - 5);
+                    const hasImage = Boolean(hotelImages[idx]);
+                    const textStartX = hasImage ? 50 : 20;
+                    const textWidth = hasImage ? 95 : 125;
 
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(10.5);
-                doc.setTextColor(234, 88, 12);
-                doc.text(sanitizePrice(hotel.price), 191, yPos + hotelCardHeight - 5, { align: "right" });
+                    const addressLines = doc.splitTextToSize(cleanAddress, textWidth);
+                    const hotelCardHeight = Math.max(22, 10 + addressLines.length * 3.5);
 
-                yPos += hotelCardHeight + 4;
-            }
-            yPos += 4;
+                    checkPageOverflow(hotelCardHeight + 4);
 
-            // --- ITINERARY ---
-            checkPageOverflow(20);
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(13);
-            doc.setTextColor(15, 23, 42);
-            doc.text("Daily Itinerary", 15, yPos);
-            yPos += 7;
+                    // Card Container
+                    doc.setFillColor(255, 255, 255);
+                    doc.setDrawColor(226, 232, 240);
+                    doc.roundedRect(15, yPos, 180, hotelCardHeight, 1.5, 1.5, "FD");
 
-            for (let dayIndex = 0; dayIndex < trip.itinerary.length; dayIndex++) {
-                const day = trip.itinerary[dayIndex];
-                checkPageOverflow(15);
-
-                // Day Title & Pacing
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(11.5);
-                doc.setTextColor(234, 88, 12);
-                const pacingTag = day.pacingRating ? ` [${day.pacingRating.toUpperCase()} PACING]` : "";
-                doc.text(`Day ${day.day}: ${day.theme}${pacingTag}`, 15, yPos);
-                yPos += 6;
-
-                for (let actIndex = 0; actIndex < (day.activities || []).length; actIndex++) {
-                    const activity = day.activities[actIndex];
-
-                    const actTitle = (activity.isGapFiller ? "[Flash Deal] " : "") + (activity.title || activity.place_name || "Activity Stop");
-                    const actTime = activity.timeSlot || activity.time || "Scheduled Stop";
-                    const actPrice = sanitizePrice(activity.ticket_price || (activity.estimatedCost ? `Rs. ${activity.estimatedCost.amount}` : "Free"));
-                    const crowdTag = activity.crowdLevel ? ` | Crowd: ${activity.crowdLevel.toUpperCase()}` : "";
-                    const perkText = activity.offPeakTip ? ` • Perk: ${activity.offPeakTip}` : "";
-                    const fullDesc = (activity.description || activity.details || "") + perkText;
-
-                    const wrappedDesc = doc.splitTextToSize(fullDesc, 122);
-                    const descHeight = wrappedDesc.length * 3.8;
-                    const textBlockHeight = 4.5 + 4.5 + descHeight + 6;
-                    const actCardHeight = Math.max(24, textBlockHeight);
-
-                    checkPageOverflow(actCardHeight + 4);
-
-                    // Card Background
-                    doc.setFillColor(250, 250, 250);
-                    doc.setDrawColor(241, 245, 249);
-                    doc.roundedRect(15, yPos, 180, actCardHeight, 1.5, 1.5, "FD");
-
-                    // Image
-                    const actImgBase64 = activityImages[`${dayIndex}_${actIndex}`];
-                    const actImgY = yPos + (actCardHeight - 18) / 2;
-                    if (actImgBase64) {
+                    if (hasImage && hotelImages[idx]) {
                         try {
-                            doc.addImage(actImgBase64, "JPEG", 18, actImgY, 28, 18);
-                        } catch (e) {
-                            doc.setFillColor(241, 245, 249);
-                            doc.rect(18, actImgY, 28, 18, "F");
+                            doc.addImage(hotelImages[idx]!, "JPEG", 18, yPos + 3, 26, hotelCardHeight - 6);
+                        } catch {
+                            // If drawing image fails, fallback gracefully without drawing ugly grey box
                         }
                     } else {
-                        doc.setFillColor(241, 245, 249);
-                        doc.rect(18, actImgY, 28, 18, "F");
-                        doc.setFont("helvetica", "bold");
-                        doc.setFontSize(6.5);
-                        doc.setTextColor(148, 163, 184);
-                        doc.text("PREVIEW", 32, actImgY + 10, { align: "center" });
+                        // Colored accent strip on the left instead of empty grey box
+                        doc.setFillColor(234, 88, 12);
+                        doc.rect(15, yPos, 2.5, hotelCardHeight, "F");
                     }
 
-                    // Activity Name
+                    // Hotel Name
                     doc.setFont("helvetica", "bold");
-                    doc.setFontSize(9.5);
+                    doc.setFontSize(9);
                     doc.setTextColor(15, 23, 42);
-                    doc.text(actTitle, 50, yPos + 6.5);
+                    doc.text(cleanName, textStartX, yPos + 6);
 
-                    // Time, Cost, & Crowd
+                    // Address
                     doc.setFont("helvetica", "normal");
                     doc.setFontSize(7.5);
                     doc.setTextColor(100, 116, 139);
-                    doc.text(`Time: ${actTime}  |  Cost: ${actPrice}${crowdTag}`, 50, yPos + 11);
+                    doc.text(addressLines, textStartX, yPos + 10.5);
 
-                    // Details Description with Perk
-                    doc.setFont("helvetica", "normal");
+                    // Rating Badge
+                    doc.setFont("helvetica", "bold");
                     doc.setFontSize(7.5);
-                    doc.setTextColor(71, 85, 105);
-                    doc.text(wrappedDesc, 50, yPos + 15.5);
+                    doc.setTextColor(16, 185, 129); // emerald-600
+                    doc.text(`Rating: ${rating}`, textStartX, yPos + hotelCardHeight - 3.5);
 
-                    yPos += actCardHeight + 3;
-                }
-                yPos += 3;
+                    // Price on the right
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(9);
+                    doc.setTextColor(234, 88, 12);
+                    doc.text(cleanPrice, 190, yPos + 7, { align: "right" });
+
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(6.5);
+                    doc.setTextColor(148, 163, 184);
+                    doc.text("estimate, all taxes incl.", 190, yPos + 11.5, { align: "right" });
+
+                    yPos += hotelCardHeight + 3;
+                });
+
+                yPos += 4;
             }
 
-            // --- HEADER & FOOTER ON ALL PAGES ---
+            // =================================================================
+            // SECTION: DAILY ITINERARY (CLEAN TYPOGRAPHY, NO PREVIEW BOXES)
+            // =================================================================
+            checkPageOverflow(20);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(12);
+            doc.setTextColor(15, 23, 42);
+            doc.text("Daily Itinerary Plan", 15, yPos);
+            yPos += 6;
+
+            (trip.itinerary || []).forEach((day, dayIndex) => {
+                checkPageOverflow(16);
+
+                // Determine city for this day to fix "India old town heritage walk"
+                let dayCity = primaryCity;
+                const rawTheme = cleanText(day.theme || "");
+                if (rawTheme.includes(":")) {
+                    const possibleCity = rawTheme.split(":")[0].replace(/discover|arrive|highlights|local life/gi, "").trim();
+                    if (possibleCity.length > 2 && possibleCity.toLowerCase() !== "india") {
+                        dayCity = possibleCity;
+                    }
+                }
+
+                // Day Title & Pacing Pill
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(10.5);
+                doc.setTextColor(234, 88, 12);
+                const pacing = day.pacingRating ? ` [${cleanText(day.pacingRating).toUpperCase()} PACING]` : "";
+                doc.text(`Day ${day.day}: ${rawTheme || `Discover ${dayCity}`}${pacing}`, 15, yPos);
+                yPos += 5.5;
+
+                (day.activities || []).forEach((activity, actIndex) => {
+                    let actTitle = cleanText(activity.title || activity.place_name || "Activity Stop");
+                    // Repair generic "India heritage walk" or "India museum" into actual city name
+                    if (actTitle.toLowerCase().startsWith("india ") && dayCity.toLowerCase() !== "india") {
+                        actTitle = `${dayCity} ${actTitle.slice(6)}`;
+                    }
+
+                    const actTime = cleanText(activity.timeSlot || activity.time || "Scheduled");
+                    const actPrice = sanitizePrice(activity.ticket_price || (activity.estimatedCost ? `Rs. ${activity.estimatedCost.amount}` : "Free"));
+                    const crowd = activity.crowdLevel ? cleanText(activity.crowdLevel).toUpperCase() : "MODERATE";
+                    const perkText = activity.offPeakTip ? ` - Tip: ${cleanText(activity.offPeakTip)}` : "";
+                    const fullDesc = cleanText((activity.description || activity.details || "") + perkText);
+
+                    const hasActImg = Boolean(activityImages[`${dayIndex}_${actIndex}`]);
+                    const textStartX = hasActImg ? 45 : 20;
+                    const textWidth = hasActImg ? 100 : 125;
+
+                    const descLines = doc.splitTextToSize(fullDesc, textWidth);
+                    const actCardHeight = Math.max(18, 11 + descLines.length * 3.5);
+
+                    checkPageOverflow(actCardHeight + 3);
+
+                    // Activity Card
+                    doc.setFillColor(250, 250, 250);
+                    doc.setDrawColor(226, 232, 240);
+                    doc.roundedRect(15, yPos, 180, actCardHeight, 1.5, 1.5, "FD");
+
+                    if (hasActImg && activityImages[`${dayIndex}_${actIndex}`]) {
+                        try {
+                            doc.addImage(activityImages[`${dayIndex}_${actIndex}`]!, "JPEG", 18, yPos + 3, 22, actCardHeight - 6);
+                        } catch {
+                            // ignore image error
+                        }
+                    } else {
+                        // Clean subtle pill accent on left
+                        doc.setFillColor(99, 102, 241); // indigo
+                        doc.circle(18.5, yPos + 6, 1.2, "F");
+                    }
+
+                    // Activity Title
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(8.5);
+                    doc.setTextColor(15, 23, 42);
+                    doc.text(actTitle, textStartX, yPos + 6);
+
+                    // Time & Crowd Subtitle
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(7);
+                    doc.setTextColor(100, 116, 139);
+                    doc.text(`Time: ${actTime}   |   Crowd: ${crowd}`, textStartX, yPos + 10);
+
+                    // Description & Tip
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(7);
+                    doc.setTextColor(71, 85, 105);
+                    doc.text(descLines, textStartX, yPos + 14);
+
+                    // Price on the right
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(8);
+                    doc.setTextColor(234, 88, 12);
+                    doc.text(actPrice, 190, yPos + 6, { align: "right" });
+
+                    yPos += actCardHeight + 2.5;
+                });
+
+                yPos += 2.5;
+            });
+
+            // =================================================================
+            // FOOTER & PAGE NUMBERING ON ALL PAGES
+            // =================================================================
             const pageCount = doc.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {
                 doc.setPage(i);
 
-                // Header
+                // Header Top
                 doc.setFont("helvetica", "normal");
-                doc.setFontSize(8);
+                doc.setFontSize(7.5);
                 doc.setTextColor(148, 163, 184);
-                doc.text("Voyage - Your Personal Travel Companion", 15, 10);
+                doc.text("VOYAGE - Your Personal Travel Companion", 15, 10);
                 doc.text(`Page ${i} of ${pageCount}`, 195, 10, { align: "right" });
 
-                doc.setDrawColor(241, 245, 249);
+                doc.setDrawColor(226, 232, 240);
                 doc.line(15, 12, 195, 12);
 
-                // Footer
+                // Footer Bottom
                 doc.line(15, 285, 195, 285);
-                doc.text("Generated via Voyage • Capacity & Off-Peak Optimized", 15, 290);
+                doc.text("Generated via Voyage - Budget & Capacity Optimized", 15, 290);
                 doc.text("All rights reserved.", 195, 290, { align: "right" });
             }
 
-            doc.save(`Voyage_${trip.trip_details.destination.replace(/\s+/g, "_")}_Itinerary.pdf`);
-
+            // Save PDF
+            const sanitizedFileName = `Voyage_${primaryCity.replace(/\s+/g, "_")}_Itinerary.pdf`;
+            doc.save(sanitizedFileName);
         } catch (error) {
             console.error("Error creating PDF:", error);
             alert("An error occurred while generating the PDF. Please try again.");

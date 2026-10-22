@@ -42,7 +42,6 @@ import { MapView } from "@/components/map-view";
 import { CrowdBadge } from "@/components/crowd-badge";
 import { GapFillCard } from "@/components/gap-fill-card";
 import { detectScheduleGaps } from "@/lib/gap-detector";
-import { ControlTowerHud } from "@/components/control-tower/control-tower-hud";
 import { RecoveryDialog } from "@/components/control-tower/recovery-dialog";
 import { TripShieldCard } from "@/components/trip-shield/trip-shield-card";
 import { LiveActivityCard } from "@/components/live-itinerary/live-activity-card";
@@ -572,23 +571,12 @@ export default function TripPage() {
                             </div>
                         </motion.section>
 
-                        {/* Voyage Autonomous Control Tower & Sentinel HUD */}
+                        {/* Voyage Shield™ — Guaranteed Outcome Protection */}
                         <motion.section
                             initial={{ opacity: 0, y: 15 }}
                             animate={{ opacity: 1, y: 0 }}
                             className="space-y-4"
                         >
-                            <ControlTowerHud
-                                tripHealthScore={96}
-                                guardianMode={guardianMode}
-                                onToggleGuardianMode={() =>
-                                    setGuardianMode((prev) =>
-                                        prev === "copilot" ? "autonomous" : "copilot"
-                                    )
-                                }
-                                onTriggerDisruption={handleTriggerDisruption}
-                                isSimulating={isSimulating}
-                            />
                             <TripShieldCard
                                 tripId={params.id as string}
                                 destination={trip.trip_details.destination}
