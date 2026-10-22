@@ -77,7 +77,7 @@ export function Hero() {
     };
 
     return (
-        <div className="relative flex min-h-[85vh] flex-col items-center justify-center overflow-hidden bg-slate-900 pt-20 pb-10">
+        <div className="relative flex min-h-[92vh] lg:min-h-screen flex-col items-center justify-center overflow-hidden bg-slate-900 pt-20 pb-28 sm:pb-32">
             {/* Background - Ultra-HD Cinematic Travel Imagery */}
             <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                 <div className="absolute inset-0 z-10 bg-[linear-gradient(180deg,rgba(7,11,22,.60)_0%,rgba(7,11,22,.35)_45%,var(--gc-bg)_100%)] pointer-events-none" />
@@ -87,30 +87,35 @@ export function Hero() {
                 <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500/15 rounded-full blur-3xl animate-pulse pointer-events-none z-10" />
                 <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl animate-pulse delay-1000 pointer-events-none z-10" />
 
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={HERO_BACKDROPS[activeBackdropIndex].id}
-                        initial={{ opacity: 0, scale: 1.05 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 1.0, ease: "easeOut" }}
-                        className="absolute inset-0"
-                    >
-                        <Image
-                            src={HERO_BACKDROPS[activeBackdropIndex].url}
-                            alt={HERO_BACKDROPS[activeBackdropIndex].name}
-                            fill
-                            priority
-                            quality={90}
-                            sizes="100vw"
-                            className="object-cover"
-                        />
-                    </motion.div>
-                </AnimatePresence>
+                {/* Smooth Cross-Fade Backdrop Layers */}
+                {HERO_BACKDROPS.map((b, idx) => {
+                    const isActive = activeBackdropIndex === idx;
+                    return (
+                        <div
+                            key={b.id}
+                            aria-hidden={!isActive}
+                            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                                isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                            }`}
+                        >
+                            <Image
+                                src={b.url}
+                                alt={b.name}
+                                fill
+                                priority={idx === 0 || idx === 1}
+                                quality={90}
+                                sizes="100vw"
+                                className={`object-cover transition-transform duration-[12000ms] ease-out ${
+                                    isActive ? "scale-100" : "scale-105"
+                                }`}
+                            />
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Content */}
-            <div className="relative z-10 flex flex-col items-center px-4 text-center w-full max-w-5xl">
+            <div className="relative z-10 flex flex-col items-center px-4 text-center w-full max-w-5xl pb-16 sm:pb-20">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -242,7 +247,7 @@ export function Hero() {
 
                 {/* Live alerts strip */}
                 {alerts.length > 0 && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} className="mt-10 w-full max-w-4xl rounded-2xl border border-white/15 bg-black/30 backdrop-blur-md px-4 py-3 text-left">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} className="mt-6 sm:mt-7 w-full max-w-4xl rounded-2xl border border-white/15 bg-black/40 backdrop-blur-md px-4 py-3 text-left shadow-lg">
                         <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300"><span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />Live world alerts the agent is watching</div>
                         <ul className="mt-2 grid md:grid-cols-3 gap-2">
                             {alerts.map((a) => (
