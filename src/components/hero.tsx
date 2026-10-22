@@ -253,29 +253,18 @@ export function Hero() {
                 )}
             </div>
 
-            {/* Scroll indicator */}
+            {/* Scenic View Switcher - Centered Floating Dock */}
             <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.5 }}
-                className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1, duration: 0.5 }}
+                className="absolute bottom-5 sm:bottom-7 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 sm:gap-2 rounded-full border border-white/20 bg-slate-950/80 px-3.5 py-1.5 sm:px-4 sm:py-2 backdrop-blur-xl text-xs text-white shadow-2xl max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-none"
             >
-                <motion.div
-                    animate={{ y: [0, 8, 0] }}
-                    transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                    className="w-5 h-9 rounded-full border-2 border-white/30 flex items-start justify-center p-1.5"
-                >
-                    <motion.div className="w-1 h-2 rounded-full bg-white/60" />
-                </motion.div>
-            </motion.div>
-
-            {/* Scenic View Switcher */}
-            <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 z-20 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/75 px-3.5 py-1.5 backdrop-blur-md text-xs text-white/90 shadow-2xl max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-none">
-                <span className="text-white/60 mr-1 flex items-center gap-1.5 text-[11px] font-medium whitespace-nowrap shrink-0">
+                <span className="text-white/70 mr-0.5 sm:mr-1 flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold uppercase tracking-wider whitespace-nowrap shrink-0">
                     <Camera className="h-3.5 w-3.5 text-orange-400" />
                     Scenic View:
                 </span>
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
                     {HERO_BACKDROPS.map((b, idx) => (
                         <button
                             key={b.id}
@@ -284,17 +273,20 @@ export function Hero() {
                                 setActiveBackdropIndex(idx);
                                 setUserPaused(true);
                             }}
-                            className={`rounded-full px-3 py-1 transition-all text-[11px] font-medium cursor-pointer whitespace-nowrap shrink-0 ${
+                            className={`rounded-full px-3 py-1 sm:px-3.5 sm:py-1.5 transition-all text-[11px] sm:text-xs font-medium cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
                                 activeBackdropIndex === idx
-                                    ? "bg-orange-500 text-white font-semibold shadow-sm shadow-orange-500/50"
+                                    ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold shadow-md shadow-orange-500/40 scale-[1.02]"
                                     : "text-white/70 hover:text-white hover:bg-white/10"
                             }`}
                         >
+                            {activeBackdropIndex === idx && (
+                                <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                            )}
                             {b.name}
                         </button>
                     ))}
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }
