@@ -101,6 +101,126 @@ Itimad-ud-Daulah (Baby Taj)|culture|27.1928|78.0311|60|350|afternoon|low|1|Exqui
 Fatehpur Sikri|sightseeing|27.0945|77.6679|180|650|afternoon|moderate|1|40 km away; go with a driver|walk-in
 Mughlai dinner|food|27.1630|78.0400|90|900|evening|moderate|0|Try petha and bedai for breakfast|walk-in`,
   },
+  srirangam: {
+    stays: [["Pilgrim guesthouse", "South Chitra Street", 1200, 2500], ["Heritage hotel", "Rockfort area", 2800, 6000]],
+    food: [400, 900], transit: [300, 800], season: "Nov–Mar; Vaikunta Ekadashi (Dec/Jan) has massive pilgrim footfalls",
+    pois: `
+Sri Ranganathaswamy Temple & Rajagopuram darshan|culture|10.8624|78.6901|180|0|morning|peak|0|Wear traditional dress; visit the 1000-pillar hall|walk-in
+Amma Mandapam Cauvery river holy bathing ghats|culture|10.8530|78.6920|60|0|morning|moderate|1|Sacred rituals at sunrise|walk-in
+Rockfort Ucchi Pillayar Temple climb|sightseeing|10.8282|78.6974|120|50|evening|moderate|1|437 steps carved in rock; sunset panoramic view|walk-in
+Jambukeswarar Temple (Thiruvanaikaval water element)|culture|10.8532|78.7054|90|0|afternoon|low|0|Submerged Shivalinga in the inner sanctum|walk-in
+Traditional Tamil filter coffee & prasadam tasting|food|10.8600|78.6900|45|150|morning|moderate|0|Try warm puliyodarai and ghee laddu|walk-in
+Butterfly Park & Tropical Eco Garden|leisure|10.8800|78.6650|90|50|afternoon|low|1|Asia's largest butterfly conservatory|walk-in`,
+  },
+  madurai: {
+    stays: [["Budget hotel near temple", "West Perumal Maistry St", 1500, 3000], ["Heritage boutique hotel", "Town Hall Road", 4000, 8500]],
+    food: [500, 1200], transit: [400, 900], season: "Oct–Mar; Chithirai Festival (Apr/May) is grand but very hot",
+    pois: `
+Meenakshi Amman Temple complex & Ashta Shakti Mandapam|culture|9.9195|78.1193|180|0|morning|peak|0|No electronic devices allowed; cloakroom available|walk-in
+Thirumalai Nayakkar Palace light & sound show|culture|9.9142|78.1242|90|100|evening|moderate|0|Indo-Saracenic giant stucco pillars|walk-in
+Famous Madurai Murugan Idli & Jigarthanda drink|food|9.9160|78.1180|60|250|afternoon|peak|0|Famous cooling drink with almond gum and ice cream|walk-in
+Gandhi Memorial Museum & Freedom Archive|culture|9.9328|78.1408|90|0|afternoon|low|0|Contains Gandhiji's blood-stained dhoti from 1948|walk-in
+Puthu Mandapam 16th-century brass & textile bazaar|food|9.9190|78.1210|90|0|evening|moderate|0|Tailors stitching blouses inside stone pillar hall|walk-in
+Alagar Kovil Vishnu hill shrine|sightseeing|10.0762|78.2144|120|0|morning|low|1|21 km north; natural mountain springs|walk-in`,
+  },
+  kanyakumari: {
+    stays: [["Sea-view hotel", "Main Beach Road", 1800, 4000], ["Mid-range resort", "Kovalam Road", 4500, 9000]],
+    food: [600, 1400], transit: [400, 900], season: "Oct–Mar; Chitra Pournami (Apr) moonrise and sunset simultaneously",
+    pois: `
+Vivekananda Rock Memorial & Thiruvalluvar Statue ferry|culture|8.0780|77.5550|150|70|morning|peak|1|Queue early for ferry; windy rock in the ocean|walk-in
+Triveni Sangam sunrise & confluence darshan|sightseeing|8.0785|77.5530|60|0|morning|moderate|1|Meeting of Arabian Sea, Bay of Bengal & Indian Ocean|walk-in
+Bhagavathy Amman 3000-year-old temple|culture|8.0776|77.5528|60|0|morning|moderate|0|Legendary diamond nose ring shining out to sea|walk-in
+Sunset View Point & coastal promenade walk|leisure|8.0820|77.5450|90|0|evening|peak|1|Spectacular orange dusk over the ocean|walk-in
+Padmanabhapuram Wooden Palace (half-day excursion)|sightseeing|8.2508|77.3275|180|150|afternoon|low|0|37 km north; exquisite Kerala rosewood architecture|walk-in
+Gandhi Memorial Mandapam where urn was kept|culture|8.0792|77.5535|45|20|afternoon|low|0|Sun rays fall on exact urn spot on Oct 2nd|walk-in`,
+  },
+  rameswaram: {
+    stays: [["Pilgrim hotel", "Near West Tower", 1500, 3200], ["Resort near beach", "Mukundarayar Chatram", 4000, 9000]],
+    food: [500, 1100], transit: [500, 1200], season: "Oct–Apr pleasant coastal weather; Maha Shivratri peak",
+    pois: `
+Ramanathaswamy Temple & 22 sacred theertham bath|culture|9.2881|79.3174|180|25|morning|peak|0|World's longest carved pillared corridor; change of clothes needed|walk-in
+Dhanushkodi ghost town & Arichal Munai land's end|sightseeing|9.1770|79.4180|240|0|morning|moderate|1|Ruins of 1964 cyclone; tip pointing toward Sri Lanka|walk-in
+Agnitheertham sea shore ritual bath at dawn|culture|9.2890|79.3200|60|0|morning|moderate|1|Calm bay waters facing east|walk-in
+Dr. APJ Abdul Kalam National Memorial & Museum|culture|9.2825|79.2940|60|0|afternoon|low|0|Tribute to India's People's President|walk-in
+Historic Pamban Rail Bridge view from road bridge|sightseeing|9.2810|79.2000|60|0|evening|moderate|1|Cantilever railway bridge opening over ocean|walk-in
+Ramar Patham footprint shrine on highest sand hill|sightseeing|9.3030|79.3130|45|0|evening|low|1|Panoramas of the entire Rameswaram island|walk-in`,
+  },
+  thiruvananthapuram: {
+    stays: [["City hotel", "MG Road / Overbridge", 1800, 3800], ["Beach resort", "Kovalam", 4500, 12000]],
+    food: [600, 1500], transit: [500, 1200], season: "Sep–Mar; Attukal Pongala in Feb/Mar",
+    pois: `
+Padmanabhaswamy Temple darshan & pond view|culture|8.4830|76.9436|120|0|morning|peak|0|Strict traditional dhoti/saree dress code|walk-in
+Kovalam Lighthouse Beach & coastal walk|leisure|8.3988|76.9820|180|50|evening|moderate|1|Climb the 142-step lighthouse for panoramic coast view|walk-in
+Napier Museum & Indo-Saracenic Art Gallery|culture|8.5085|76.9554|90|50|afternoon|low|0|Unique natural air-conditioning architecture; closed Mondays|walk-in
+Chalai Market traditional bazaar walk & banana chips|food|8.4870|76.9510|90|300|evening|peak|1|Fresh hot coconut oil banana chips frying|walk-in
+Shanghumukham Beach & giant Matsya Kanya sculpture|leisure|8.4795|76.9078|75|0|evening|moderate|1|Sunset beside Trivandrum international runway|walk-in`,
+  },
+  udaipur: {
+    stays: [["Lakeside haveli", "Old City / Chandpole", 2500, 5000], ["Boutique palace stay", "Hanuman Ghat", 6000, 14000], ["Heritage lake luxury", "Lake Pichola", 25000, 75000]],
+    food: [700, 1800], transit: [500, 1200], season: "Oct–Mar; monsoon (Jul–Aug) makes lakes overflow",
+    pois: `
+City Palace Udaipur & crystal gallery|culture|24.5764|73.6835|180|400|morning|peak|0|Rajasthan's largest palace complex; panoramic Lake Pichola view|walk-in
+Lake Pichola sunset boat cruise to Jag Mandir|leisure|24.5720|73.6780|90|800|evening|peak|1|Best sunset views of Lake Palace and ghats|walk-in
+Bagore Ki Haveli Rajasthani Dharohar folk dance show|culture|24.5790|73.6800|75|150|evening|peak|0|Dharohar dance at 7 pm; buy tickets at 5:30 pm|walk-in
+Saheliyon-ki-Bari marble fountains & lotus pools|sightseeing|24.6030|73.6860|60|100|afternoon|low|1|Lush gardens built for the royal maidens|walk-in
+Jagdish Temple 1651 carved stone shrine|culture|24.5794|73.6837|45|0|morning|moderate|0|Steep steps decorated with elephant carvings|walk-in
+Sajjangarh Monsoon Palace hilltop sunset|sightseeing|24.5900|73.6370|90|200|evening|moderate|1|Perched on high hill; take shared jeep up|walk-in`,
+  },
+  ladakh: {
+    stays: [["Ladakhi homestay", "Old Leh / Changspa", 1800, 4000], ["Boutique resort", "Shey / Choglamsar", 5000, 11000], ["Luxury desert camp", "Nubra Valley / Pangong", 6000, 16000]],
+    food: [600, 1500], transit: [1500, 3500], season: "May–Sep; winters below -20°C with frozen Zanskar river",
+    pois: `
+Pangong Tso high-altitude salt lake|sightseeing|33.7595|78.6674|360|0|morning|moderate|1|Color-changing turquoise waters at 14,270 ft; inner line permit required|3-7 days advance
+Thiksey Monastery morning prayer chant|culture|34.0583|77.6667|120|50|morning|moderate|0|Arrive at 6:30 am to hear deep horn trumpets and chants|walk-in
+Nubra Valley & Hunder sand dunes double-humped camel|sightseeing|34.5800|77.4600|300|500|evening|moderate|1|Cold desert surrounded by snow peaks|3-7 days advance
+Shanti Stupa sunset panorama over Leh valley|sightseeing|34.1700|77.5750|75|0|evening|moderate|1|White-domed Buddhist stupa inaugurated by Dalai Lama|walk-in
+Khardung La world's highest motorable pass|sightseeing|34.2787|77.6047|60|0|morning|peak|1|17,982 ft pass; limit halt to 20 mins to prevent AMS|walk-in
+Leh Palace & Old Town heritage walk|culture|34.1660|77.5860|90|100|afternoon|low|0|Tibetan Potala-style 17th century hill palace|walk-in`,
+  },
+  rishikesh: {
+    stays: [["Ashram stay / guesthouse", "Tapovan", 1200, 2800], ["Riverfront boutique resort", "Shivpuri", 4500, 10000]],
+    food: [500, 1200], transit: [400, 1000], season: "Sep–Nov & Feb–Apr; rafting closed in monsoon",
+    pois: `
+Parmarth Niketan & Triveni Ghat evening Ganga Aarti|culture|30.1200|78.3140|90|0|evening|peak|1|Chanting and floating diya lamps at sunset|walk-in
+White-water rafting on the Ganga (16 km Shivpuri)|leisure|30.1360|78.3890|210|1000|morning|peak|1|Lifejacket and licensed guide mandatory|3-7 days advance
+The Beatles Ashram (Chaurasi Kutia) graffiti walk|culture|30.1130|78.3120|120|150|morning|low|1|Transcendental meditation huts inside Rajaji Tiger Reserve|walk-in
+Laxman Jhula & Ram Jhula suspension bridge walk|sightseeing|30.1280|78.3270|60|0|evening|moderate|1|Iconic suspension bridges over the turquoise river|walk-in
+Neer Garh waterfall jungle hike|sightseeing|30.1450|78.3370|120|50|afternoon|low|1|Short hike through limestone stepped pools|walk-in
+Ayurvedic yoga session & Sattvic cafe brunch|food|30.1300|78.3200|90|400|morning|low|0|Organic cafes overlooking the river|walk-in`,
+  },
+  amritsar: {
+    stays: [["Heritage hotel near temple", "Heritage Street", 1800, 3800], ["Luxury hotel", "Mall Road", 5000, 12000]],
+    food: [600, 1400], transit: [400, 900], season: "Oct–Mar; Baisakhi (Apr) is festive",
+    pois: `
+Golden Temple (Harmandir Sahib) & Palki Sahib ceremony|culture|31.6200|74.8765|180|0|morning|peak|0|Open 24 hours; night darshan with gold reflection in Amrit Sarovar|walk-in
+Guru Ka Langar community kitchen service & dining|food|31.6190|74.8770|60|0|afternoon|peak|0|World's largest free kitchen serving 100,000 pilgrims daily|walk-in
+Wagah Border beating retreat flag ceremony|culture|31.6045|74.5744|210|0|evening|peak|1|High-stepping military drill; arrive by 3:30 pm for good seats|walk-in
+Jallianwala Bagh memorial garden & bullet marks|culture|31.6208|74.8794|60|0|morning|moderate|1|Historic martyrs' well and eternal flame|walk-in
+Legendary Amritsari Kulcha breakfast with chole & lassi|food|31.6250|74.8700|60|200|morning|peak|0|Crisp tandoori layered kulcha smothered in makkhan|walk-in
+Gobindgarh Fort & Punjab heritage cultural show|sightseeing|31.6270|74.8580|120|150|evening|low|0|18th century fort restored with light show and martial arts|walk-in`,
+  },
+  hampi: {
+    stays: [["Heritage guesthouse", "Hampi Bazaar", 1200, 2800], ["Boutique resort", "Kamalapur / Sanapur", 3500, 8000]],
+    food: [500, 1100], transit: [500, 1100], season: "Oct–Feb cool; Hampi Utsav in Nov",
+    pois: `
+Virupaksha Temple 7th-century active shrine|culture|15.3350|76.4600|90|50|morning|moderate|0|Meet Lakshmi the temple elephant; active worship since 7th century|walk-in
+Vijaya Vittala Temple & iconic Stone Chariot|sightseeing|15.3400|76.4750|150|600|morning|peak|1|Famous 56 musical pillars; electric buggy available|walk-in
+Matanga Hill sunrise panoramic view over boulders|sightseeing|15.3320|76.4680|90|0|morning|moderate|1|Steep 30-min climb; best 360-degree sunrise view of Hampi ruins|walk-in
+Tungabhadra coracle round-boat ride on the river|leisure|15.3370|76.4620|60|300|afternoon|low|1|Circular woven boat drifting past ancient boulder ghats|walk-in
+Lotus Mahal & Elephant Stables royal enclosure|culture|15.3200|76.4710|90|600|afternoon|moderate|1|Indo-Islamic secular architecture for Vijayanagara queens|walk-in
+Hippie Island Sanapur lake cliff jump & sunset|leisure|15.3550|76.4650|120|0|evening|low|1|Relaxed boulder landscape across the river|walk-in`,
+  },
+  ooty: {
+    stays: [["Colonial heritage bungalow", "Club Road", 3000, 7000], ["Tea estate cottage", "Kotagiri / Coonoor", 4500, 10000]],
+    food: [600, 1400], transit: [600, 1400], season: "Mar–Jun summer; Sep–Nov lush post-monsoon",
+    pois: `
+Nilgiri Mountain Railway UNESCO toy train ride|sightseeing|11.4060|76.7030|180|250|morning|peak|1|Steam locomotive crawling over viaducts and tea slopes|30+ days required
+Government Botanical Gardens & Italian Garden|leisure|11.4170|76.7110|90|50|afternoon|peak|1|55-acre garden founded in 1848; 20-million-year-old fossil tree|walk-in
+Doddabetta Peak summit view (8,650 ft)|sightseeing|11.4010|76.7370|90|30|morning|moderate|1|Highest mountain in the Nilgiris; telescope house|walk-in
+Dolphin's Nose viewpoint & Catherine Falls (Coonoor)|sightseeing|11.3400|76.8200|120|50|morning|low|1|Stunning view of deep gorges and tea carpeted hills|walk-in
+Fresh homemade chocolate & Nilgiri tea tasting|food|11.4100|76.7050|45|200|evening|moderate|0|Try fudge, dark chocolate truffles, and white tea|walk-in
+Pykara Lake speedboating & cascading waterfall|leisure|11.4800|76.6000|120|300|afternoon|low|1|21 km from town; sacred river to the Toda tribe|walk-in`,
+  },
   dubai: {
     stays: [["Budget hotel", "Deira / Bur Dubai", 5000, 9000], ["Mid-range", "Downtown / Business Bay", 10000, 20000], ["Beach resort", "JBR / Palm", 22000, 60000]],
     food: [2500, 5000], transit: [1200, 3000], season: "Nov–Mar; Jun–Sep 40°C+ heat",
@@ -210,6 +330,17 @@ export const KB: Record<string, DestinationKB> = Object.fromEntries(
 );
 
 export const KB_ALIASES: Record<string, string> = {
-  "new delhi": "delhi", kochi: "kerala", cochin: "kerala", munnar: "kerala", alleppey: "kerala", alappuzha: "kerala", trivandrum: "kerala", thiruvananthapuram: "kerala",
+  "new delhi": "delhi", kochi: "kerala", cochin: "kerala", munnar: "kerala", alleppey: "kerala", alappuzha: "kerala", trivandrum: "thiruvananthapuram",
   banaras: "varanasi", benares: "varanasi", kashi: "varanasi", bombay: "mumbai", panaji: "goa", denpasar: "bali", ubud: "bali", nyc: "new york",
+  srirangam: "srirangam", trichy: "srirangam", tiruchirappalli: "srirangam",
+  madurai: "madurai",
+  kanyakumari: "kanyakumari", cape_comorin: "kanyakumari",
+  rameswaram: "rameswaram", rameshwaram: "rameswaram",
+  thiruvananthapuram: "thiruvananthapuram",
+  udaipur: "udaipur",
+  leh: "ladakh", ladakh: "ladakh", nubra: "ladakh", pangong: "ladakh",
+  rishikesh: "rishikesh", haridwar: "rishikesh",
+  amritsar: "amritsar",
+  hampi: "hampi",
+  ooty: "ooty", udhagamandalam: "ooty", coonoor: "ooty",
 };

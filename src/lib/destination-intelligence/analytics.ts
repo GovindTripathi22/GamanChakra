@@ -29,6 +29,14 @@ const DEFAULT_METRIC_FIXTURES: DestinationMetricRecord[] = [
     transitStressIndex: 0.65,
   },
   {
+    destination: "Kerala",
+    period: "2026-Q1",
+    observedVisitors: 690000,
+    hotelOccupancyRate: 0.76,
+    avgRoomRateINR: 6100,
+    transitStressIndex: 0.40,
+  },
+  {
     destination: "Varanasi",
     period: "2026-Q1",
     observedVisitors: 610000,
@@ -45,12 +53,92 @@ const DEFAULT_METRIC_FIXTURES: DestinationMetricRecord[] = [
     transitStressIndex: 0.81, // Mountain pass congestion
   },
   {
-    destination: "Kochi",
+    destination: "Udaipur",
+    period: "2026-Q1",
+    observedVisitors: 380000,
+    hotelOccupancyRate: 0.84,
+    avgRoomRateINR: 7800,
+    transitStressIndex: 0.48,
+  },
+  {
+    destination: "Ladakh",
+    period: "2026-Q1",
+    observedVisitors: 210000,
+    hotelOccupancyRate: 0.65,
+    avgRoomRateINR: 6800,
+    transitStressIndex: 0.85, // High pass logistics
+  },
+  {
+    destination: "Srirangam",
+    period: "2026-Q1",
+    observedVisitors: 420000,
+    hotelOccupancyRate: 0.81,
+    avgRoomRateINR: 3200,
+    transitStressIndex: 0.52,
+  },
+  {
+    destination: "Madurai",
+    period: "2026-Q1",
+    observedVisitors: 510000,
+    hotelOccupancyRate: 0.79,
+    avgRoomRateINR: 3600,
+    transitStressIndex: 0.58,
+  },
+  {
+    destination: "Rameswaram",
+    period: "2026-Q1",
+    observedVisitors: 390000,
+    hotelOccupancyRate: 0.85,
+    avgRoomRateINR: 3400,
+    transitStressIndex: 0.62,
+  },
+  {
+    destination: "Kanyakumari",
+    period: "2026-Q1",
+    observedVisitors: 360000,
+    hotelOccupancyRate: 0.77,
+    avgRoomRateINR: 3100,
+    transitStressIndex: 0.46,
+  },
+  {
+    destination: "Rishikesh",
     period: "2026-Q1",
     observedVisitors: 340000,
-    hotelOccupancyRate: 0.72,
-    avgRoomRateINR: 5900,
-    transitStressIndex: 0.38,
+    hotelOccupancyRate: 0.73,
+    avgRoomRateINR: 4200,
+    transitStressIndex: 0.64,
+  },
+  {
+    destination: "Amritsar",
+    period: "2026-Q1",
+    observedVisitors: 720000,
+    hotelOccupancyRate: 0.86,
+    avgRoomRateINR: 4100,
+    transitStressIndex: 0.55,
+  },
+  {
+    destination: "Hampi",
+    period: "2026-Q1",
+    observedVisitors: 240000,
+    hotelOccupancyRate: 0.71,
+    avgRoomRateINR: 3500,
+    transitStressIndex: 0.44,
+  },
+  {
+    destination: "Ooty",
+    period: "2026-Q1",
+    observedVisitors: 310000,
+    hotelOccupancyRate: 0.75,
+    avgRoomRateINR: 5200,
+    transitStressIndex: 0.68,
+  },
+  {
+    destination: "Mumbai",
+    period: "2026-Q1",
+    observedVisitors: 1450000,
+    hotelOccupancyRate: 0.82,
+    avgRoomRateINR: 8800,
+    transitStressIndex: 0.72,
   },
   {
     destination: "Delhi",
@@ -59,6 +147,14 @@ const DEFAULT_METRIC_FIXTURES: DestinationMetricRecord[] = [
     hotelOccupancyRate: 0.75,
     avgRoomRateINR: 7100,
     transitStressIndex: 0.58,
+  },
+  {
+    destination: "Agra",
+    period: "2026-Q1",
+    observedVisitors: 980000,
+    hotelOccupancyRate: 0.80,
+    avgRoomRateINR: 5800,
+    transitStressIndex: 0.61,
   },
 ];
 
@@ -126,6 +222,16 @@ export function calculateSeasonalForecast(destination: string) {
     highRiskFactor = "Atal Tunnel choke points";
     recommendedAdvanceDays = 30;
     surgeMultiplier = 1.45;
+  } else if (norm.includes("ladakh") || norm.includes("leh")) {
+    peakSeason = "Jun - Aug (High Mountain Pass Open)";
+    highRiskFactor = "Flight cancellation due to wind & high-altitude logistics";
+    recommendedAdvanceDays = 40;
+    surgeMultiplier = 1.5;
+  } else if (norm.includes("udaipur")) {
+    peakSeason = "Oct - Mar (Royal Weddings & Heritage Season)";
+    highRiskFactor = "Lake Pichola haveli room compression";
+    recommendedAdvanceDays = 30;
+    surgeMultiplier = 1.4;
   } else if (norm.includes("varanasi")) {
     peakSeason = "Oct - Mar (Dev Deepawali peak)";
     highRiskFactor = "Ghat crowd density & narrow lanes";
@@ -136,6 +242,46 @@ export function calculateSeasonalForecast(destination: string) {
     highRiskFactor = "Heritage hotel booking compression";
     recommendedAdvanceDays = 25;
     surgeMultiplier = 1.3;
+  } else if (norm.includes("srirangam") || norm.includes("trichy")) {
+    peakSeason = "Dec - Jan (Vaikunta Ekadashi) & Mar - Apr";
+    highRiskFactor = "Peak pilgrim festival footfalls (100k+ daily)";
+    recommendedAdvanceDays = 35;
+    surgeMultiplier = 1.35;
+  } else if (norm.includes("madurai")) {
+    peakSeason = "Oct - Mar & Apr - May (Chithirai Festival)";
+    highRiskFactor = "Temple corridor congestion & summer heat";
+    recommendedAdvanceDays = 25;
+    surgeMultiplier = 1.3;
+  } else if (norm.includes("rameswaram")) {
+    peakSeason = "Nov - Mar & Maha Shivratri";
+    highRiskFactor = "Coastal rail & island bridge transit capacity";
+    recommendedAdvanceDays = 28;
+    surgeMultiplier = 1.35;
+  } else if (norm.includes("kanyakumari")) {
+    peakSeason = "Oct - Mar & Chitra Pournami (Apr)";
+    highRiskFactor = "Ferry queue capacity for Vivekananda Rock";
+    recommendedAdvanceDays = 21;
+    surgeMultiplier = 1.25;
+  } else if (norm.includes("rishikesh")) {
+    peakSeason = "Sep - Nov & Mar - May (Rafting & Yoga)";
+    highRiskFactor = "Tapovan suspension bridge & weekend road traffic";
+    recommendedAdvanceDays = 20;
+    surgeMultiplier = 1.3;
+  } else if (norm.includes("amritsar")) {
+    peakSeason = "Oct - Mar & Baisakhi (Apr)";
+    highRiskFactor = "Heritage street crowds & border retreat parking";
+    recommendedAdvanceDays = 25;
+    surgeMultiplier = 1.3;
+  } else if (norm.includes("hampi")) {
+    peakSeason = "Nov - Feb (Hampi Utsav & Winter)";
+    highRiskFactor = "Limited heritage boutique inventory in ruins zone";
+    recommendedAdvanceDays = 30;
+    surgeMultiplier = 1.4;
+  } else if (norm.includes("ooty")) {
+    peakSeason = "Apr - Jun (Summer Escape) & Sep - Oct";
+    highRiskFactor = "Toy train booking exhaustion & ghat road hairpins";
+    recommendedAdvanceDays = 35;
+    surgeMultiplier = 1.45;
   }
 
   return {

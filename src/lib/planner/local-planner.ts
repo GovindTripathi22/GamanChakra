@@ -42,21 +42,133 @@ function travelersCount(s: string): number {
   return 2;
 }
 
-function genericPois(place: Place, seed: number): Poi[] {
+function genericPois(place: Place, seed: number, vibe = "balanced"): Poi[] {
   const rnd = mulberry32(seed);
-  const jitter = () => (rnd() - 0.5) * 0.06;
+  const jitter = () => (rnd() - 0.5) * 0.04;
   const n = place.name;
+  const cleanCity = n.split(/,|-|\|/)[0].trim().replace(/\s+(india|district|city)$/i, "");
+  
+  const isSpiritual = /spiritual|temple|pilgrim|faith|devotion/i.test(vibe);
+  const isAdventure = /adventure|trek|nature|wildlife|outdoor/i.test(vibe);
+  const isFoodie = /food|culinary|gourmet|eat/i.test(vibe);
+  const isRelaxed = /relax|peace|leisure|chill/i.test(vibe);
+
   const tpl: [string, Poi["category"], Poi["slot"], Poi["crowd"], boolean, number, number, string][] = [
-    [`${n} old town heritage walk`, "culture", "morning", "moderate", true, 120, 0, "Start early; hire a licensed local guide"],
-    [`${n} main museum`, "culture", "afternoon", "low", false, 120, 400, "Check weekly closing day"],
-    [`${n} central market & street food`, "food", "evening", "peak", true, 120, 600, "Eat where locals queue"],
-    [`Viewpoint / landmark of ${n}`, "sightseeing", "evening", "moderate", true, 90, 200, "Golden hour is best"],
-    [`${n} park or waterfront`, "leisure", "morning", "low", true, 90, 0, "Good buffer activity"],
-    [`Signature local dinner in ${n}`, "food", "evening", "moderate", false, 90, 900, "Ask for the regional speciality"],
-    [`Day excursion near ${n}`, "sightseeing", "morning", "moderate", true, 300, 1500, "Book transport the day before"],
-    [`Cultural performance in ${n}`, "culture", "evening", "low", false, 90, 700, "Check schedule locally"],
+    [
+      isSpiritual
+        ? `${cleanCity} Historic Sanctum & Architectural Darshan`
+        : isAdventure
+        ? `${cleanCity} Morning Nature Ridge Trail & Sunrise Vista`
+        : isFoodie
+        ? `${cleanCity} Heritage Breakfast & Old Alley Food Walk`
+        : isRelaxed
+        ? `${cleanCity} Serene Waterfront Promenade & Lake View`
+        : `${cleanCity} Historic Heritage Landmark Walk`,
+      "culture",
+      "morning",
+      "moderate",
+      true,
+      120,
+      isSpiritual ? 0 : 50,
+      isSpiritual ? "Visit early during morning prayer hours" : "Start early before midday heat",
+    ],
+    [
+      isFoodie
+        ? `${cleanCity} Famous Spice Market & Artisan Street Food Tasting`
+        : `${cleanCity} Regional Arts, Crafts & History Gallery`,
+      isFoodie ? "food" : "culture",
+      "morning",
+      "low",
+      false,
+      90,
+      150,
+      "Explore regional treasures and exhibits",
+    ],
+    [
+      isAdventure
+        ? `${cleanCity} Panoramic Cliff Viewpoint & Valley Lookout`
+        : isSpiritual
+        ? `${cleanCity} Sacred River Ghats / Holy Temple Tank Walk`
+        : `${cleanCity} Scenic Botanical Garden & Green Oasis`,
+      "sightseeing",
+      "afternoon",
+      "low",
+      true,
+      90,
+      50,
+      "Golden hour views and calm photo opportunities",
+    ],
+    [
+      `${cleanCity} Traditional Bazaars, Handicrafts & Local Delicacies`,
+      "food",
+      "evening",
+      "peak",
+      true,
+      120,
+      250,
+      "Shop directly from local artisans and sample freshly prepared sweets",
+    ],
+    [
+      isSpiritual
+        ? `${cleanCity} Sunset River Aarti & Traditional Chanting`
+        : isAdventure
+        ? `${cleanCity} Sunset Mountain Overlook & Twilight Ridge`
+        : `${cleanCity} Golden Hour Landmark Viewpoint`,
+      isSpiritual ? "culture" : "sightseeing",
+      "evening",
+      "moderate",
+      true,
+      90,
+      0,
+      "Dusk twilight atmosphere is spectacular",
+    ],
+    [
+      `Authentic Regional Cuisine Dinner in ${cleanCity}`,
+      "food",
+      "evening",
+      "moderate",
+      false,
+      90,
+      500,
+      "Ask for the house specialty thali and regional sweets",
+    ],
+    [
+      `${cleanCity} Countryside & Heritage Outskirts Excursion`,
+      "sightseeing",
+      "morning",
+      "low",
+      true,
+      180,
+      300,
+      "Scenic countryside trail just outside the city center",
+    ],
+    [
+      isSpiritual
+        ? `${cleanCity} Classical Music & Devotional Choral Performance`
+        : `${cleanCity} Traditional Folk Arts & Cultural Performance`,
+      "culture",
+      "evening",
+      "low",
+      false,
+      90,
+      250,
+      "Experience local authentic folk music and traditions",
+    ],
   ];
-  return tpl.map(([name, category, slot, crowd, outdoor, minutes, cost, tip]) => ({ name, category, slot, crowd, outdoor, minutes, cost, tip, booking: "walk-in", lat: place.lat + jitter(), lng: place.lng + jitter() }));
+
+  return tpl.map(([name, category, slot, crowd, outdoor, minutes, cost, tip]) => ({
+    name,
+    category,
+    slot,
+    crowd,
+    outdoor,
+    minutes,
+    cost,
+    tip,
+    booking: "walk-in",
+    lat: place.lat + jitter(),
+    lng: place.lng + jitter(),
+  }));
 }
 
 function orderByProximity(pois: Poi[]): Poi[] {
@@ -98,7 +210,7 @@ export function planTripLocally(input: TripData): GeneratedTrip {
   for (const stop of perStop) {
     const place = stop.place;
     const kb = stop.kb;
-    const pois = kb ? kb.pois : place ? genericPois(place, seed) : [];
+    const pois = kb ? kb.pois : place ? genericPois(place, seed, input.vibe) : [];
     const vibeOutdoor = /adventure|nature|beach/i.test(input.vibe || "");
     const vibeCulture = /culture|heritage|spiritual|history/i.test(input.vibe || "");
     const ranked = [...pois].sort((a, b) => {

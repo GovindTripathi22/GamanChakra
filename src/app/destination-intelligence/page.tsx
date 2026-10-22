@@ -19,7 +19,26 @@ import {
   runMacroScenarioSimulationAction,
 } from "@/actions/destination-intelligence";
 
-const DESTINATIONS = ["Jaipur", "Goa", "Varanasi", "Manali", "Kochi", "Delhi"];
+const DESTINATIONS = [
+  "Jaipur",
+  "Goa",
+  "Kerala",
+  "Varanasi",
+  "Manali",
+  "Udaipur",
+  "Ladakh",
+  "Srirangam",
+  "Madurai",
+  "Rameswaram",
+  "Kanyakumari",
+  "Rishikesh",
+  "Amritsar",
+  "Hampi",
+  "Ooty",
+  "Mumbai",
+  "Delhi",
+  "Agra",
+];
 
 export default function DestinationIntelligencePage() {
   const [selectedDestination, setSelectedDestination] = useState<string>("Jaipur");
