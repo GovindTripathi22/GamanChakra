@@ -195,3 +195,63 @@ export function nearestCity(lat: number, lng: number, maxKm = 400): Place | null
 export function countryByCode(cc: string): Place | null {
   return placesById.get(`country:${cc.toUpperCase()}`) ?? null;
 }
+
+export interface AirportHubInfo {
+  hubPlace: Place;
+  iataCode: string;
+  distanceKm: number;
+  isRemoteHub: boolean;
+}
+
+export function findAirportHub(place: Place): AirportHubInfo | null {
+  if (!place) return null;
+
+  // 1. If place has an IATA code assigned
+  if (place.iata && place.iata.length > 0) {
+    const code = place.iata[0];
+    const cities = allCities();
+    // Check if another city is the primary hub for this IATA code
+    const remotePrimary = cities.find(
+      (c) => c.iata.includes(code) && c.id !== place.id && haversineKm(place, c) > 25
+    );
+    if (remotePrimary) {
+      return {
+        hubPlace: remotePrimary,
+        iataCode: code,
+        distanceKm: haversineKm(place, remotePrimary),
+        isRemoteHub: true,
+      };
+    }
+    return {
+      hubPlace: place,
+      iataCode: code,
+      distanceKm: 0,
+      isRemoteHub: false,
+    };
+  }
+
+  // 2. If place does not have an IATA code, find nearest city in the same country with an airport
+  const citiesWithAirport = allCities().filter(
+    (c) => c.iata && c.iata.length > 0 && c.countryCode === place.countryCode
+  );
+  let bestHub: Place | null = null;
+  let bestDist = Infinity;
+  for (const c of citiesWithAirport) {
+    const d = haversineKm(place, c);
+    if (d < bestDist) {
+      bestDist = d;
+      bestHub = c;
+    }
+  }
+
+  if (bestHub && bestHub.iata.length > 0) {
+    return {
+      hubPlace: bestHub,
+      iataCode: bestHub.iata[0],
+      distanceKm: bestDist,
+      isRemoteHub: true,
+    };
+  }
+
+  return null;
+}

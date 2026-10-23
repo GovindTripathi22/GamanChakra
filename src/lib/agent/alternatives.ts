@@ -34,6 +34,9 @@ export function findAlternatives(input: {
   const blocked = (m: string) => (input.disruptedMode ?? "").toLowerCase().includes(m);
   const airportIssue = /transport|weather|infrastructure|conflict/.test(input.disruptionCategory ?? "");
   const fromCode = origin?.iata[0] ?? origin?.name ?? "";
+  const flightOriginLabel = origin?.iata[0]
+    ? (origin.name.toUpperCase() === origin.iata[0] ? origin.iata[0] : `${origin.iata[0]} (${origin.name})`)
+    : origin?.name ?? "";
   const toCode = destination.iata[0] ?? destination.name;
 
   if (origin && d > 250) {
@@ -41,9 +44,9 @@ export function findAlternatives(input: {
     const dur = 1.6 + d / 720 + (intl ? 1.5 : 0);
     const base = intl ? 9000 + d * 5.5 : 3200 + d * 4.2;
     opts.push({
-      id: "alt-flight", mode: "flight", title: `Next available flight ${fromCode} → ${toCode}`, durationHours: +dur.toFixed(1),
+      id: "alt-flight", mode: "flight", title: `Next available flight ${flightOriginLabel} → ${toCode}`, durationHours: +dur.toFixed(1),
       costInr: [Math.round(base * pax), Math.round(base * 1.9 * pax)], reliability: blocked("flight") || airportIssue ? 0.55 : 0.85, score: 0,
-      note: blocked("flight") ? "Same mode as the disrupted leg — pick a different carrier or airport if possible." : "Fastest option; prices rise close to departure.",
+      note: blocked("flight") ? "Same mode as the disrupted leg — pick a different carrier or airport if possible." : `Fastest option; connects via ${fromCode} hub with feeder transit from ${origin.name}. Prices rise close to departure.`,
       bookingUrl: `https://www.google.com/travel/flights?q=${encodeURIComponent(`Flights from ${fromCode} to ${toCode}`)}`, provenance: "estimated",
     });
   }

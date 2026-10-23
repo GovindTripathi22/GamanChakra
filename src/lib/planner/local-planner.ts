@@ -1,6 +1,6 @@
 import type { Activity, DayPlan, GeneratedTrip, Hotel, TransportationStep, TripData } from "@/types/trip";
 import { KB, KB_ALIASES, type DestinationKB, type Poi } from "./kb";
-import { findPlace, type Place } from "@/lib/geo/gazetteer";
+import { findPlace, findAirportHub, haversineKm, type Place } from "@/lib/geo/gazetteer";
 import { findAlternatives } from "@/lib/agent/alternatives";
 import { mulberry32 } from "@/lib/slm/network";
 import { fnv1a } from "@/lib/slm/features";
@@ -297,14 +297,126 @@ export function planTripLocally(input: TripData): GeneratedTrip {
       }
 
       if (best) {
-        const mode = ({ flight: "Flight", train: "Train", bus: "Bus", cab: "Taxi" } as const)[best.mode as "flight"] ?? "Local";
-        transportation_plan.push({
-          mode,
-          details: `${best.title}. ${best.note}`,
-          estimated_cost: `₹${best.costInr[0].toLocaleString("en-IN")}–${best.costInr[1].toLocaleString("en-IN")} (estimate, all travellers)`,
-          duration: `${best.durationHours} hours`,
-        });
-        transportCost += (best.costInr[0] + best.costInr[1]) / 2;
+        const fromPlace = prev;
+        const toPlace = stop.place;
+        const totalDist = haversineKm(fromPlace, toPlace);
+        const hubInfo = findAirportHub(fromPlace);
+
+        if (best.mode === "flight") {
+          // 1. Feeder Leg if starting from a feeder city / secondary town without its own commercial airport hub
+          if (hubInfo && hubInfo.isRemoteHub) {
+            const isAmravatiToNagpur =
+              fromPlace.name.toLowerCase().includes("amravati") &&
+              hubInfo.hubPlace.name.toLowerCase().includes("nagpur");
+            const feederDist = isAmravatiToNagpur ? 155 : Math.max(20, Math.round(hubInfo.distanceKm * 1.1)); // approx road/rail km
+            const trainMin = Math.round(feederDist * 0.9 * pax);
+            const trainMax = Math.round(feederDist * 2.8 * pax);
+            const busMin = Math.round(feederDist * 1.4 * pax);
+            const busMax = Math.round(feederDist * 2.4 * pax);
+            const cabMin = Math.round(feederDist * 14 * Math.ceil(pax / 4));
+            const cabMax = Math.round(feederDist * 18 * Math.ceil(pax / 4));
+
+            const feederDetails = isAmravatiToNagpur
+              ? `Feeder Leg 1: Amravati → Nagpur Airport Hub (~155 km). Available travel options:\n• Train: Direct daily services (AMI / Badnera Junction to Nagpur NGP, ~2.5–3.2h, ₹120–₹550/pax for 2S/SL/3AC).\n• Bus: MSRTC Shivshahi AC & private coaches via Hindu Hrudaysamrat Balasaheb Thackeray Maharashtra Samruddhi Mahamarg / NH 53 (~3–3.5h, ₹240–₹420/pax).\n• Taxi/Cab: Door-to-terminal highway cab direct to Dr. Babasaheb Ambedkar International Airport (NAG) (~2.2h, ₹2,400–₹3,200/vehicle).`
+              : `Feeder Leg 1: ${fromPlace.name} → ${hubInfo.hubPlace.name} (${hubInfo.iataCode} Airport Hub, ~${feederDist} km). Available travel options:\n• Train / Rail: Regional express connecting ${fromPlace.name} to ${hubInfo.hubPlace.name} (~${(feederDist / 55).toFixed(1)}h, ₹${trainMin.toLocaleString("en-IN")}–₹${trainMax.toLocaleString("en-IN")}/pax).\n• Bus: State RTC & intercity coaches (~${(feederDist / 45).toFixed(1)}h, ₹${busMin.toLocaleString("en-IN")}–₹${busMax.toLocaleString("en-IN")}/pax).\n• Cab: Direct highway taxi to airport terminal (~${(feederDist / 65).toFixed(1)}h, ₹${cabMin.toLocaleString("en-IN")}–₹${cabMax.toLocaleString("en-IN")}/vehicle).`;
+
+            transportation_plan.push({
+              mode: "Train",
+              details: feederDetails,
+              estimated_cost: `₹${trainMin.toLocaleString("en-IN")}–₹${trainMax.toLocaleString("en-IN")} (estimate, all travellers)`,
+              duration: `${(feederDist / 55).toFixed(1)} - ${(feederDist / 45).toFixed(1)} hours`,
+              distance: `${feederDist} km`,
+            });
+            transportCost += (trainMin + trainMax) / 2;
+          }
+
+          // 2. Main Flight Leg
+          const departureHubName = hubInfo && hubInfo.isRemoteHub ? hubInfo.hubPlace.name : fromPlace.name;
+          const departureIata = hubInfo && hubInfo.isRemoteHub ? hubInfo.iataCode : (fromPlace.iata[0] ?? fromPlace.name);
+          const arrivalIata = toPlace.iata[0] ?? toPlace.name;
+          const isIntl = fromPlace.countryCode !== toPlace.countryCode;
+
+          const flightDetails = isIntl
+            ? `Main Leg 2: Next available flight ${departureHubName} (${departureIata}) → ${toPlace.name} (${arrivalIata}). Scheduled international connection with 1 transit layover in Mumbai (CSMIA - BOM) or Delhi (IGI - DEL). Primary carriers: Air India, IndiGo + international partner codeshares (Air France, Lufthansa, Emirates). Total transit ~14–16 hours.`
+            : `Main Leg 2: Next available flight ${departureHubName} (${departureIata}) → ${toPlace.name} (${arrivalIata}). Direct or 1-stop scheduled domestic flight. Total flight transit ~${best.durationHours} hours.`;
+
+          transportation_plan.push({
+            mode: "Flight",
+            details: flightDetails,
+            estimated_cost: `₹${best.costInr[0].toLocaleString("en-IN")}–${best.costInr[1].toLocaleString("en-IN")} (estimate, all travellers)`,
+            duration: isIntl ? "14.5 hours (incl. layover)" : `${best.durationHours} hours`,
+            distance: `${totalDist.toLocaleString("en-IN")} km`,
+          });
+          transportCost += (best.costInr[0] + best.costInr[1]) / 2;
+
+          // 3. Destination City Centre Arrival Transfer Leg
+          const destLower = toPlace.name.toLowerCase();
+          if (destLower.includes("paris")) {
+            transportation_plan.push({
+              mode: "Local",
+              details: `Arrival Leg 3: Paris Charles de Gaulle Airport (CDG) → Central Paris (Châtelet / Gare du Nord / Louvre). Fast transit options:\n• RER B Suburban Express Train: 35 min direct to Châtelet-Les Halles / Gare du Nord (€11.80 / ~₹1,050/pax, departs every 10–15 min).\n• RoissyBus: 60 min express direct to Paris Opéra Garnier (€16.60 / ~₹1,500/pax).\n• Official Parisian Licensed Taxi: 45–55 min flat government-regulated tariff (€56 Right Bank / €65 Left Bank / ~₹5,000–₹5,800/vehicle).`,
+              estimated_cost: `€11.80–€56 (~₹1,050–₹5,000, all travellers)`,
+              duration: "35 - 55 mins",
+              distance: "28 km",
+            });
+            transportCost += 1500;
+          } else if (destLower.includes("london")) {
+            transportation_plan.push({
+              mode: "Local",
+              details: `Arrival Leg 3: London Heathrow Airport (LHR) → Central London (Paddington / Soho / Westminster). Fast transit options:\n• Elizabeth Line: 30 min direct to Central London (£13.30 / ~₹1,450/pax).\n• Heathrow Express: 15 min non-stop to Paddington (£25 / ~₹2,700/pax).\n• London Underground (Piccadilly Line): 50 min budget link (£5.60 / ~₹600/pax).\n• London Black Cab / Licensed Taxi: 45–60 min (£65–£95 / ~₹7,000–₹10,200).`,
+              estimated_cost: `£5.60–£65 (~₹600–₹7,000, all travellers)`,
+              duration: "30 - 50 mins",
+              distance: "24 km",
+            });
+            transportCost += 1800;
+          } else if (destLower.includes("delhi")) {
+            transportation_plan.push({
+              mode: "Local",
+              details: `Arrival Leg 3: Delhi IGI Airport (T3) → Central Delhi (Connaught Place / New Delhi Railway Station).\n• Delhi Airport Express Metro: 19 min high-speed link directly into New Delhi Station (₹60/pax, trains every 10 min).\n• Prepaid Taxi / Ride-hail (Uber/Ola): 35–45 min doorstep ride (₹450–₹650/vehicle).`,
+              estimated_cost: `₹60–₹650 (all travellers)`,
+              duration: "20 - 45 mins",
+              distance: "16 km",
+            });
+            transportCost += 300;
+          } else if (destLower.includes("mumbai")) {
+            transportation_plan.push({
+              mode: "Local",
+              details: `Arrival Leg 3: Mumbai CSMIA Airport (T2) → South Mumbai / Bandra / BKC.\n• Metro Line 3 (Aqua Line) / Local Rail: High-speed connection across financial corridors (₹50–₹100/pax).\n• Prepaid Taxi / Uber: Direct highway connection via Western Express Highway & Sea Link (₹450–₹850/vehicle).`,
+              estimated_cost: `₹100–₹850 (all travellers)`,
+              duration: "25 - 45 mins",
+              distance: "20 km",
+            });
+            transportCost += 400;
+          } else if (isIntl) {
+            transportation_plan.push({
+              mode: "Local",
+              details: `Arrival Leg 3: ${toPlace.name} International Airport → City Centre hotel / central district. Airport express train, dedicated shuttle, or official metered taxi directly to your accommodation.`,
+              estimated_cost: `₹450–₹2,500 (estimate, all travellers)`,
+              duration: "30 - 50 mins",
+              distance: "25 km",
+            });
+            transportCost += 1000;
+          }
+        } else {
+          // Train, Bus, or Cab mode
+          const mode = ({ flight: "Flight", train: "Train", bus: "Bus", cab: "Taxi" } as const)[best.mode as "flight"] ?? "Local";
+          const isAmrOrigin = fromPlace.name.toLowerCase().includes("amravati");
+          let stepDetails = `${best.title}. ${best.note}`;
+          if (isAmrOrigin && best.mode === "train") {
+            stepDetails = `Train from Amravati (AMI) / Badnera Junction (BD) → ${toPlace.name}. Available daily express services (e.g. Duronto Express, Vidarbha SF Express, Maharashtra Express). Check Tatkal availability & waitlist confirmation odds.`;
+          } else if (isAmrOrigin && toPlace.name.toLowerCase().includes("nagpur")) {
+            stepDetails = `Intercity route Amravati → Nagpur (~155 km). Options: 1) Express Train (AMI/BD to NGP, ~2.5h, ₹120–₹550/pax). 2) MSRTC Shivshahi AC Bus via Samruddhi Expressway (~3h, ₹240–₹420/pax). 3) Highway Cab (~2.2h, ₹2,400–₹3,200/vehicle).`;
+          }
+
+          transportation_plan.push({
+            mode,
+            details: stepDetails,
+            estimated_cost: `₹${best.costInr[0].toLocaleString("en-IN")}–${best.costInr[1].toLocaleString("en-IN")} (estimate, all travellers)`,
+            duration: `${best.durationHours} hours`,
+            distance: `${totalDist} km`,
+          });
+          transportCost += (best.costInr[0] + best.costInr[1]) / 2;
+        }
       }
     }
     if (stop.place) prev = stop.place;
@@ -371,13 +483,21 @@ export function clampTripToUserBudget<
   // 1. Harmonize Transportation Plan: Ensure mode and prices fit within budget
   if (Array.isArray(trip.transportation_plan) && trip.transportation_plan.length > 0) {
     const isBudgetRestricted = userBudget <= 18000;
-    trip.transportation_plan.forEach((step: any) => {
+    const nSteps = trip.transportation_plan.length;
+    trip.transportation_plan.forEach((step: any, sIdx: number) => {
       if (isBudgetRestricted && (step.mode === "Flight" || /flight|plane/i.test(step.mode))) {
         step.mode = "Train";
         step.details = `Superfast / Express Train connecting your route comfortably within budget. Use Tatkal / IRCTC booking.`;
       }
-      const minT = Math.max(150, Math.round(targetTransport * 0.85));
-      const maxT = Math.max(minT + 100, Math.round(targetTransport * 1.15));
+      let stepShare = 1 / nSteps;
+      if (nSteps === 3) {
+        stepShare = sIdx === 0 ? 0.20 : sIdx === 1 ? 0.70 : 0.10;
+      } else if (nSteps === 2) {
+        stepShare = sIdx === 0 ? 0.25 : 0.75;
+      }
+      const allocatedTarget = Math.max(100, Math.round(targetTransport * stepShare));
+      const minT = Math.max(60, Math.round(allocatedTarget * 0.85));
+      const maxT = Math.max(minT + 40, Math.round(allocatedTarget * 1.15));
       step.estimated_cost = `₹${minT.toLocaleString("en-IN")}–₹${maxT.toLocaleString("en-IN")} (estimate, all travellers)`;
     });
   }

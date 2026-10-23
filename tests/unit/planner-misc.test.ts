@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { planTripLocally } from "@/lib/planner/local-planner";
 import { findAlternatives } from "@/lib/agent/alternatives";
-import { findPlace } from "@/lib/geo/gazetteer";
+import { findPlace, findAirportHub } from "@/lib/geo/gazetteer";
 import { translatePhrase } from "@/lib/jarvis/phrasebook";
 import { advisory, inr } from "@/lib/slm/nlg";
 import { rateLimit } from "@/lib/ratelimit";
@@ -28,6 +28,39 @@ describe("keyless trip planner", () => {
   it("handles unknown destinations and multi-city", () => {
     expect(planTripLocally({ origin: "Pune", destination: "Hampi", days: "2", budget: "Cheap", travelers: "1", vibe: "Adventure" }).itinerary).toHaveLength(2);
     expect(planTripLocally({ origin: "Delhi", destination: "Jaipur | Agra", days: "4", budget: "Luxury", travelers: "2", vibe: "Culture" }).itinerary).toHaveLength(4);
+  });
+  it("generates detailed 3-leg multimodal transit for secondary origins like Amravati to Paris", () => {
+    const intlTrip = planTripLocally({ origin: "Amravati", destination: "Paris", days: "5", budget: "Moderate", travelers: "2", vibe: "Cultural" });
+    expect(intlTrip.transportation_plan).toHaveLength(3);
+
+    // Leg 1: Feeder leg starting from Amravati to Nagpur Hub
+    const leg1 = intlTrip.transportation_plan[0];
+    expect(leg1.details).toMatch(/Amravati/i);
+    expect(leg1.details).toMatch(/Nagpur/i);
+    expect(leg1.distance).toMatch(/155/);
+
+    // Leg 2: Main flight from Nagpur (NAG) to Paris (CDG) with transit layover
+    const leg2 = intlTrip.transportation_plan[1];
+    expect(leg2.mode).toBe("Flight");
+    expect(leg2.details).toMatch(/Nagpur/i);
+    expect(leg2.details).toMatch(/Paris/i);
+    expect(leg2.details).toMatch(/BOM|DEL|layover/i);
+
+    // Leg 3: Arrival city transfer from Paris CDG to Central Paris
+    const leg3 = intlTrip.transportation_plan[2];
+    expect(leg3.mode).toBe("Local");
+    expect(leg3.details).toMatch(/Paris Charles de Gaulle/i);
+    expect(leg3.details).toMatch(/RER B|RoissyBus|Taxi/i);
+  });
+  it("resolves short aliases like Amt to Amravati and maps to Nagpur remote hub", () => {
+    const p = findPlace("Amt");
+    expect(p).not.toBeNull();
+    expect(p?.name).toBe("Amravati");
+    const hub = findAirportHub(p!);
+    expect(hub).not.toBeNull();
+    expect(hub?.hubPlace.name).toBe("Nagpur");
+    expect(hub?.isRemoteHub).toBe(true);
+    expect(hub?.distanceKm).toBeGreaterThan(100);
   });
 });
 
