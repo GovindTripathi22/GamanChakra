@@ -82,6 +82,66 @@ Lakshadweep|Agatti|IN|10.57|72.64|AGX|Lakshadweep
 Raipur||IN|21.25|81.63|RPR|Chhattisgarh
 Mount Abu||IN|24.59|72.71||Rajasthan
 Spiti|Kaza|IN|32.23|78.07||Himachal Pradesh
+Srirangam|Trichy;Tiruchirappalli|IN|10.86|78.69|TRZ|Tamil Nadu
+Mathura|Braj|IN|27.50|77.68||Uttar Pradesh
+Vrindavan|Banke Bihari|IN|27.58|77.70||Uttar Pradesh
+Munnar||IN|10.09|77.06||Kerala
+Alleppey|Alappuzha|IN|9.50|76.34||Kerala
+Varkala||IN|8.74|76.72||Kerala
+Wayanad|Kalpetta|IN|11.69|76.13||Kerala
+Shirdi|Sai Baba|IN|19.77|74.48|SAG|Maharashtra
+Mahabaleshwar||IN|17.92|73.66||Maharashtra
+Alibaug||IN|18.66|72.88||Maharashtra
+Kolhapur||IN|16.70|74.24|KLH|Maharashtra
+Bikaner||IN|28.02|73.31|BKB|Rajasthan
+Chittorgarh|Chittor|IN|24.89|74.63||Rajasthan
+Ranthambore|Sawai Madhopur|IN|26.02|76.35||Rajasthan
+Ajmer|Ajmer Sharif|IN|26.45|74.64||Rajasthan
+Kasol|Parvati Valley|IN|32.01|77.32||Himachal Pradesh
+Kullu||IN|31.96|77.11|KUU|Himachal Pradesh
+Dalhousie||IN|32.54|75.97||Himachal Pradesh
+Mussoorie||IN|30.46|78.07||Uttarakhand
+Auli||IN|30.53|79.57||Uttarakhand
+Jim Corbett|Corbett;Ramnagar|IN|29.53|78.77||Uttarakhand
+Badrinath||IN|30.74|79.49||Uttarakhand
+Gangotri||IN|30.99|78.94||Uttarakhand
+Yamunotri||IN|31.01|78.46||Uttarakhand
+Gulmarg||IN|34.05|74.38||Jammu & Kashmir
+Pahalgam||IN|34.02|75.33||Jammu & Kashmir
+Nubra Valley|Diskit;Hunder|IN|34.54|77.56||Ladakh
+Pangong Tso|Pangong Lake|IN|33.76|78.90||Ladakh
+Chikmagalur||IN|13.32|75.77||Karnataka
+Badami||IN|15.92|75.68||Karnataka
+Thanjavur|Tanjore|IN|10.79|79.14||Tamil Nadu
+Warangal||IN|17.98|79.60||Telangana
+Kalimpong||IN|27.07|88.47||West Bengal
+Sundarbans||IN|21.95|88.90||West Bengal
+Digha||IN|21.63|87.51||West Bengal
+Konark||IN|19.89|86.09||Odisha
+Nalanda||IN|25.13|85.44||Bihar
+Rajgir||IN|25.03|85.42||Bihar
+Deoghar|Baidyanath Dham|IN|24.48|86.70|DGH|Jharkhand
+Jamshedpur|Tatanagar|IN|22.80|86.20|IXW|Jharkhand
+Gwalior||IN|26.22|78.18|GWL|Madhya Pradesh
+Jabalpur||IN|23.18|79.99|JLR|Madhya Pradesh
+Orchha||IN|25.35|78.64||Madhya Pradesh
+Kanha||IN|22.33|80.61||Madhya Pradesh
+Bandhavgarh||IN|23.70|81.03||Madhya Pradesh
+Bastar|Jagdalpur|IN|19.07|82.03|JGB|Chhattisgarh
+Kaziranga||IN|26.58|93.17||Assam
+Majuli||IN|26.95|94.22||Assam
+Cherrapunji|Sohra|IN|25.27|91.73||Meghalaya
+Dawki||IN|25.19|92.02||Meghalaya
+Pelling||IN|27.30|88.24||Sikkim
+Tawang||IN|27.59|91.87||Arunachal Pradesh
+Ziro||IN|27.63|93.83||Arunachal Pradesh
+Kohima||IN|25.67|94.11||Nagaland
+Aizawl||IN|23.73|92.72|AJL|Mizoram
+Agartala||IN|23.83|91.28|IXA|Tripura
+Somnath||IN|20.89|70.40||Gujarat
+Dwarka||IN|22.24|68.97||Gujarat
+Gir|Sasan Gir|IN|21.12|70.79||Gujarat
+Daman & Diu|Daman;Diu|IN|20.42|72.83||Daman & Diu
 Kathmandu|Pokhara|NP|27.72|85.32|KTM|Bagmati
 Colombo|Kandy|LK|6.93|79.86|CMB|Western
 Dhaka||BD|23.81|90.41|DAC|Dhaka

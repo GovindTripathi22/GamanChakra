@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import {
   TrendingUp,
   Building,
@@ -12,36 +13,33 @@ import {
   Users,
   BarChart3,
   Play,
+  Search,
+  X,
+  Compass,
+  MapPin,
+  ArrowRight,
+  Filter,
 } from "lucide-react";
 import {
   getDestinationIntelligenceAction,
   getSeasonalForecastAction,
   runMacroScenarioSimulationAction,
 } from "@/actions/destination-intelligence";
-
-const DESTINATIONS = [
-  "Jaipur",
-  "Goa",
-  "Kerala",
-  "Varanasi",
-  "Manali",
-  "Udaipur",
-  "Ladakh",
-  "Srirangam",
-  "Madurai",
-  "Rameswaram",
-  "Kanyakumari",
-  "Rishikesh",
-  "Amritsar",
-  "Hampi",
-  "Ooty",
-  "Mumbai",
-  "Delhi",
-  "Agra",
-];
+import {
+  DESTINATION_REGIONS,
+  DESTINATION_CATEGORIES,
+  INDIAN_DESTINATIONS_META,
+  type RegionType,
+  type CategoryType,
+  type DestinationMeta,
+} from "@/lib/destination-intelligence/constants";
 
 export default function DestinationIntelligencePage() {
   const [selectedDestination, setSelectedDestination] = useState<string>("Jaipur");
+  const [selectedRegion, setSelectedRegion] = useState<RegionType>("All India");
+  const [selectedCategory, setSelectedCategory] = useState<CategoryType>("All");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
   const [metrics, setMetrics] = useState<any[]>([]);
   const [forecast, setForecast] = useState<any>(null);
   const [scenarioType, setScenarioType] = useState<
@@ -50,6 +48,34 @@ export default function DestinationIntelligencePage() {
   const [simulationResult, setSimulationResult] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [simulating, setSimulating] = useState<boolean>(false);
+
+  // Filter destinations based on search, region, and category
+  const filteredDestinations = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    return INDIAN_DESTINATIONS_META.filter((d) => {
+      const matchRegion = selectedRegion === "All India" || d.region === selectedRegion;
+      const matchCat = selectedCategory === "All" || d.category === selectedCategory;
+      const matchSearch =
+        !q ||
+        d.name.toLowerCase().includes(q) ||
+        d.state.toLowerCase().includes(q);
+      return matchRegion && matchCat && matchSearch;
+    });
+  }, [selectedRegion, selectedCategory, searchQuery]);
+
+  // Current metadata for selected destination
+  const activeMeta = useMemo(() => {
+    return (
+      INDIAN_DESTINATIONS_META.find(
+        (d) => d.name.toLowerCase() === selectedDestination.toLowerCase()
+      ) || {
+        name: selectedDestination,
+        state: "India",
+        region: "North" as const,
+        category: "Heritage" as const,
+      }
+    );
+  }, [selectedDestination]);
 
   const loadData = async (dest: string) => {
     setLoading(true);
@@ -84,7 +110,10 @@ export default function DestinationIntelligencePage() {
     }
   };
 
-  const activeMetric = metrics.find((m) => m.destination === selectedDestination) || metrics[0];
+  const activeMetric =
+    metrics.find(
+      (m) => m.destination.toLowerCase() === selectedDestination.toLowerCase()
+    ) || metrics[0];
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-6 md:p-12 transition-colors duration-200">
@@ -99,11 +128,11 @@ export default function DestinationIntelligencePage() {
               <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
                 Voyage Destination Intelligence
                 <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400 font-mono font-semibold border border-purple-200 dark:border-purple-500/30">
-                  Breakthrough 7
+                  All India ({INDIAN_DESTINATIONS_META.length} Locations)
                 </span>
               </h1>
               <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
-                Aggregated macro analytics, seasonal demand forecasting, and systemic scenario stress testing.
+                Aggregated macro analytics, seasonal tourism demand curves, and systemic scenario stress testing across every location in India.
               </p>
             </div>
           </div>
@@ -111,28 +140,166 @@ export default function DestinationIntelligencePage() {
           <button
             onClick={() => loadData(selectedDestination)}
             disabled={loading}
-            className="px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-semibold transition flex items-center gap-2 border border-slate-200 dark:border-slate-700 shadow-xs w-fit"
+            className="px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-semibold transition flex items-center gap-2 border border-slate-200 dark:border-slate-700 shadow-xs w-fit cursor-pointer"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-purple-600" : ""}`} />
             Refresh Telemetry
           </button>
         </div>
 
-        {/* Destination Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2">
-          {DESTINATIONS.map((dest) => (
-            <button
-              key={dest}
-              onClick={() => setSelectedDestination(dest)}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap cursor-pointer ${
-                selectedDestination === dest
-                  ? "bg-purple-600 text-white shadow-md shadow-purple-600/25"
-                  : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800 shadow-xs"
-              }`}
-            >
-              {dest}
-            </button>
-          ))}
+        {/* Search & Filter Controls */}
+        <div className="bg-white dark:bg-slate-900/60 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
+          {/* Search Input Bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search any Indian destination e.g. Amravati, Srirangam, Munnar, Ayodhya, Shirdi, Kaziranga..."
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-10 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-purple-500 transition-colors shadow-xs"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            <div className="text-xs text-slate-500 dark:text-slate-400 font-mono shrink-0 px-1">
+              Showing <strong>{filteredDestinations.length}</strong> of {INDIAN_DESTINATIONS_META.length} locations
+            </div>
+          </div>
+
+          {/* Region Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+            <span className="text-slate-400 font-semibold flex items-center gap-1 mr-1 shrink-0 text-[11px] uppercase tracking-wider">
+              <Compass className="h-3.5 w-3.5 text-purple-500" />
+              Region:
+            </span>
+            {DESTINATION_REGIONS.map((region) => (
+              <button
+                key={region}
+                onClick={() => setSelectedRegion(region)}
+                className={`px-3 py-1.5 rounded-lg font-semibold transition whitespace-nowrap cursor-pointer text-xs ${
+                  selectedRegion === region
+                    ? "bg-purple-600 text-white shadow-xs"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                }`}
+              >
+                {region}
+              </button>
+            ))}
+          </div>
+
+          {/* Category Chips */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+            <span className="text-slate-400 font-semibold flex items-center gap-1 mr-1 shrink-0 text-[11px] uppercase tracking-wider">
+              <Filter className="h-3.5 w-3.5 text-blue-500" />
+              Type:
+            </span>
+            {DESTINATION_CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition whitespace-nowrap cursor-pointer ${
+                  selectedCategory === cat
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "bg-slate-100/80 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Filtered Destination Pills Container */}
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+            {filteredDestinations.length > 0 ? (
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
+                {filteredDestinations.map((dest) => {
+                  const isSelected = selectedDestination.toLowerCase() === dest.name.toLowerCase();
+                  return (
+                    <button
+                      key={dest.name}
+                      onClick={() => setSelectedDestination(dest.name)}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                        isSelected
+                          ? "bg-purple-600 text-white shadow-md shadow-purple-600/25 ring-2 ring-purple-400/40"
+                          : "bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-800 shadow-xs"
+                      }`}
+                    >
+                      <span>{dest.name}</span>
+                      <span
+                        className={`text-[10px] px-1.5 py-0.2 rounded font-normal ${
+                          isSelected
+                            ? "bg-purple-700/60 text-purple-100"
+                            : "bg-slate-200/60 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                        }`}
+                      >
+                        {dest.state}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-4 text-center space-y-2">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  No curated destination match for &ldquo;<strong>{searchQuery}</strong>&rdquo; in {selectedRegion}.
+                </p>
+                {searchQuery.trim() && (
+                  <button
+                    onClick={() => setSelectedDestination(searchQuery.trim())}
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Inspect &ldquo;{searchQuery.trim()}&rdquo; via Dynamic Telemetry Engine
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Selected Destination Metadata Banner */}
+        <div className="p-4 bg-purple-500/5 dark:bg-purple-950/20 border border-purple-500/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="p-2 bg-purple-600 text-white rounded-xl shadow-xs">
+              <MapPin className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white">
+                  {selectedDestination}
+                </h2>
+                <span className="text-xs px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 font-medium border border-purple-200 dark:border-purple-800/50">
+                  {activeMeta.state}
+                </span>
+                <span className="text-xs px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium border border-blue-200 dark:border-blue-800/50">
+                  {activeMeta.region} India
+                </span>
+                <span className="text-xs px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-medium border border-emerald-200 dark:border-emerald-800/50">
+                  {activeMeta.category}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Real-time quarterly capacity telemetry and seasonal impact projections.
+              </p>
+            </div>
+          </div>
+
+          <Link
+            href={`/create-trip?destination=${encodeURIComponent(selectedDestination)}`}
+            className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 transition shadow-xs shrink-0"
+          >
+            Create Trip to {selectedDestination} →
+          </Link>
         </div>
 
         {/* Macro Metrics Cards */}
@@ -168,7 +335,7 @@ export default function DestinationIntelligencePage() {
               <div className="mt-2 text-2xl font-black text-emerald-600 dark:text-emerald-400">
                 ₹{activeMetric.avgRoomRateINR.toLocaleString()}
               </div>
-              <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">Across 3-star to 5-star inventory</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">Across verified inventory</div>
             </div>
 
             <div className="p-5 bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
@@ -179,7 +346,7 @@ export default function DestinationIntelligencePage() {
               <div className="mt-2 text-2xl font-black text-amber-600 dark:text-amber-400">
                 {activeMetric.transitStressIndex.toFixed(2)} / 1.0
               </div>
-              <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">Traffic & platform choke points</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">Choke point telemetry index</div>
             </div>
           </div>
         )}
@@ -194,7 +361,7 @@ export default function DestinationIntelligencePage() {
                 Seasonal Demand Curve & Surge Model
               </h2>
               <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                Historical seasonality analysis calibrated to Indian festival cycles and monsoon seasons.
+                Historical seasonality analysis calibrated to festival cycles, monsoon belts, and holiday rushes.
               </p>
             </div>
 
@@ -216,7 +383,7 @@ export default function DestinationIntelligencePage() {
                 </div>
 
                 <div className="p-3.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl">
-                  <span className="text-slate-500 dark:text-slate-400 text-[10px] block mb-0.5 font-sans font-semibold tracking-wider uppercase">BOTTLENECK FACTOR</span>
+                  <span className="text-slate-500 dark:text-slate-400 text-[10px] block mb-0.5 font-sans font-semibold tracking-wider uppercase">BOTTLENECK / RISK FACTOR</span>
                   <span className="text-xs text-amber-600 dark:text-amber-400 font-bold">{forecast.highRiskFactor}</span>
                 </div>
 
@@ -245,7 +412,7 @@ export default function DestinationIntelligencePage() {
                 <select
                   value={scenarioType}
                   onChange={(e: any) => setScenarioType(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 shadow-xs"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 shadow-xs cursor-pointer"
                 >
                   <option value="festival_surge">Festival Mega Surge (+45% Demand)</option>
                   <option value="monsoon_flood">Heavy Monsoon Flooding (-35% Occupancy)</option>

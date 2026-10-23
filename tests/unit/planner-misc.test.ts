@@ -8,6 +8,11 @@ import { rateLimit } from "@/lib/ratelimit";
 import { signSession, verifySession, hmacHex } from "@/lib/auth/token";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { convert } from "@/lib/fx";
+import {
+  getDestinationIntelligence,
+  calculateSeasonalForecast,
+  ALL_INDIAN_DESTINATIONS,
+} from "@/lib/destination-intelligence/analytics";
 
 describe("keyless trip planner", () => {
   const trip = planTripLocally({ origin: "Delhi", destination: "Jaipur", days: "3", budget: "Moderate", travelers: "2 People", vibe: "Cultural" });
@@ -113,5 +118,47 @@ describe("security primitives", () => {
     const k = `t-${Math.random()}`;
     for (let i = 0; i < 3; i++) expect(rateLimit(k, { capacity: 3, refillPerSec: 0.0001 }).ok).toBe(true);
     expect(rateLimit(k, { capacity: 3, refillPerSec: 0.0001 }).ok).toBe(false);
+  });
+});
+
+describe("destination intelligence all-india expansion", () => {
+  it("covers over 130 locations across all regions of India", () => {
+    expect(ALL_INDIAN_DESTINATIONS.length).toBeGreaterThanOrEqual(130);
+    expect(ALL_INDIAN_DESTINATIONS).toContain("Amravati");
+    expect(ALL_INDIAN_DESTINATIONS).toContain("Srirangam");
+    expect(ALL_INDIAN_DESTINATIONS).toContain("Munnar");
+    expect(ALL_INDIAN_DESTINATIONS).toContain("Ayodhya");
+    expect(ALL_INDIAN_DESTINATIONS).toContain("Kaziranga");
+    expect(ALL_INDIAN_DESTINATIONS).toContain("Tawang");
+  });
+
+  it("retrieves rich macro metrics for western hub Amravati", async () => {
+    const metrics = await getDestinationIntelligence("Amravati");
+    expect(metrics.length).toBeGreaterThan(0);
+    const m = metrics[0];
+    expect(m.destination).toBe("Amravati");
+    expect(m.state).toBe("Maharashtra");
+    expect(m.region).toBe("West");
+    expect(m.avgRoomRateINR).toBeGreaterThan(2000);
+    expect(m.hotelOccupancyRate).toBeGreaterThan(0.5);
+  });
+
+  it("computes seasonal forecasts for hill station Munnar and spiritual Srirangam", () => {
+    const munnar = calculateSeasonalForecast("Munnar");
+    expect(munnar.surgeMultiplier).toBeGreaterThan(1.2);
+    expect(munnar.recommendedAdvanceDays).toBeGreaterThanOrEqual(25);
+
+    const srirangam = calculateSeasonalForecast("Srirangam");
+    expect(srirangam.peakSeason).toMatch(/Vaikunta Ekadashi/i);
+    expect(srirangam.highRiskFactor).toMatch(/pilgrim/i);
+  });
+
+  it("dynamically generates fallback metrics for unlisted custom Indian locations without crashing", async () => {
+    const unlisted = await getDestinationIntelligence("Chanderi");
+    expect(unlisted.length).toBeGreaterThan(0);
+    const m = unlisted[0];
+    expect(m.destination).toBe("Chanderi");
+    expect(m.observedVisitors).toBeGreaterThan(10000);
+    expect(m.avgRoomRateINR).toBeGreaterThan(1000);
   });
 });
