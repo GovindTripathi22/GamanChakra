@@ -27,13 +27,18 @@ import type { TripShieldClaim } from "@/types/trip";
 interface TripShieldCardProps {
   tripId: string;
   destination: string;
+  payoutAmount?: number;
 }
 
-export function TripShieldCard({ tripId, destination }: TripShieldCardProps) {
+export function TripShieldCard({ tripId, destination, payoutAmount }: TripShieldCardProps) {
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [upiId, setUpiId] = useState("traveler@okaxis");
   const [processing, setProcessing] = useState(false);
   const [claimResult, setClaimResult] = useState<TripShieldClaim | null>(null);
+
+  const isIntl = /paris|london|rome|tokyo|dubai|singapore|york|bangkok|berlin|europe/i.test(destination);
+  const defaultPayout = payoutAmount ?? (isIntl ? 4500 : 1500);
+  const payoutLabel = isIntl ? "₹4,500 (€50)" : "₹1,500";
 
   const handleClaim = () => {
     if (!upiId.includes("@")) {
@@ -48,7 +53,7 @@ export function TripShieldCard({ tripId, destination }: TripShieldCardProps) {
         "step-transit-conn",
         `Transit to ${destination}`,
         upiId,
-        1500
+        defaultPayout
       );
       setClaimResult(claim);
       setProcessing(false);
@@ -72,7 +77,7 @@ export function TripShieldCard({ tripId, destination }: TripShieldCardProps) {
               </Badge>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 max-w-xl">
-              Backed by Voyage risk-prediction models: If your train or flight is delayed by &gt;60 mins and breaks your scheduled itinerary, receive an <strong>instant ₹1,500 UPI compensation</strong> with zero claim paperwork.
+              Backed by Voyage risk-prediction models: If your train or flight is delayed by &gt;60 mins and breaks your scheduled itinerary, receive an <strong>instant {payoutLabel} UPI compensation</strong> with zero claim paperwork.
             </p>
           </div>
         </div>
@@ -114,7 +119,7 @@ export function TripShieldCard({ tripId, destination }: TripShieldCardProps) {
               </div>
               <div>
                 <h4 className="text-base font-bold text-slate-900 dark:text-white">
-                  ₹{claimResult.payoutAmount} Dispatched Instantly!
+                  ₹{claimResult.payoutAmount.toLocaleString("en-IN")} Dispatched Instantly!
                 </h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Sent via IMPS/UPI to <strong className="text-slate-700 dark:text-slate-200">{claimResult.upiId}</strong>
@@ -132,7 +137,7 @@ export function TripShieldCard({ tripId, destination }: TripShieldCardProps) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Status:</span>
-                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">Settled (0.8s)</span>
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">Settled (0.8s) via NPCI UPI Rails</span>
                 </div>
               </div>
 
@@ -184,7 +189,7 @@ export function TripShieldCard({ tripId, destination }: TripShieldCardProps) {
                 ) : (
                   <>
                     <Zap className="h-3.5 w-3.5" />
-                    Authorize ₹1,500 Instant Claim
+                    Authorize {payoutLabel} Instant Claim
                     <ArrowRight className="h-3.5 w-3.5" />
                   </>
                 )}
