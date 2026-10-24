@@ -34,7 +34,7 @@ function GenerateContent() {
     useEffect(() => {
         const generateItinerary = async () => {
             try {
-                // Get trip data from URL params
+                const rawInclude = searchParams.get("includeTravelDays");
                 const tripData: TripData = {
                     origin: searchParams.get("origin") || "",
                     destination: searchParams.get("destination") || "",
@@ -42,6 +42,9 @@ function GenerateContent() {
                     budget: searchParams.get("budget") || "",
                     travelers: searchParams.get("travelers") || "",
                     vibe: searchParams.get("vibe") || "",
+                    startDate: searchParams.get("startDate") || undefined,
+                    travelMode: searchParams.get("travelMode") || undefined,
+                    includeTravelDays: rawInclude === "no" ? "no" : rawInclude === "yes" ? "yes" : undefined,
                 };
 
                 // Validate required fields

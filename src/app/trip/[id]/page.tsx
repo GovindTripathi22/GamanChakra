@@ -21,10 +21,12 @@ import {
     Share2,
     ArrowRight,
     Zap,
-    ShieldAlert
+    ShieldAlert,
+    Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { resolveRealHotels } from "@/lib/hotels/data";
 import type {
     GeneratedTrip,
     Activity,
@@ -118,6 +120,16 @@ export default function TripPage() {
             }
 
             if (parsedTrip) {
+                // Ensure real hotels are populated with valid images if missing or unpopulated
+                if (!parsedTrip.hotels || parsedTrip.hotels.length === 0 || !parsedTrip.hotels[0]?.image_url) {
+                    const resolved = resolveRealHotels(
+                        parsedTrip.trip_details?.destination || "",
+                        1,
+                        parseInt(parsedTrip.trip_details?.travelers || "2", 10) || 2,
+                        25000
+                    );
+                    parsedTrip.hotels = resolved;
+                }
                 const enriched = initializeTripPredictions(parsedTrip, tripId);
                 setTrip(enriched);
                 runVerification(enriched);
@@ -424,6 +436,15 @@ export default function TripPage() {
                                     <span>Est. {trip.trip_details.total_estimated_cost} Total</span>
                                 </div>
                             )}
+                            {trip.trip_details.startDate && (
+                                <div className="flex items-center gap-1.5">
+                                    <Calendar className="h-4.5 w-4.5 text-orange-400" />
+                                    <span>
+                                        {trip.trip_details.startDate}
+                                        {trip.trip_details.endDate ? ` → ${trip.trip_details.endDate}` : ""}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </motion.div>
                 </div>
@@ -518,48 +539,73 @@ export default function TripPage() {
                                 </div>
                             </div>
 
-                            <div className="grid gap-6 sm:grid-cols-2">
+                            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                                 {trip.hotels.map((hotel, index) => (
                                     <div
                                         key={index}
-                                        className="group overflow-hidden rounded-3xl bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+                                        className="group overflow-hidden rounded-3xl bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
                                     >
-                                        <div className="relative h-44 w-full overflow-hidden">
-                                            {hotel.image_url ? (
-                                                <img
-                                                    src={hotel.image_url}
-                                                    alt={hotel.name}
-                                                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                                    onError={(e) => {
-                                                        e.currentTarget.src = "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80";
-                                                    }}
-                                                />
-                                            ) : (
-                                                <div className="h-full w-full bg-slate-100 dark:bg-slate-950 flex items-center justify-center text-slate-400 text-sm">
-                                                    No Preview Image
+                                        <div>
+                                            <div className="relative h-48 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+                                                {hotel.image_url ? (
+                                                    <img
+                                                        src={hotel.image_url}
+                                                        alt={hotel.name}
+                                                        loading="lazy"
+                                                        referrerPolicy="no-referrer"
+                                                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                        onError={(e) => {
+                                                            e.currentTarget.src = "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80";
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <div className="h-full w-full bg-slate-100 dark:bg-slate-950 flex items-center justify-center text-slate-400 text-sm">
+                                                        No Preview Image
+                                                    </div>
+                                                )}
+                                                {hotel.tier && (
+                                                    <div className="absolute top-3 left-3 rounded-full bg-slate-950/80 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur-sm shadow-md capitalize border border-white/10">
+                                                        {hotel.tier}
+                                                    </div>
+                                                )}
+                                                <div className="absolute top-3 right-3 rounded-full bg-white/95 dark:bg-slate-900/95 px-2.5 py-1 text-xs font-bold text-orange-600 backdrop-blur-sm shadow-md flex items-center gap-1">
+                                                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                                                    <span>{typeof hotel.rating === "number" ? hotel.rating.toFixed(1) : hotel.rating}</span>
                                                 </div>
-                                            )}
-                                            <div className="absolute top-3 right-3 rounded-full bg-white/90 dark:bg-slate-900/90 px-2 py-0.5 text-xs font-bold text-orange-600 backdrop-blur-sm shadow-sm flex items-center gap-1">
-                                                <Star className="h-3 w-3 fill-orange-500 text-orange-500" />
-                                                {hotel.rating}
+                                            </div>
+                                            <div className="p-5 space-y-3">
+                                                <div className="space-y-1">
+                                                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-500 transition-colors line-clamp-1">
+                                                        {hotel.name}
+                                                    </h3>
+                                                    <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                                        <MapPin className="h-3.5 w-3.5 shrink-0 text-orange-500" />
+                                                        <span className="line-clamp-1">{hotel.address}</span>
+                                                    </div>
+                                                </div>
+                                                {hotel.description && (
+                                                    <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
+                                                        {hotel.description}
+                                                    </p>
+                                                )}
+                                                {Array.isArray(hotel.amenities) && hotel.amenities.length > 0 && (
+                                                    <div className="flex flex-wrap gap-1.5 pt-1">
+                                                        {hotel.amenities.slice(0, 3).map((amenity, aIdx) => (
+                                                            <span key={aIdx} className="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
+                                                                {amenity}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                        <div className="p-5 space-y-4">
-                                            <div className="space-y-1">
-                                                <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-500 transition-colors">
-                                                    {hotel.name}
-                                                </h3>
-                                                <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
-                                                    <MapPin className="h-3.5 w-3.5 shrink-0 text-orange-500" />
-                                                    <span className="line-clamp-1">{hotel.address}</span>
-                                                </div>
-                                            </div>
+                                        <div className="p-5 pt-0">
                                             <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-4">
                                                 <div className="flex flex-col">
                                                     <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">ESTIMATED PRICE</span>
-                                                    <span className="text-lg font-extrabold text-orange-600 dark:text-orange-400">{hotel.price}</span>
+                                                    <span className="text-base sm:text-lg font-extrabold text-orange-600 dark:text-orange-400">{hotel.price}</span>
                                                 </div>
-                                                <Button size="sm" variant="outline" className="rounded-full border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs"
+                                                <Button size="sm" variant="outline" className="rounded-full border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold cursor-pointer"
                                                     onClick={() => window.open(`https://www.google.com/search?q=book ${encodeURIComponent(hotel.name + " " + trip.trip_details.destination)}`, '_blank')}
                                                 >
                                                     Book Now
@@ -660,6 +706,11 @@ export default function TripPage() {
                                                 <div className="mb-6 space-y-1">
                                                     <div className="flex items-center gap-2.5">
                                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Day {day.day}</h3>
+                                                        {day.date && (
+                                                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                                                                {day.date}
+                                                            </span>
+                                                        )}
                                                         {day.pacingRating && (
                                                             <Badge
                                                                 variant="outline"

@@ -4,6 +4,7 @@ import { findPlace, findAirportHub, haversineKm, type Place } from "@/lib/geo/ga
 import { findAlternatives } from "@/lib/agent/alternatives";
 import { mulberry32 } from "@/lib/slm/network";
 import { fnv1a } from "@/lib/slm/features";
+import { resolveRealHotels } from "@/lib/hotels/data";
 
 /**
  * Keyless, deterministic trip planner (replaces the old cloud-LLM generator).
@@ -190,15 +191,285 @@ function fmt12(t: string): string {
   return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${ap}`;
 }
 
+function getDestinationPois(
+  stopName: string,
+  place: Place | null,
+  kb: DestinationKB | null,
+  seed: number,
+  vibe: string,
+  neededCount: number
+): Poi[] {
+  const basePois = kb ? [...kb.pois] : place ? genericPois(place, seed, vibe) : [];
+  if (basePois.length >= neededCount) return basePois;
+
+  const cleanCity = stopName.split(/,|-|\|/)[0].trim().replace(/\s+(india|district|city)$/i, "");
+  const extraTemplates: [string, Poi["category"], Poi["slot"], Poi["crowd"], boolean, number, number, string][] = [
+    [`${cleanCity} Traditional Artisan Handicrafts & Weaving Workshop`, "culture", "morning", "low", false, 100, 200, "Observe master artisans and handcraft regional souvenirs"],
+    [`${cleanCity} Scenic Nature Trail & Forest Flora Walk`, "sightseeing", "morning", "low", true, 120, 50, "Fresh morning breeze and quiet nature paths"],
+    [`${cleanCity} Historic Stepwell & Ancient Architecture Wonder`, "sightseeing", "afternoon", "moderate", true, 75, 100, "Architectural marvel with geometric cool stone corridors"],
+    [`${cleanCity} Regional Culinary Masterclass & Spice Tasting`, "food", "afternoon", "low", false, 120, 600, "Learn traditional seasoning secrets from local chefs"],
+    [`${cleanCity} Sunset Riverfront / Lakeside Promenade & Boat Drift`, "leisure", "evening", "moderate", true, 90, 350, "Peaceful sunset atmosphere as evening lanterns light up"],
+    [`${cleanCity} Authentic Regional Sweets & Night Street Food Tour`, "food", "evening", "peak", false, 90, 300, "Sample freshly fried savouries and regional warm desserts"],
+    [`${cleanCity} Rural Countryside Excursion & Organic Village Farm`, "sightseeing", "morning", "low", true, 180, 400, "Peaceful countryside day trip away from urban bustle"],
+    [`${cleanCity} Classical Heritage Music & Folk Dance Performance`, "culture", "evening", "moderate", false, 90, 250, "Evening cultural showcase of traditional regional dance"],
+    [`${cleanCity} Royal Archives & Heritage Museum Exploration`, "culture", "morning", "low", false, 100, 250, "Rare historical artefacts, royal weaponry, and paintings"],
+    [`${cleanCity} Panoramic Hilltop Sanctuary & Sunset Viewpoint`, "sightseeing", "evening", "moderate", true, 90, 50, "Stunning panoramic vistas over the entire valley"],
+    [`${cleanCity} Herbal Garden & Traditional Ayurvedic Wellness Walk`, "leisure", "afternoon", "low", true, 80, 150, "Aromatic medicinal plants and restorative tranquil paths"],
+    [`${cleanCity} Twilight Starlight Observatory & Rooftop Gathering`, "leisure", "evening", "low", true, 90, 200, "Stargazing and relaxing terrace conversations under clear skies"],
+  ];
+
+  const rnd = mulberry32(seed + 99);
+  const jitter = () => (rnd() - 0.5) * 0.05;
+  const lat = place?.lat ?? 20.0;
+  const lng = place?.lng ?? 78.0;
+
+  for (const [name, cat, slot, crowd, outdoor, mins, cost, tip] of extraTemplates) {
+    if (basePois.length >= neededCount) break;
+    basePois.push({
+      name,
+      category: cat,
+      slot,
+      crowd,
+      outdoor,
+      minutes: mins,
+      cost,
+      tip,
+      booking: "walk-in",
+      lat: lat + jitter(),
+      lng: lng + jitter(),
+    });
+  }
+
+  return basePois;
+}
+
+function buildArrivalTravelActivities(
+  originName: string,
+  destName: string,
+  hotelName: string,
+  mode: string,
+  place: Place | null
+): Activity[] {
+  const coords = place ? { lat: place.lat, lng: place.lng } : { lat: 0, lng: 0 };
+  return [
+    {
+      id: "act-1-1",
+      title: `Morning Transit: ${originName} → ${destName}`,
+      place_name: `${originName} to ${destName} Route`,
+      description: `Board your scheduled ${mode.toLowerCase()} departure from ${originName}. Enjoy the scenic route as you travel toward ${destName}.`,
+      details: "Check-in or arrive at departure terminal at least 60 minutes prior. Keep digital tickets and ID ready.",
+      category: "sightseeing",
+      locationName: `${originName} Transit Hub`,
+      timeSlot: "08:00 AM - 12:30 PM",
+      time: "08:00 AM - 12:30 PM",
+      startTime: "08:00",
+      endTime: "12:30",
+      crowdLevel: "moderate",
+      offPeakTip: "Carry water and light snacks for the journey.",
+      bookingDeadline: "3-7 days advance",
+      ticket_price: "Included in transport plan",
+      estimatedCost: { amount: 0, currency: "₹" },
+      coordinates: coords,
+      geo_coordinates: coords,
+      logistics: "Departure transit leg",
+      prediction: { delayRiskScore: 18, predictedCrowdLevel: "moderate", weatherSensitivity: "indoor", estimatedTransitMinutes: 120 },
+      isProtectedByShield: true,
+      image_query: `${originName} to ${destName} travel`,
+    },
+    {
+      id: "act-1-2",
+      title: `Hotel Check-in & Settle In (${hotelName})`,
+      place_name: hotelName,
+      description: `Arrive at your accommodation in ${destName}. Check in, unpack, refresh and get familiar with the neighbourhood.`,
+      details: "Standard check-in time is 1:00 PM – 2:00 PM. Front desk can assist with local maps and orientation.",
+      category: "leisure",
+      locationName: hotelName,
+      timeSlot: "01:30 PM - 03:30 PM",
+      time: "01:30 PM - 03:30 PM",
+      startTime: "13:30",
+      endTime: "15:30",
+      crowdLevel: "low",
+      offPeakTip: "Relax after your journey; early check-in subject to room readiness.",
+      bookingDeadline: "walk-in",
+      ticket_price: "Free",
+      estimatedCost: { amount: 0, currency: "₹" },
+      coordinates: coords,
+      geo_coordinates: coords,
+      logistics: "Arrival hotel check-in",
+      prediction: { delayRiskScore: 10, predictedCrowdLevel: "low", weatherSensitivity: "indoor", estimatedTransitMinutes: 20 },
+      isProtectedByShield: true,
+      image_query: `${hotelName} ${destName}`,
+    },
+    {
+      id: "act-1-3",
+      title: "Evening Orientation Promenade & Welcome Dinner",
+      place_name: `${destName} Central Promenade`,
+      description: `Unwind with a relaxed sunset stroll through ${destName}'s vibrant streets, followed by a welcome dinner sampling authentic local regional specialties.`,
+      details: "Try the signature regional thali or fresh delicacies recommended by locals.",
+      category: "food",
+      locationName: `${destName} City Centre`,
+      timeSlot: "06:00 PM - 08:30 PM",
+      time: "06:00 PM - 08:30 PM",
+      startTime: "18:00",
+      endTime: "20:30",
+      crowdLevel: "moderate",
+      offPeakTip: "Head out around 6 PM to catch the twilight atmosphere.",
+      bookingDeadline: "walk-in",
+      ticket_price: "₹450",
+      estimatedCost: { amount: 450, currency: "₹" },
+      coordinates: coords,
+      geo_coordinates: coords,
+      logistics: "45-minute transfer buffer included",
+      prediction: { delayRiskScore: 12, predictedCrowdLevel: "moderate", weatherSensitivity: "outdoor_high", estimatedTransitMinutes: 25 },
+      isProtectedByShield: true,
+      image_query: `${destName} traditional cuisine dinner`,
+    },
+  ];
+}
+
+function buildDepartureTravelActivities(
+  originName: string,
+  destName: string,
+  hotelName: string,
+  mode: string,
+  place: Place | null,
+  dayNo: number
+): Activity[] {
+  const coords = place ? { lat: place.lat, lng: place.lng } : { lat: 0, lng: 0 };
+  return [
+    {
+      id: `act-${dayNo}-1`,
+      title: "Morning Souvenirs & Traditional Bazaar Walk",
+      place_name: `${destName} Local Heritage Market`,
+      description: `Final morning to explore local bazaars. Pick up authentic handicrafts, regional sweets, spices, and souvenirs before departure.`,
+      details: "Support local artisans; cash and UPI are widely accepted.",
+      category: "food",
+      locationName: `${destName} Market`,
+      timeSlot: "09:00 AM - 11:00 AM",
+      time: "09:00 AM - 11:00 AM",
+      startTime: "09:00",
+      endTime: "11:00",
+      crowdLevel: "low",
+      offPeakTip: "Mornings are best to avoid the afternoon shopping rush.",
+      bookingDeadline: "walk-in",
+      ticket_price: "Free",
+      estimatedCost: { amount: 0, currency: "₹" },
+      coordinates: coords,
+      geo_coordinates: coords,
+      logistics: "Start of final day",
+      prediction: { delayRiskScore: 10, predictedCrowdLevel: "low", weatherSensitivity: "outdoor_high", estimatedTransitMinutes: 20 },
+      isProtectedByShield: true,
+      image_query: `${destName} local handicraft market`,
+    },
+    {
+      id: `act-${dayNo}-2`,
+      title: "Hotel Check-out & Station/Airport Transfer",
+      place_name: hotelName,
+      description: `Wrap up packing, complete check-out formalities at the hotel reception, and transfer to ${destName} departure terminal.`,
+      details: "Standard check-out is 11:00 AM – 12:00 PM. Allow ample transit time for airport/station security.",
+      category: "leisure",
+      locationName: hotelName,
+      timeSlot: "11:30 AM - 01:00 PM",
+      time: "11:30 AM - 01:00 PM",
+      startTime: "11:30",
+      endTime: "13:00",
+      crowdLevel: "moderate",
+      offPeakTip: "Pre-book airport cab or arrange hotel drop-off.",
+      bookingDeadline: "walk-in",
+      ticket_price: "Free",
+      estimatedCost: { amount: 0, currency: "₹" },
+      coordinates: coords,
+      geo_coordinates: coords,
+      logistics: "45-minute transfer buffer included",
+      prediction: { delayRiskScore: 15, predictedCrowdLevel: "moderate", weatherSensitivity: "indoor", estimatedTransitMinutes: 35 },
+      isProtectedByShield: true,
+      image_query: `${hotelName} checkout transfer`,
+    },
+    {
+      id: `act-${dayNo}-3`,
+      title: `Return Transit: ${destName} → ${originName}`,
+      place_name: `${destName} to ${originName} Route`,
+      description: `Board your scheduled return service back to ${originName}. Reflect on the wonderful memories and experiences from your journey.`,
+      details: "Keep boarding pass and baggage tags handy until arrival home.",
+      category: "sightseeing",
+      locationName: `${destName} Departure Terminal`,
+      timeSlot: "02:00 PM - 07:00 PM",
+      time: "02:00 PM - 07:00 PM",
+      startTime: "14:00",
+      endTime: "19:00",
+      crowdLevel: "moderate",
+      offPeakTip: "Charge power banks before boarding.",
+      bookingDeadline: "3-7 days advance",
+      ticket_price: "Included in transport plan",
+      estimatedCost: { amount: 0, currency: "₹" },
+      coordinates: coords,
+      geo_coordinates: coords,
+      logistics: "Final return leg",
+      prediction: { delayRiskScore: 18, predictedCrowdLevel: "moderate", weatherSensitivity: "indoor", estimatedTransitMinutes: 120 },
+      isProtectedByShield: true,
+      image_query: `${destName} to ${originName} return journey`,
+    },
+  ];
+}
+
 export function planTripLocally(input: TripData): GeneratedTrip {
   const stops = input.destination.split("|").map((d) => d.trim()).filter(Boolean);
-  const days = Math.max(1, Math.min(21, parseInt(input.days, 10) || 3));
+  const rawDays = parseInt(input.days, 10) || 3;
+  const requestedDays = Math.max(1, Math.min(21, rawDays));
   const pax = travelersCount(input.travelers || "2");
   const tier = budgetTier(input.budget || "Moderate");
   const origin = findPlace(input.origin || "") ?? null;
+  const originName = origin?.name || input.origin || "Origin";
   const seed = fnv1a(`${input.destination}|${input.days}|${input.vibe}`);
 
-  const perStop = stops.map((s, i) => ({ name: s, place: findPlace(s), kb: kbFor(s), days: Math.floor(days / stops.length) + (i < days % stops.length ? 1 : 0) }));
+  const rawBudgetNum = Number(String(input.budget || "").replace(/[^\d]/g, ""));
+  const isBudgetRestricted = tier === 0 || (rawBudgetNum > 0 && rawBudgetNum <= 18000);
+
+  // Travel Days Filter Logic:
+  // - excludeTravel: user picked pure destination stay (e.g. 11 days at destination + 2 travel days = 13 total)
+  // - isExplicitInclude: user explicitly picked including travel (e.g. 11 days total: Day 1 travel, Day 11 return, 9 days destination)
+  // - undefined: legacy behaviour (total days = requestedDays, all destination days)
+  const excludeTravel = input.includeTravelDays === false || input.includeTravelDays === "no" || input.includeTravelDays === "excluded";
+  const isExplicitInclude = input.includeTravelDays === true || input.includeTravelDays === "yes" || input.includeTravelDays === "included";
+  const hasTravelDaysSplit = excludeTravel || (isExplicitInclude && requestedDays >= 3);
+
+  const totalDays = excludeTravel ? requestedDays + 2 : requestedDays;
+  const destStayDays = excludeTravel
+    ? requestedDays
+    : isExplicitInclude && requestedDays >= 3
+    ? Math.max(1, requestedDays - 2)
+    : requestedDays;
+
+  const perStop = stops.map((s, i) => ({
+    name: s,
+    place: findPlace(s),
+    kb: kbFor(s),
+    days: Math.floor(destStayDays / stops.length) + (i < destStayDays % stops.length ? 1 : 0),
+  }));
+
+  const rawStartDate = input.startDate?.trim();
+  const validStartDate = rawStartDate && /^\d{4}-\d{2}-\d{2}$/.test(rawStartDate) ? rawStartDate : undefined;
+
+  const formatDateForDay = (offsetDays: number): string | undefined => {
+    if (!validStartDate) return undefined;
+    const [y, m, d] = validStartDate.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d + offsetDays));
+    return dt.toLocaleDateString("en-IN", {
+      timeZone: "UTC",
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+    });
+  };
+
+  const startDateIso = validStartDate;
+  const endDateIso = validStartDate
+    ? (() => {
+        const [y, m, d] = validStartDate.split("-").map(Number);
+        return new Date(Date.UTC(y, m - 1, d + totalDays - 1)).toISOString().slice(0, 10);
+      })()
+    : undefined;
+
   const itinerary: DayPlan[] = [];
   const hotels: Hotel[] = [];
   let dayNo = 1;
@@ -207,18 +478,70 @@ export function planTripLocally(input: TripData): GeneratedTrip {
   let foodCost = 0;
   let localCost = 0;
 
+  // Resolve Real Hotels for each stop
+  for (const stop of perStop) {
+    const realHotels = resolveRealHotels(stop.name, tier, pax, rawBudgetNum);
+    const primary = realHotels[0];
+    const rooms = Math.ceil(pax / 2);
+    const nightly = Math.round((primary.nightlyMin + primary.nightlyMax) / 2);
+    const stopNights = Math.max(1, stop.days);
+    stayCost += nightly * rooms * stopNights;
+
+    for (const rh of realHotels) {
+      hotels.push({
+        name: rh.name,
+        address: rh.address,
+        price: rh.price,
+        image_query: rh.image_query,
+        image_url: rh.image_url,
+        rating: rh.rating,
+        description: rh.description,
+        amenities: rh.amenities,
+        tier: rh.tier,
+        geo_coordinates: stop.place ? { lat: stop.place.lat, lng: stop.place.lng } : undefined,
+      });
+    }
+
+    const food = stop.kb?.dailyFood ?? [900, 2000];
+    const tr = stop.kb?.localTransitPerDay ?? [600, 1500];
+    foodCost += food[tier === 2 ? 1 : 0] * pax * stop.days;
+    localCost += tr[tier === 2 ? 1 : 0] * stop.days;
+  }
+
+  const primaryHotelName = hotels[0]?.name || "Central Hotel";
+  const preferredMode = input.travelMode || "Flight";
+
+  // If travel days are split: Day 1 is Departure & Arrival Travel
+  if (hasTravelDaysSplit) {
+    const firstPlace = perStop[0]?.place ?? null;
+    const arrActs = buildArrivalTravelActivities(originName, stops[0], primaryHotelName, preferredMode, firstPlace);
+    itinerary.push({
+      day: 1,
+      theme: `Departure from ${originName} & Travel to ${stops[0]}`,
+      date: formatDateForDay(0),
+      pacingRating: "light",
+      activities: arrActs,
+    });
+    activitiesCost += 450 * pax; // dinner cost
+    dayNo = 2;
+  }
+
+  // Generate Destination Stay Days
   for (const stop of perStop) {
     const place = stop.place;
     const kb = stop.kb;
-    const pois = kb ? kb.pois : place ? genericPois(place, seed, input.vibe) : [];
+    const perDay = /relax|chill/i.test(input.vibe || "") ? 2 : 3;
+    const neededPois = perDay * Math.max(1, stop.days);
+    const pois = getDestinationPois(stop.name, place, kb, seed, input.vibe, neededPois);
+
     const vibeOutdoor = /adventure|nature|beach/i.test(input.vibe || "");
     const vibeCulture = /culture|heritage|spiritual|history/i.test(input.vibe || "");
     const ranked = [...pois].sort((a, b) => {
       const s = (p: Poi) => (vibeOutdoor && p.outdoor ? 2 : 0) + (vibeCulture && p.category === "culture" ? 2 : 0) + (p.crowd === "peak" ? 1 : 0);
       return s(b) - s(a);
     });
-    const perDay = /relax|chill/i.test(input.vibe || "") ? 2 : 3;
-    const chosen = ranked.slice(0, Math.min(ranked.length, perDay * stop.days));
+    const chosen = ranked.slice(0, Math.min(ranked.length, neededPois));
+
     for (let d = 0; d < stop.days; d++) {
       const dayPois = orderByProximity(chosen.slice(d * perDay, d * perDay + perDay));
       // slot assignment: peak-crowd & outdoor -> morning, evening items -> evening
@@ -237,13 +560,23 @@ export function planTripLocally(input: TripData): GeneratedTrip {
           const crowdNow = p.crowd === "peak" && slot === "morning" ? "moderate" : p.crowd;
           acts.push({
             id: `act-${dayNo}-${++k}`,
-            title: p.name, place_name: p.name, description: `${p.tip}.`, details: `${p.tip}.`,
-            category: p.category, locationName: p.name, timeSlot: `${fmt12(st)} - ${fmt12(en)}`, time: `${fmt12(st)} - ${fmt12(en)}`,
-            startTime: st, endTime: en, crowdLevel: crowdNow,
+            title: p.name,
+            place_name: p.name,
+            description: `${p.tip}.`,
+            details: `${p.tip}.`,
+            category: p.category,
+            locationName: p.name,
+            timeSlot: `${fmt12(st)} - ${fmt12(en)}`,
+            time: `${fmt12(st)} - ${fmt12(en)}`,
+            startTime: st,
+            endTime: en,
+            crowdLevel: crowdNow,
             offPeakTip: p.crowd === "peak" ? "Scheduled in the low-density window to beat the queues" : p.tip,
-            bookingDeadline: p.booking, ticket_price: p.cost ? `₹${p.cost.toLocaleString("en-IN")}` : "Free",
+            bookingDeadline: p.booking,
+            ticket_price: p.cost ? `₹${p.cost.toLocaleString("en-IN")}` : "Free",
             estimatedCost: { amount: p.cost, currency: "₹" },
-            coordinates: { lat: p.lat, lng: p.lng }, geo_coordinates: { lat: p.lat, lng: p.lng },
+            coordinates: { lat: p.lat, lng: p.lng },
+            geo_coordinates: { lat: p.lat, lng: p.lng },
             logistics: k > 1 ? "45-minute transfer buffer included" : "Start of day",
             prediction: { delayRiskScore: p.outdoor ? 30 : 12, predictedCrowdLevel: crowdNow, weatherSensitivity: p.outdoor ? "outdoor_high" : "indoor", estimatedTransitMinutes: 25 },
             isProtectedByShield: true,
@@ -253,25 +586,45 @@ export function planTripLocally(input: TripData): GeneratedTrip {
         }
       }
       if (acts.length === 0) {
-        acts.push({ id: `act-${dayNo}-1`, title: `Explore ${stop.name} at your own pace`, description: "Flexible day — the agent keeps monitoring local conditions.", category: "leisure", locationName: stop.name, timeSlot: "10:00 AM - 1:00 PM", startTime: "10:00", endTime: "13:00", coordinates: place ? { lat: place.lat, lng: place.lng } : { lat: 0, lng: 0 } });
+        acts.push({
+          id: `act-${dayNo}-1`,
+          title: `Explore ${stop.name} at your own pace`,
+          description: "Flexible day — the agent keeps monitoring local conditions.",
+          category: "leisure",
+          locationName: stop.name,
+          timeSlot: "10:00 AM - 1:00 PM",
+          startTime: "10:00",
+          endTime: "13:00",
+          coordinates: place ? { lat: place.lat, lng: place.lng } : { lat: 0, lng: 0 },
+        });
       }
-      itinerary.push({ day: dayNo, theme: d === 0 ? `Arrive & discover ${stop.name}` : `${stop.name}: ${acts.map((a) => a.category).includes("culture") ? "culture & heritage" : "highlights & local life"}`, pacingRating: acts.length >= 3 ? "balanced" : "light", activities: acts });
+      const dayTheme = !hasTravelDaysSplit && d === 0
+        ? `Arrive & discover ${stop.name}`
+        : `${stop.name}: ${acts.map((a) => a.category).includes("culture") ? "culture & heritage" : "highlights & local life"}`;
+      itinerary.push({
+        day: dayNo,
+        theme: dayTheme,
+        date: formatDateForDay(dayNo - 1),
+        pacingRating: acts.length >= 3 ? "balanced" : "light",
+        activities: acts,
+      });
       dayNo++;
     }
-    const stays = kb?.stays ?? [["Well-rated mid-range hotel", "city centre", 3000, 6000], ["Comfort hotel", "central district", 6000, 12000], ["Premium hotel", "prime area", 12000, 25000]] as DestinationKB["stays"];
-    const st = stays[Math.min(tier, stays.length - 1)];
-    const rooms = Math.ceil(pax / 2);
-    const nightly = Math.round((st[2] + st[3]) / 2);
-    stayCost += nightly * rooms * Math.max(1, stop.days);
-    hotels.push({ name: `${st[0]} · ${st[1]}`, address: `${st[1]}, ${stop.name}`, price: `₹${st[2].toLocaleString("en-IN")}–${st[3].toLocaleString("en-IN")}/night (estimate)`, image_query: `${st[0]} ${st[1]} ${stop.name}`, rating: [3.9, 4.3, 4.7][tier], description: `${["Budget", "Mid-range", "Premium"][tier]} pick in ${st[1]}. Compare live prices before booking.`, geo_coordinates: place ? { lat: place.lat, lng: place.lng } : undefined });
-    const food = kb?.dailyFood ?? [900, 2000];
-    const tr = kb?.localTransitPerDay ?? [600, 1500];
-    foodCost += food[tier === 2 ? 1 : 0] * pax * stop.days;
-    localCost += tr[tier === 2 ? 1 : 0] * stop.days;
   }
 
-  const rawBudgetNum = Number(String(input.budget || "").replace(/[^\d]/g, ""));
-  const isBudgetRestricted = tier === 0 || (rawBudgetNum > 0 && rawBudgetNum <= 18000);
+  // If travel days are split: Final Day is Return Travel & Departure
+  if (hasTravelDaysSplit) {
+    const lastStop = perStop[perStop.length - 1];
+    const lastPlace = lastStop?.place ?? null;
+    const depActs = buildDepartureTravelActivities(originName, lastStop?.name ?? stops[0], primaryHotelName, preferredMode, lastPlace, dayNo);
+    itinerary.push({
+      day: dayNo,
+      theme: `Return Journey & Farewell to ${lastStop?.name ?? stops[0]}`,
+      date: formatDateForDay(dayNo - 1),
+      pacingRating: "light",
+      activities: depActs,
+    });
+  }
 
   const transportation_plan: TransportationStep[] = [];
   let transportCost = 0;
@@ -425,11 +778,18 @@ export function planTripLocally(input: TripData): GeneratedTrip {
   const rawTrip = {
     trip_details: {
       destination: stops.join(" -> "),
-      duration: `${days} Days`,
+      duration: excludeTravel
+        ? `${requestedDays} Days stay + 2 travel days (${totalDays} Days total)`
+        : isExplicitInclude && requestedDays >= 3
+        ? `${totalDays} Days (incl. travel days)`
+        : `${totalDays} Days`,
       budget: input.budget || "Moderate",
       vibe: input.vibe || "Balanced",
       total_estimated_cost: `₹${total.toLocaleString("en-IN")} (estimate for ${pax} traveller${pax > 1 ? "s" : ""}, incl. 10% buffer)`,
       travelers: String(pax),
+      startDate: startDateIso,
+      endDate: endDateIso,
+      includeTravelDays: excludeTravel ? ("no" as const) : isExplicitInclude ? ("yes" as const) : undefined,
     },
     transportation_plan,
     hotels,

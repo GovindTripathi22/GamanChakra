@@ -67,6 +67,105 @@ describe("keyless trip planner", () => {
     expect(hub?.isRemoteHub).toBe(true);
     expect(hub?.distanceKm).toBeGreaterThan(100);
   });
+  it("populates real hotels with high-resolution image URLs, real names and star ratings", () => {
+    const jaipurTrip = planTripLocally({ origin: "Delhi", destination: "Jaipur", days: "3", budget: "Luxury", travelers: "2", vibe: "Cultural" });
+    expect(jaipurTrip.hotels.length).toBeGreaterThanOrEqual(1);
+    const h = jaipurTrip.hotels[0];
+    expect(h.name).toMatch(/Rambagh Palace|ITC Rajputana|Umaid Bhawan/i);
+    expect(h.image_url).toMatch(/^https:\/\/images\.unsplash\.com\//);
+    expect(h.rating).toBeGreaterThanOrEqual(4.0);
+    expect(h.amenities?.length).toBeGreaterThan(0);
+  });
+  it("handles 11-day trip with travel days included: Day 1 departure, Days 2-10 destination, Day 11 return", () => {
+    const trip11Incl = planTripLocally({
+      origin: "Delhi",
+      destination: "Jaipur",
+      days: "11",
+      budget: "Moderate",
+      travelers: "2",
+      vibe: "Cultural",
+      includeTravelDays: "yes",
+    });
+    expect(trip11Incl.itinerary).toHaveLength(11);
+    expect(trip11Incl.trip_details.duration).toContain("11 Days (incl. travel days)");
+    // Day 1 is departure & travel
+    expect(trip11Incl.itinerary[0].theme).toMatch(/Departure from Delhi & Travel to Jaipur/i);
+    expect(trip11Incl.itinerary[0].activities.some((a) => a.title.includes("Transit") || a.title.includes("Check-in"))).toBe(true);
+    // Middle days 2 to 10 are destination days
+    expect(trip11Incl.itinerary[1].theme).toMatch(/Jaipur/i);
+    // Day 11 is return travel
+    expect(trip11Incl.itinerary[10].theme).toMatch(/Return Journey & Farewell to Jaipur/i);
+    expect(trip11Incl.itinerary[10].activities.some((a) => a.title.includes("Check-out") || a.title.includes("Return Transit"))).toBe(true);
+  });
+  it("handles 11-day trip with pure destination stay: 11 full days at destination + 2 travel days = 13 total days", () => {
+    const trip11Excl = planTripLocally({
+      origin: "Delhi",
+      destination: "Jaipur",
+      days: "11",
+      budget: "Moderate",
+      travelers: "2",
+      vibe: "Cultural",
+      includeTravelDays: "no",
+    });
+    expect(trip11Excl.itinerary).toHaveLength(13);
+    expect(trip11Excl.trip_details.duration).toContain("11 Days stay + 2 travel days (13 Days total)");
+    // Day 1 is departure
+    expect(trip11Excl.itinerary[0].theme).toMatch(/Departure from Delhi & Travel to Jaipur/i);
+    // 11 destination days (Days 2 to 12)
+    for (let i = 1; i <= 11; i++) {
+      expect(trip11Excl.itinerary[i].activities.length).toBeGreaterThan(0);
+      expect(trip11Excl.itinerary[i].theme).toMatch(/Jaipur/i);
+    }
+    // Day 13 is return travel
+    expect(trip11Excl.itinerary[12].theme).toMatch(/Return Journey & Farewell to Jaipur/i);
+  });
+  it("calculates exact calendar dates for 11-day trips with startDate provided", () => {
+    const tripWithDates = planTripLocally({
+      origin: "Delhi",
+      destination: "Goa",
+      days: "11",
+      budget: "Comfort",
+      travelers: "2",
+      vibe: "Relaxed",
+      startDate: "2026-11-01",
+      includeTravelDays: "yes",
+    });
+    expect(tripWithDates.trip_details.startDate).toBe("2026-11-01");
+    expect(tripWithDates.trip_details.endDate).toBe("2026-11-11");
+    expect(tripWithDates.itinerary[0].date).toBe("Sun, 1 Nov");
+    expect(tripWithDates.itinerary[10].date).toBe("Wed, 11 Nov");
+
+    const tripPureStayDates = planTripLocally({
+      origin: "Delhi",
+      destination: "Goa",
+      days: "11",
+      budget: "Comfort",
+      travelers: "2",
+      vibe: "Relaxed",
+      startDate: "2026-11-01",
+      includeTravelDays: "no",
+    });
+    expect(tripPureStayDates.trip_details.startDate).toBe("2026-11-01");
+    expect(tripPureStayDates.trip_details.endDate).toBe("2026-11-13");
+    expect(tripPureStayDates.itinerary[0].date).toBe("Sun, 1 Nov");
+    expect(tripPureStayDates.itinerary[12].date).toBe("Fri, 13 Nov");
+  });
+  it("generates real high-fidelity hotel fallbacks with Unsplash images for unlisted destinations", () => {
+    const customTrip = planTripLocally({
+      origin: "Kolkata",
+      destination: "Kaziranga",
+      days: "4",
+      budget: "Moderate",
+      travelers: "2",
+      vibe: "Nature",
+    });
+    expect(customTrip.hotels.length).toBeGreaterThanOrEqual(1);
+    const h = customTrip.hotels[0];
+    expect(h.name).toContain("Kaziranga");
+    expect(h.image_url).toMatch(/^https:\/\/images\.unsplash\.com\//);
+    expect(h.rating).toBeGreaterThanOrEqual(4.0);
+    expect(h.amenities?.length).toBeGreaterThan(0);
+  });
 });
 
 describe("re-routing alternatives", () => {

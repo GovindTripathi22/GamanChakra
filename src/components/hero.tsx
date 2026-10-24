@@ -8,6 +8,7 @@ import { Send, Globe, MapPin, Compass, Sparkles, Loader2, Mic, Radar, Camera } f
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { parseTripPrompt } from "@/lib/planner/prompt-parser";
 
 const HERO_BACKDROPS = [
     { id: "srirangam", name: "Srirangam Temple", url: "/hero-srirangam-hd.jpg" },
@@ -25,6 +26,8 @@ export function Hero() {
     const [isNavigating, setIsNavigating] = useState(false);
     const [risk, setRisk] = useState<{ place: string; score: number; band: string } | null>(null);
     const [alerts, setAlerts] = useState<{ id: string; title: string; placeName: string | null; severity: string }[]>([]);
+
+    const parsedPrompt = destination.trim().length > 3 ? parseTripPrompt(destination) : null;
 
     // Auto-cycle through scenic backdrops slowly every 30 seconds unless user selected a view
     useEffect(() => {
@@ -64,10 +67,19 @@ export function Hero() {
     }, []);
 
     const handleStart = () => {
-        if (destination.trim()) {
-            setIsNavigating(true);
-            router.push(`/create-trip?destination=${encodeURIComponent(destination)}`);
-        }
+        if (!destination.trim()) return;
+        setIsNavigating(true);
+        const parsed = parseTripPrompt(destination);
+        const params = new URLSearchParams();
+        if (parsed.destination) params.set("destination", parsed.destination);
+        if (parsed.origin) params.set("origin", parsed.origin);
+        if (parsed.days) params.set("days", parsed.days);
+        if (parsed.budget) params.set("budget", parsed.budget);
+        if (parsed.travelers) params.set("travelers", parsed.travelers);
+        if (parsed.vibe) params.set("vibe", parsed.vibe);
+        if (parsed.startDate) params.set("startDate", parsed.startDate);
+        if (parsed.includeTravelDays) params.set("includeTravelDays", parsed.includeTravelDays);
+        router.push(`/create-trip?${params.toString()}`);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -77,17 +89,10 @@ export function Hero() {
     };
 
     return (
-        <div className="relative flex min-h-[92vh] lg:min-h-screen flex-col items-center justify-center overflow-hidden bg-slate-900 pt-20 pb-28 sm:pb-32">
+        <div className="relative flex min-h-[92vh] lg:min-h-screen flex-col items-center justify-center overflow-hidden bg-slate-950 pt-20 pb-28 sm:pb-32">
             {/* Background - Ultra-HD Cinematic Travel Imagery */}
             <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-                <div className="absolute inset-0 z-10 bg-[linear-gradient(180deg,rgba(7,11,22,.60)_0%,rgba(7,11,22,.35)_45%,var(--gc-bg)_100%)] pointer-events-none" />
-                <div className="absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_50%_35%,rgba(255,106,26,.18),transparent_65%)] pointer-events-none" />
-
-                {/* Animated gradient orbs for ambient glow */}
-                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500/15 rounded-full blur-3xl animate-pulse pointer-events-none z-10" />
-                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl animate-pulse delay-1000 pointer-events-none z-10" />
-
-                {/* Smooth Cross-Fade Backdrop Layers */}
+                {/* Smooth Cross-Fade Backdrop Layers (Base Layer at z-0) */}
                 {HERO_BACKDROPS.map((b, idx) => {
                     const isActive = activeBackdropIndex === idx;
                     return (
@@ -95,7 +100,7 @@ export function Hero() {
                             key={b.id}
                             aria-hidden={!isActive}
                             className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                                isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                                isActive ? "opacity-100 z-0" : "opacity-0 z-0 pointer-events-none"
                             }`}
                         >
                             <Image
@@ -112,6 +117,15 @@ export function Hero() {
                         </div>
                     );
                 })}
+
+                {/* Dark black effect overlay & vignette tints for rich contrast */}
+                <div className="absolute inset-0 z-10 bg-black/60 pointer-events-none" />
+                <div className="absolute inset-0 z-10 bg-[linear-gradient(180deg,rgba(0,0,0,0.75)_0%,rgba(0,0,0,0.45)_40%,rgba(7,11,22,0.85)_80%,#020617_100%)] pointer-events-none" />
+                <div className="absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_50%_35%,rgba(255,106,26,.15),transparent_65%)] pointer-events-none" />
+
+                {/* Animated gradient orbs for ambient glow */}
+                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500/15 rounded-full blur-3xl animate-pulse pointer-events-none z-10" />
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl animate-pulse delay-1000 pointer-events-none z-10" />
             </div>
 
             {/* Content */}
@@ -172,7 +186,7 @@ export function Hero() {
                     <div className="relative flex items-center rounded-2xl border border-white/20 bg-white/10 p-2 shadow-2xl backdrop-blur-md transition-all focus-within:bg-white/20 focus-within:border-orange-500/50 hover:bg-white/15">
                         <Input
                             type="text"
-                            placeholder="Trip to Udaipur, Rajasthan..."
+                            placeholder="e.g. 5 days trip from Mumbai to Goa for couple under 20k..."
                             className="h-16 border-none bg-transparent pl-6 pr-36 text-lg text-white placeholder:text-white/60 focus-visible:ring-0 md:text-xl"
                             value={destination}
                             onChange={(e) => setDestination(e.target.value)}
@@ -200,12 +214,38 @@ export function Hero() {
                         </Button>
                     </div>
                     <AnimatePresence>
-                        {risk && (
-                            <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute left-4 -bottom-9 flex items-center gap-2 text-sm text-white/90">
-                                <Radar className="h-4 w-4 text-orange-400" />
-                                <span>Live risk for <b>{risk.place}</b>:</span>
-                                <span className="rounded-full px-2.5 py-0.5 text-xs font-bold" style={{ background: risk.score >= 55 ? "#ef4444" : risk.score >= 35 ? "#f59e0b" : "#10b981", color: "#0b1020" }}>{risk.score}/100 · {risk.band}</span>
-                                <Link href={`/risk`} className="text-xs underline underline-offset-2 text-white/70 hover:text-white">why?</Link>
+                        {((parsedPrompt && parsedPrompt.detectedChips.length > 0) || risk) && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -4 }}
+                                className="mt-3 flex flex-wrap items-center justify-between gap-2.5 px-2"
+                            >
+                                {parsedPrompt && parsedPrompt.detectedChips.length > 0 ? (
+                                    <div className="flex flex-wrap items-center gap-1.5">
+                                        <span className="text-[11px] font-bold text-orange-400 uppercase tracking-wider flex items-center gap-1 mr-1">
+                                            <Sparkles className="h-3 w-3" /> Detected:
+                                        </span>
+                                        {parsedPrompt.detectedChips.map((chip, idx) => (
+                                            <span
+                                                key={idx}
+                                                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-white/20 text-xs font-medium text-white shadow-sm backdrop-blur-md"
+                                            >
+                                                <span>{chip.icon}</span>
+                                                <span>{chip.label}</span>
+                                            </span>
+                                        ))}
+                                    </div>
+                                ) : <div />}
+
+                                {risk && (
+                                    <div className="inline-flex items-center gap-1.5 text-xs text-white/90 bg-slate-900/90 border border-white/15 px-2.5 py-1 rounded-full backdrop-blur-md shadow-sm">
+                                        <Radar className="h-3.5 w-3.5 text-orange-400" />
+                                        <span>Live risk for <b>{risk.place}</b>:</span>
+                                        <span className="rounded-full px-2 py-0.2 text-[10px] font-bold" style={{ background: risk.score >= 55 ? "#ef4444" : risk.score >= 35 ? "#f59e0b" : "#10b981", color: "#0b1020" }}>{risk.score}/100 · {risk.band}</span>
+                                        <Link href={`/risk`} className="text-[10px] underline underline-offset-2 text-white/70 hover:text-white">why?</Link>
+                                    </div>
+                                )}
                             </motion.div>
                         )}
                     </AnimatePresence>
@@ -225,7 +265,7 @@ export function Hero() {
                     />
                     <ActionPill
                         icon={<Sparkles className="h-4 w-4 text-emerald-400" />}
-                        text="Inspire me where to go"
+                        text="Inspire Me Now"
                         onClick={() => router.push('/inspire')}
                     />
                     <ActionPill

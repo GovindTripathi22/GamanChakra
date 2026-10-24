@@ -6,6 +6,7 @@ import type { GeneratedTrip, Activity, DayPlan } from "@/types/trip";
 import { calculateTripCost } from "@/lib/cost/engine";
 import { logAuditEvent } from "@/lib/audit/logger";
 import { findPlace } from "@/lib/geo/gazetteer";
+import { resolveRealHotels } from "@/lib/hotels/data";
 
 export interface PersistTripResult {
   success: boolean;
@@ -145,8 +146,8 @@ export async function saveTripToDatabase(
           orgId,
           destLat: destPlace?.lat ?? null,
           destLng: destPlace?.lng ?? null,
-          startDate: new Date().toISOString().slice(0, 10),
-          endDate: new Date(Date.now() + Math.max(1, trip.itinerary.length) * 864e5).toISOString().slice(0, 10),
+          startDate: trip.trip_details?.startDate || new Date().toISOString().slice(0, 10),
+          endDate: trip.trip_details?.endDate || new Date(Date.now() + Math.max(1, trip.itinerary.length) * 864e5).toISOString().slice(0, 10),
           status: "planned",
         },
         update: {
@@ -250,6 +251,13 @@ export async function getTripFromDatabase(tripId: string): Promise<GeneratedTrip
       activities: dayMap.get(dayNum) || [],
     }));
 
+    const resolvedHotels = resolveRealHotels(
+      trip.destination,
+      1,
+      parseInt(trip.travelers || "2", 10) || 2,
+      trip.budgetMax || 25000
+    );
+
     return {
       trip_details: {
         destination: trip.destination,
@@ -258,9 +266,11 @@ export async function getTripFromDatabase(tripId: string): Promise<GeneratedTrip
         travelers: trip.travelers || "2",
         vibe: "cultural",
         total_estimated_cost: trip.budgetMax ? `₹${trip.budgetMax.toLocaleString("en-IN")}` : "₹25,000",
+        startDate: trip.startDate || undefined,
+        endDate: trip.endDate || undefined,
       },
       transportation_plan: [],
-      hotels: [],
+      hotels: resolvedHotels,
       itinerary: itinerary.length > 0 ? (itinerary as any) : [
         {
           day: 1,

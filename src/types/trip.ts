@@ -37,6 +37,7 @@ export interface Activity {
 export interface DayPlan {
   day: number;
   theme: string;
+  date?: string;
   pacingRating?: "light" | "balanced" | "intense";
   activities: Activity[];
 }
@@ -82,6 +83,8 @@ export interface Hotel {
   };
   rating: number;
   description?: string;
+  amenities?: string[];
+  tier?: "budget" | "comfort" | "luxury";
 }
 
 export interface TransportationStep {
@@ -101,6 +104,7 @@ export interface TripData {
   vibe: string;
   startDate?: string;
   travelMode?: string;
+  includeTravelDays?: boolean | "yes" | "no" | "included" | "excluded";
 }
 
 export interface GeneratedTrip {
@@ -111,6 +115,9 @@ export interface GeneratedTrip {
     vibe: string;
     total_estimated_cost: string;
     travelers?: string;
+    startDate?: string;
+    endDate?: string;
+    includeTravelDays?: boolean | "yes" | "no";
   };
   transportation_plan: TransportationStep[];
   hotels: Hotel[];
