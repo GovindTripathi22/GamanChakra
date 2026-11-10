@@ -87,7 +87,7 @@ export function GapFillCard({
               </Badge>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {gap.startTime} – {gap.endTime} • Near {gap.anchorLocationName || destination}
+              {gap.startTime} – {gap.endTime} • Near {gap.anchorLocationName || destination} • Unscheduled schedule window detected; insert nearby off-peak perks below with one tap.
             </p>
           </div>
         </div>

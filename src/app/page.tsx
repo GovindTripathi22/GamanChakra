@@ -97,7 +97,7 @@ const FEATURES = [
   { icon: Radio, t: "Real-time world news engine", d: "10+ keyless live sources, de-duplicated, geotagged and impact-scored. No API keys, ever." },
   { icon: Cpu, t: "Chakra-Nano — our own SLM", d: "A multi-task neural model trained from scratch in this repo. Runs on any CPU in <1 ms. Optional local generative SLM via Ollama." },
   { icon: Bot, t: "Autonomous agent with guard-rails", d: "Five autonomy levels (Observe → Autopilot). Idempotent, auditable, human-in-the-loop by design." },
-  { icon: Mic, t: "Jarvis voice co-pilot", d: "“Hey Chakra, is Bangkok safe this week?” English, Hindi & Hinglish. Wake word, push-to-talk, spoken answers." },
+  { icon: Mic, t: "Sarthi voice co-pilot", d: "“Hey Sarthi, is Bangkok safe this week?” English, Hindi & Hinglish. Wake word, push-to-talk, spoken answers." },
   { icon: ShieldCheck, t: "Duty of care at scale", d: "Know who is exposed in seconds. One-tap “Are you safe?” check-ins via link or WhatsApp — replies stream in live." },
   { icon: Route, t: "Auto re-routing", d: "When fog grounds flights or a bandh shuts roads, ranked train/bus/cab/flight alternatives are ready before you ask." },
   { icon: Scale, t: "Compensation on autopilot", d: "DGCA, EU261, UK261 and US DOT entitlement checks with ready-to-send claim letters." },
@@ -115,7 +115,10 @@ export default function Home() {
   const slm = useApi<SlmInfo>("/api/slm");
   const events = (ov.data?.events ?? []).filter((e) => e.category !== "not_travel");
   const blind = slm.data?.report?.blind;
-  const openJarvis = (q?: string) => window.dispatchEvent(new CustomEvent("gc:jarvis", { detail: q }));
+  const openSarthi = (q?: string) => {
+    window.dispatchEvent(new CustomEvent("gc:sarthi", { detail: q }));
+    window.dispatchEvent(new CustomEvent("gc:jarvis", { detail: q }));
+  };
   const demo = async () => { setDemoBusy(true); await startDemo(); setDemoBusy(false); };
 
   return (
@@ -138,7 +141,7 @@ export default function Home() {
             <p className="text-lg gc-muted mt-5 max-w-xl leading-relaxed">Voyage watches real-time global news, understands it with its own small language model, and an autonomous agent re-routes, checks in and protects every traveller — by voice, in English or Hindi.</p>
             <div className="flex flex-wrap gap-3 mt-8">
               {isSignedIn ? <Link href="/command"><Btn size="lg">Open Mission Control <ArrowRight className="h-4 w-4" /></Btn></Link> : <Btn size="lg" onClick={demo} loading={demoBusy}><PlayCircle className="h-5 w-5" />Launch the live demo</Btn>}
-              <Btn size="lg" variant="outline" onClick={() => openJarvis()}><Mic className="h-4 w-4" />Talk to Chakra</Btn>
+              <Btn size="lg" variant="outline" onClick={() => openSarthi()}><Mic className="h-4 w-4" />Talk to Chakra</Btn>
               <a href="#how-it-works"><Btn size="lg" variant="ghost">How it works <ArrowRight className="h-4 w-4" /></Btn></a>
             </div>
             <div className="flex flex-wrap gap-x-6 gap-y-2 mt-8 text-sm gc-muted">
@@ -290,7 +293,7 @@ export default function Home() {
           <h2 className="font-display text-4xl md:text-5xl font-semibold max-w-2xl leading-tight relative">Let the world change. Your travellers will be fine.</h2>
           <div className="flex flex-wrap gap-3 mt-8 relative">
             <button onClick={demo} className="h-12 px-6 rounded-xl bg-white text-[#c2410c] font-semibold inline-flex items-center gap-2">{demoBusy ? "Loading…" : "Launch the live demo"} <ArrowRight className="h-4 w-4" /></button>
-            <button onClick={() => openJarvis("What can you do?")} className="h-12 px-6 rounded-xl border border-white/40 font-semibold inline-flex items-center gap-2"><Mic className="h-4 w-4" />Ask Chakra</button>
+            <button onClick={() => openSarthi("What can you do?")} className="h-12 px-6 rounded-xl border border-white/40 font-semibold inline-flex items-center gap-2"><Mic className="h-4 w-4" />Ask Chakra</button>
           </div>
         </div>
         <footer className="flex flex-col md:flex-row justify-between gap-4 mt-12 text-sm gc-muted">

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { db } from "@/lib/db";
+import { db, isDbAvailable } from "@/lib/db";
 import { classifyNews } from "@/lib/slm/nano";
 import { CATEGORY_META, type NewsCategory, type Severity } from "@/lib/slm/labels";
 import { nearestCity, countryByCode, normalizeText } from "@/lib/geo/gazetteer";
@@ -11,6 +11,37 @@ import { publish } from "@/lib/events/bus";
 import type { NormalizedEvent, RawArticle, SourceConfig, SourceStatus } from "./types";
 
 const UA = "Voyage/3.0 (+https://voyage.app; travel-risk monitor)";
+
+const inMemoryNewsList: any[] = [];
+
+export function getInMemoryNewsEvents(): any[] {
+  if (inMemoryNewsList.length === 0) {
+    const drills = drillArticles();
+    drills.forEach((d, idx) => {
+      inMemoryNewsList.push({
+        id: `mem-news-${idx + 1}`,
+        title: d.title,
+        summary: d.summary,
+        url: d.url,
+        source: d.source,
+        provenance: "sample",
+        category: d.hint?.category || (d.title.includes("fog") || d.title.includes("Cyclone") ? "severe_weather" : d.title.includes("earthquake") ? "natural_disaster" : d.title.includes("bandh") || d.title.includes("strike") ? "civil_unrest" : "transport_disruption"),
+        severity: d.hint?.severity || (d.title.includes("red alert") || d.title.includes("M 6.4") ? "high" : "moderate"),
+        confidence: 0.88,
+        placeName: d.title.includes("Delhi") ? "Delhi, India" : d.title.includes("Bengaluru") ? "Bengaluru, India" : d.title.includes("Kathmandu") ? "Kathmandu, Nepal" : d.title.includes("Goa") ? "Goa, India" : d.title.includes("Mumbai") ? "Mumbai, India" : "Global",
+        countryCode: d.title.includes("India") || d.title.includes("Delhi") || d.title.includes("Goa") || d.title.includes("Bengaluru") || d.title.includes("Mumbai") ? "IN" : d.title.includes("Kathmandu") ? "NP" : "FR",
+        lat: d.lat || 28.6139,
+        lng: d.lng || 77.2090,
+        radiusKm: d.hint?.radiusKm || 50,
+        impactScore: 65,
+        publishedAt: d.publishedAt,
+        ingestedAt: new Date(),
+        tags: JSON.stringify(d.hint?.tags || ["travel"]),
+      });
+    });
+  }
+  return [...inMemoryNewsList];
+}
 
 export async function fetchSource(src: SourceConfig, timeoutMs = 9000): Promise<{ items: RawArticle[]; status: SourceStatus }> {
   const t0 = Date.now();
@@ -142,9 +173,10 @@ export async function ingestNews(opts: { watchCities?: string[]; mode?: "auto" |
     results.forEach((r, i) => { statuses.push(r.status); for (const a of r.items) raws.push({ a, rel: sources[i].reliability }); });
   }
   const liveCount = raws.length;
+  const dbOk = await isDbAvailable();
   let usedDrill = false;
   if (mode === "drill" || (mode === "auto" && liveCount === 0)) {
-    const existingLive = await db.newsEvent.count({ where: { provenance: "live", publishedAt: { gt: new Date(now.getTime() - 864e5) } } });
+    const existingLive = dbOk ? await db.newsEvent.count({ where: { provenance: "live", publishedAt: { gt: new Date(now.getTime() - 864e5) } } }).catch(() => 0) : 0;
     if (mode === "drill" || existingLive === 0) {
       raws = raws.concat(drillArticles(now).map((a) => ({ a, rel: 0.9 })));
       usedDrill = true;
@@ -154,13 +186,28 @@ export async function ingestNews(opts: { watchCities?: string[]; mode?: "auto" |
 
   const normalized = raws.map(({ a, rel }) => normalizeArticle(a, rel, now)).filter((x): x is NormalizedEvent => !!x);
   const relevant = normalized.filter((e) => e.category !== "not_travel");
-  const recent = await db.newsEvent.findMany({ where: { ingestedAt: { gt: new Date(now.getTime() - 2 * 864e5) } }, select: { title: true, fingerprint: true }, take: 800, orderBy: { ingestedAt: "desc" } });
+  const recent = dbOk ? await db.newsEvent.findMany({ where: { ingestedAt: { gt: new Date(now.getTime() - 2 * 864e5) } }, select: { title: true, fingerprint: true }, take: 800, orderBy: { ingestedAt: "desc" } }).catch(() => []) : [];
   const knownFp = new Set(recent.map((r) => r.fingerprint));
   const fresh = dedupe(relevant.filter((e) => !knownFp.has(e.fingerprint)), recent.map((r) => r.title));
 
   let inserted = 0;
   const created: { id: string; title: string; category: string; severity: string; impactScore: number; placeName: string | null }[] = [];
+
   for (const e of fresh) {
+    if (!dbOk) {
+      inserted++;
+      const item = {
+        id: `mem_${e.fingerprint.slice(0, 16)}`,
+        fingerprint: e.fingerprint, title: e.title, summary: e.summary, url: e.url, source: e.source, sourceKind: e.sourceKind,
+        publishedAt: e.publishedAt, lang: e.lang, category: e.category, severity: e.severity, confidence: e.confidence,
+        impactScore: e.impactScore, placeName: e.placeName, countryCode: e.countryCode, lat: e.lat, lng: e.lng, radiusKm: e.radiusKm,
+        tags: JSON.stringify(e.tags), provenance: e.provenance,
+      };
+      inMemoryNewsList.unshift(item);
+      if (inMemoryNewsList.length > 300) inMemoryNewsList.pop();
+      created.push({ id: item.id, title: item.title, category: item.category, severity: item.severity, impactScore: item.impactScore, placeName: item.placeName });
+      continue;
+    }
     try {
       const row = await db.newsEvent.create({
         data: {

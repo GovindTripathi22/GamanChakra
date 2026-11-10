@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db, isDbAvailable } from "../db";
 
 export type AuditActor = "USER" | "SYSTEM" | "AGENT";
 
@@ -25,30 +25,33 @@ export async function logAuditEvent(input: AuditEventInput): Promise<AuditRecord
   const serializedData = JSON.stringify(input.data || {});
 
   try {
-    const record = await db.auditEvent.create({
-      data: {
-        actor: input.actor,
-        actorId: input.actorId || null,
-        entity: input.entity,
-        entityId: input.entityId,
-        event: input.event,
-        data: serializedData,
-      },
-    });
+    if (await isDbAvailable()) {
+      const record = await db.auditEvent.create({
+        data: {
+          actor: input.actor,
+          actorId: input.actorId || null,
+          entity: input.entity,
+          entityId: input.entityId,
+          event: input.event,
+          data: serializedData,
+        },
+      });
 
-    return {
-      id: record.id,
-      actor: record.actor as AuditActor,
-      actorId: record.actorId || undefined,
-      entity: record.entity as any,
-      entityId: record.entityId,
-      event: record.event as any,
-      data: input.data,
-      createdAt: record.createdAt.toISOString(),
-    };
+      return {
+        id: record.id,
+        actor: record.actor as AuditActor,
+        actorId: record.actorId || undefined,
+        entity: record.entity as any,
+        entityId: record.entityId,
+        event: record.event as any,
+        data: input.data,
+        createdAt: record.createdAt.toISOString(),
+      };
+    }
   } catch (error) {
     // Resilient fallback if DB connection is initializing
     console.warn("Audit logger database fallback:", error);
+  }
     return {
       id: `audit-fallback-${Date.now()}`,
       actor: input.actor,
@@ -59,7 +62,6 @@ export async function logAuditEvent(input: AuditEventInput): Promise<AuditRecord
       data: input.data,
       createdAt: timestamp,
     };
-  }
 }
 
 /**

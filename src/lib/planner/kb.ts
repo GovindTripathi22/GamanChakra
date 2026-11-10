@@ -258,16 +258,26 @@ Singapore Botanic Gardens|leisure|1.3138|103.8159|120|0|morning|low|1|Orchid gar
 Little India & Tekka Centre|food|1.3066|103.8518|120|600|afternoon|moderate|1|Biryani and teh tarik|walk-in`,
   },
   paris: {
-    stays: [["Budget hotel", "Montmartre", 9000, 14000], ["Boutique hotel", "Le Marais", 15000, 28000], ["Luxury", "Saint-Germain", 30000, 80000]],
-    food: [3000, 6500], transit: [800, 1600], season: "Apr–Jun & Sep–Oct; Aug many shops closed",
+    stays: [
+      ["Design hostel / budget room", "Canal Saint-Martin / 10th Arr.", 3200, 6800],
+      ["Boutique Parisian hotel", "Le Marais / 1st Arr.", 12500, 24000],
+      ["5-star luxury palace hotel", "Champs-Elysees / 8th Arr.", 48000, 95000],
+    ],
+    food: [2200, 5500],
+    transit: [900, 1800],
+    season: "Apr-Jun & Sep-Oct pleasant mild weather; Jul-Aug peak summer crowds; Nov-Feb cool winter festivities",
     pois: `
-Eiffel Tower summit|sightseeing|48.8584|2.2945|150|2700|morning|peak|1|Book summit tickets 30+ days ahead|30+ days required
-Louvre Museum|culture|48.8606|2.3376|210|2000|morning|peak|0|Timed entry; use Carrousel entrance|3-7 days advance
-Seine river cruise|leisure|48.8600|2.3100|60|1500|evening|moderate|1|Night cruise for illuminated monuments|walk-in
-Montmartre & Sacré-Cœur|culture|48.8867|2.3431|150|0|morning|moderate|1|Climb before 10 am for empty steps|walk-in
-Musée d'Orsay|culture|48.8600|2.3266|150|1500|afternoon|moderate|0|Thursday late opening|3-7 days advance
-Le Marais food & falafel walk|food|48.8575|2.3580|120|1500|afternoon|moderate|1|Rue des Rosiers falafel queue moves fast|walk-in
-Sainte-Chapelle|culture|48.8554|2.3450|60|1200|afternoon|moderate|0|Sunny afternoons light the glass|3-7 days advance`,
+Eiffel Tower Summit & Champ de Mars|sightseeing|48.8584|2.2945|150|2800|morning|peak|1|Book 60 days advance or take the stairs to 2nd floor for shorter lines|30+ days required
+Louvre Museum & Mona Lisa Wing|culture|48.8606|2.3376|210|2200|morning|peak|0|Enter via Carrousel du Louvre underground mall to skip the Pyramid queue|3-7 days advance
+Musée d'Orsay Impressionist Masterpieces|culture|48.8599|2.3266|150|1600|afternoon|moderate|0|Stunning Beaux-Arts railway station housing Monet, Van Gogh and Renoir|3-7 days advance
+Cathédrale Notre-Dame & Île de la Cité Walk|culture|48.8530|2.3499|90|0|morning|moderate|1|Admire the restored gothic facade and stroll through the flower market|walk-in
+Montmartre Hill & Sacré-Cœur Basilica|sightseeing|48.8867|2.3431|120|0|evening|peak|1|Climb the stairs or take the funicular for sunset vistas over all Paris|walk-in
+Seine River Evening Illuminated Cruise|leisure|48.8590|2.2950|75|1500|evening|moderate|1|Board near Eiffel Tower as monuments light up; open upper deck fills early|walk-in
+Arc de Triomphe & Champs-Élysées Promenade|sightseeing|48.8738|2.2950|90|1600|afternoon|moderate|1|Rooftop platform offers 12 radiating grand avenue panorama|walk-in
+Le Marais Historic District & Place des Vosges|leisure|48.8558|2.3655|120|0|afternoon|low|1|Stroll ancient cobblestones, independent boutiques, and authentic bakeries|walk-in
+Sainte-Chapelle Radiant Stained Glass Sanctuary|culture|48.8554|2.3450|60|1250|morning|moderate|0|Visit on a sunny morning when the 1,113 stained glass scenes glow intensely|3-7 days advance
+Classic Parisian Bistro & Wine Bar Dinner|food|48.8532|2.3385|105|2500|evening|moderate|0|Savour duck confit, boeuf bourguignon, or ratatouille in Saint-Germain|walk-in
+Palace of Versailles Grand Apartments & Gardens|culture|48.8049|2.1204|300|2700|morning|peak|1|Take RER C to Versailles Château Rive Gauche; reserve morning passport entry|3-7 days advance`,
   },
   london: {
     stays: [["Budget hotel", "King's Cross", 9000, 15000], ["Mid-range", "South Kensington", 15000, 28000], ["Luxury", "Mayfair", 35000, 90000]],
@@ -343,4 +353,5 @@ export const KB_ALIASES: Record<string, string> = {
   amritsar: "amritsar",
   hampi: "hampi",
   ooty: "ooty", udhagamandalam: "ooty", coonoor: "ooty",
+  paris: "paris", europe: "paris", "european union": "paris",
 };

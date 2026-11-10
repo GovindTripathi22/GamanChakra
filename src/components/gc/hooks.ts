@@ -8,40 +8,109 @@ async function readBody(r: Response): Promise<Record<string, unknown>> {
   try { return JSON.parse(text); } catch { return { error: r.ok ? "Unexpected response from server" : `Server error (${r.status})` }; }
 }
 
-/** Tiny data hook with polling, manual refresh and race-safe responses (no external data library). */
-export function useApi<T>(url: string | null, opts: { refreshMs?: number } = {}) {
-  const [data, setData] = useState<T | null>(null);
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const DEFAULT_CACHE_TTL_MS = 10_000; // 10s TTL for instantaneous client navigation
+const apiCache = new Map<string, CacheEntry<unknown>>();
+
+export function clearApiCache(urlPrefix?: string) {
+  if (!urlPrefix) {
+    apiCache.clear();
+  } else {
+    for (const key of apiCache.keys()) {
+      if (key.startsWith(urlPrefix)) apiCache.delete(key);
+    }
+  }
+}
+
+/** Tiny data hook with polling, manual refresh, in-memory caching and race-safe responses (no external data library). */
+export function useApi<T>(url: string | null, opts: { refreshMs?: number; cacheTtlMs?: number } = {}) {
+  const ttl = opts.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS;
+
+  const getCached = useCallback((): T | null => {
+    if (!url) return null;
+    const entry = apiCache.get(url);
+    if (entry && Date.now() - entry.timestamp < ttl) {
+      return entry.data as T;
+    }
+    return null;
+  }, [url, ttl]);
+
+  const [data, setData] = useState<T | null>(() => getCached());
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(!!url);
+  const [loading, setLoading] = useState<boolean>(() => !!url && getCached() === null);
   const seq = useRef(0); // only the newest request may write state
   const mounted = useRef(true);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (force = false) => {
     if (!url) return;
+    const cached = apiCache.get(url);
+    const isFresh = cached && (Date.now() - cached.timestamp < ttl);
+    if (!force && isFresh) {
+      if (mounted.current) {
+        setData(cached.data as T);
+        setLoading(false);
+        setError(null);
+      }
+      return;
+    }
     const mine = ++seq.current;
     try {
       const r = await fetch(url, { cache: "no-store" });
       const j = await readBody(r);
       if (!mounted.current || mine !== seq.current) return;
-      if (!r.ok) setError(String(j.error ?? `HTTP ${r.status}`));
-      else { setData(j as T); setError(null); }
+      if (!r.ok) {
+        setError(String(j.error ?? `HTTP ${r.status}`));
+      } else {
+        if (apiCache.size > 200) {
+          const oldest = apiCache.keys().next().value;
+          if (oldest) apiCache.delete(oldest);
+        }
+        apiCache.set(url, { data: j, timestamp: Date.now() });
+        setData(j as T);
+        setError(null);
+      }
     } catch {
       if (mounted.current && mine === seq.current) setError("Network unavailable — retrying shortly");
     } finally {
       if (mounted.current && mine === seq.current) setLoading(false);
     }
+  }, [url, ttl]);
+
+  const reload = useCallback(async () => {
+    await load(true);
+  }, [load]);
+
+  const updateData = useCallback((valOrFn: React.SetStateAction<T | null>) => {
+    setData((prev) => {
+      const next = typeof valOrFn === "function" ? (valOrFn as (prev: T | null) => T | null)(prev) : valOrFn;
+      if (url && next !== null && next !== undefined) {
+        apiCache.set(url, { data: next, timestamp: Date.now() });
+      }
+      return next;
+    });
   }, [url]);
 
   useEffect(() => {
     if (!url) { setLoading(false); return; }
-    setLoading(true);
+    const cached = apiCache.get(url);
+    if (cached && Date.now() - cached.timestamp < ttl) {
+      setData(cached.data as T);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     load();
     if (!opts.refreshMs) return () => { seq.current++; };
-    const t = setInterval(() => { if (document.visibilityState !== "hidden") load(); }, opts.refreshMs);
+    const t = setInterval(() => { if (document.visibilityState !== "hidden") load(true); }, opts.refreshMs);
     return () => { clearInterval(t); seq.current++; };
-  }, [load, url, opts.refreshMs]);
-  return { data, error, loading, reload: load, setData };
+  }, [load, url, opts.refreshMs, ttl]);
+
+  return { data, error, loading, reload, setData: updateData };
 }
 
 /** JSON request helper. Always throws a readable Error (never a raw TypeError) on failure. */
@@ -57,6 +126,7 @@ export async function postJson<T = unknown>(url: string, body?: unknown, method 
     const issue = (j.issues as { path: string; message: string }[] | undefined)?.[0];
     throw new Error(issue ? `${issue.path || "input"}: ${issue.message}` : String(j.error ?? (r.status === 429 ? "Too many requests — please wait a moment" : `Request failed (${r.status})`)));
   }
+  clearApiCache(url.split("?")[0]);
   return j as T;
 }
 

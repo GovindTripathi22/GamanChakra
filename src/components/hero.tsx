@@ -89,7 +89,7 @@ export function Hero() {
     };
 
     return (
-        <div className="relative flex min-h-[92vh] lg:min-h-screen flex-col items-center justify-center overflow-hidden bg-slate-950 pt-20 pb-28 sm:pb-32">
+        <div className="relative flex min-h-[88vh] lg:min-h-[calc(100vh-4rem)] flex-col items-center justify-center bg-slate-950 pt-4 sm:pt-8 pb-6 sm:pb-10">
             {/* Background - Ultra-HD Cinematic Travel Imagery */}
             <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                 {/* Smooth Cross-Fade Backdrop Layers (Base Layer at z-0) */}
@@ -108,9 +108,9 @@ export function Hero() {
                                 alt={b.name}
                                 fill
                                 priority={idx === 0 || idx === 1}
-                                quality={90}
+                                quality={95}
                                 sizes="100vw"
-                                className={`object-cover transition-transform duration-[12000ms] ease-out ${
+                                className={`object-cover brightness-100 saturate-[1.08] contrast-[1.04] transition-transform duration-[12000ms] ease-out ${
                                     isActive ? "scale-100" : "scale-105"
                                 }`}
                             />
@@ -118,18 +118,17 @@ export function Hero() {
                     );
                 })}
 
-                {/* Dark black effect overlay & vignette tints for rich contrast */}
-                <div className="absolute inset-0 z-10 bg-black/60 pointer-events-none" />
-                <div className="absolute inset-0 z-10 bg-[linear-gradient(180deg,rgba(0,0,0,0.75)_0%,rgba(0,0,0,0.45)_40%,rgba(7,11,22,0.85)_80%,#020617_100%)] pointer-events-none" />
-                <div className="absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_50%_35%,rgba(255,106,26,.15),transparent_65%)] pointer-events-none" />
+                {/* Cinema-grade slight black overlay: provides rich contrast so white text pops while scenery remains vibrant */}
+                <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/55 via-black/35 to-black/60 pointer-events-none" />
+                <div className="absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,_rgba(0,0,0,0.20)_0%,_rgba(0,0,0,0.45)_100%)] pointer-events-none" />
 
-                {/* Animated gradient orbs for ambient glow */}
-                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500/15 rounded-full blur-3xl animate-pulse pointer-events-none z-10" />
-                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl animate-pulse delay-1000 pointer-events-none z-10" />
+                {/* Subtle ambient glow orbs */}
+                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl pointer-events-none z-10" />
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none z-10" />
             </div>
 
             {/* Content */}
-            <div className="relative z-10 flex flex-col items-center px-4 text-center w-full max-w-5xl pb-16 sm:pb-20">
+            <div className="relative z-10 flex flex-col items-center px-4 text-center w-full max-w-5xl pb-4 sm:pb-8">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -139,14 +138,14 @@ export function Hero() {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.2, duration: 0.5 }}
-                        className="mb-6 inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-2 backdrop-blur-sm"
+                        className="mb-2 sm:mb-3 inline-flex items-center gap-2 rounded-full border border-orange-400/40 bg-white/20 px-3 py-1 sm:px-4 sm:py-1.5 backdrop-blur-md shadow-lg"
                     >
                         <Sparkles className="h-4 w-4 text-orange-400" />
-                        <span className="text-sm font-medium text-orange-300">AI-Powered Trip Planning · Live world-risk guardian</span>
+                        <span className="text-xs sm:text-sm font-medium text-orange-200">AI-Powered Trip Planning · Live world-risk guardian</span>
                     </motion.div>
 
-                    <h1 className="mb-6 font-serif text-5xl font-bold text-white md:text-7xl drop-shadow-lg leading-tight">
-                        <span className="text-orange-500">Discover</span> Your Next <br />
+                    <h1 className="mb-2 sm:mb-3 font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)] leading-tight">
+                        <span className="text-orange-400 drop-shadow-[0_2px_10px_rgba(249,115,22,0.4)]">Discover</span> Your Next <br />
                         <span className="relative inline-block">
                             Adventure
                             <motion.svg
@@ -170,7 +169,7 @@ export function Hero() {
                         </span>{" "}
                         with AI
                     </h1>
-                    <p className="mb-10 text-xl text-white/90 md:text-2xl drop-shadow-md font-light">
+                    <p className="mb-3 sm:mb-5 text-sm sm:text-lg md:text-xl text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)] font-light max-w-2xl mx-auto">
                         Personalized itineraries at your fingertips. <br className="hidden md:block" />
                         Tell us what you love, and we'll plan the rest — then guard it against tomorrow's news.
                     </p>
@@ -181,13 +180,13 @@ export function Hero() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.5 }}
-                    className="relative mb-12 w-full max-w-3xl"
+                    className="relative mb-3 sm:mb-5 w-full max-w-3xl"
                 >
-                    <div className="relative flex items-center rounded-2xl border border-white/20 bg-white/10 p-2 shadow-2xl backdrop-blur-md transition-all focus-within:bg-white/20 focus-within:border-orange-500/50 hover:bg-white/15">
+                    <div className="relative flex items-center rounded-2xl border border-white/40 bg-white/25 p-1.5 sm:p-2 shadow-2xl backdrop-blur-xl transition-all focus-within:bg-white/35 focus-within:border-orange-500/80 hover:bg-white/30">
                         <Input
                             type="text"
                             placeholder="e.g. 5 days trip from Mumbai to Goa for couple under 20k..."
-                            className="h-16 border-none bg-transparent pl-6 pr-36 text-lg text-white placeholder:text-white/60 focus-visible:ring-0 md:text-xl"
+                            className="h-14 sm:h-16 border-none bg-transparent pl-4 sm:pl-6 pr-32 sm:pr-36 text-base sm:text-lg text-white placeholder:text-white/90 focus-visible:ring-0 md:text-xl font-medium drop-shadow-sm"
                             value={destination}
                             onChange={(e) => setDestination(e.target.value)}
                             onKeyDown={handleKeyDown}
@@ -195,8 +194,8 @@ export function Hero() {
                         <button
                             type="button"
                             aria-label="Ask Chakra by voice"
-                            onClick={() => window.dispatchEvent(new CustomEvent("gc:jarvis", { detail: destination.trim() ? `Plan a trip to ${destination.trim()}` : undefined }))}
-                            className="absolute right-[4.5rem] h-12 w-12 grid place-items-center rounded-xl border border-white/20 bg-white/10 text-white hover:bg-white/20 transition"
+                            onClick={() => window.dispatchEvent(new CustomEvent("gc:sarthi", { detail: destination.trim() ? `Plan a trip to ${destination.trim()}` : undefined }))}
+                            className="absolute right-[4.5rem] h-12 w-12 grid place-items-center rounded-xl border border-white/25 bg-white/10 text-white hover:bg-white/20 transition backdrop-blur-md"
                         >
                             <Mic className="h-5 w-5" />
                         </button>
@@ -287,51 +286,51 @@ export function Hero() {
 
                 {/* Live alerts strip */}
                 {alerts.length > 0 && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} className="mt-6 sm:mt-7 w-full max-w-4xl rounded-2xl border border-white/15 bg-black/40 backdrop-blur-md px-4 py-3 text-left shadow-lg">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="mt-2 sm:mt-3 w-full max-w-4xl rounded-2xl border border-white/30 bg-white/20 backdrop-blur-md px-4 py-2.5 text-left shadow-xl">
                         <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300"><span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />Live world alerts the agent is watching</div>
-                        <ul className="mt-2 grid md:grid-cols-3 gap-2">
+                        <ul className="mt-1.5 grid md:grid-cols-3 gap-2">
                             {alerts.map((a) => (
-                                <li key={a.id} className="text-[13px] text-white/90 leading-snug line-clamp-2"><span className={a.severity === "critical" ? "text-red-400" : "text-orange-300"}>●</span> {a.title.replace(/^drill:\s*/i, "")}{a.placeName ? <span className="text-white/50"> · {a.placeName}</span> : null}</li>
+                                <li key={a.id} className="text-[13px] text-white/95 leading-snug line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]"><span className={a.severity === "critical" ? "text-red-400" : "text-orange-300"}>●</span> {a.title.replace(/^drill:\s*/i, "")}{a.placeName ? <span className="text-white/70"> · {a.placeName}</span> : null}</li>
                             ))}
                         </ul>
                     </motion.div>
                 )}
-            </div>
 
-            {/* Scenic View Switcher - Centered Floating Dock */}
-            <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1, duration: 0.5 }}
-                className="absolute bottom-5 sm:bottom-7 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 sm:gap-2 rounded-full border border-white/20 bg-slate-950/80 px-3.5 py-1.5 sm:px-4 sm:py-2 backdrop-blur-xl text-xs text-white shadow-2xl max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-none"
-            >
-                <span className="text-white/70 mr-0.5 sm:mr-1 flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold uppercase tracking-wider whitespace-nowrap shrink-0">
-                    <Camera className="h-3.5 w-3.5 text-orange-400" />
-                    Scenic View:
-                </span>
-                <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-                    {HERO_BACKDROPS.map((b, idx) => (
-                        <button
-                            key={b.id}
-                            type="button"
-                            onClick={() => {
-                                setActiveBackdropIndex(idx);
-                                setUserPaused(true);
-                            }}
-                            className={`rounded-full px-3 py-1 sm:px-3.5 sm:py-1.5 transition-all text-[11px] sm:text-xs font-medium cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
-                                activeBackdropIndex === idx
-                                    ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold shadow-md shadow-orange-500/40 scale-[1.02]"
-                                    : "text-white/70 hover:text-white hover:bg-white/10"
-                            }`}
-                        >
-                            {activeBackdropIndex === idx && (
-                                <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-                            )}
-                            {b.name}
-                        </button>
-                    ))}
-                </div>
-            </motion.div>
+                {/* Scenic View Switcher - Always Visible & Responsive */}
+                <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.9, duration: 0.5 }}
+                    className="mt-2.5 sm:mt-4 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 rounded-2xl sm:rounded-full border border-white/30 bg-white/20 p-1.5 sm:px-4 sm:py-1.5 backdrop-blur-xl text-xs text-white shadow-2xl max-w-full mb-2 sm:mb-0"
+                >
+                    <span className="text-white mr-1 flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold uppercase tracking-wider whitespace-nowrap shrink-0 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">
+                        <Camera className="h-3.5 w-3.5 text-orange-400" />
+                        Scenic View:
+                    </span>
+                    <div className="flex flex-wrap items-center justify-center gap-1.5">
+                        {HERO_BACKDROPS.map((b, idx) => (
+                            <button
+                                key={b.id}
+                                type="button"
+                                onClick={() => {
+                                    setActiveBackdropIndex(idx);
+                                    setUserPaused(true);
+                                }}
+                                className={`rounded-full px-3.5 py-2 sm:px-4 sm:py-2 min-h-[44px] transition-all text-[11px] sm:text-xs font-medium cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                                    activeBackdropIndex === idx
+                                        ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold shadow-md shadow-orange-500/40 scale-[1.02]"
+                                        : "text-white hover:text-white hover:bg-white/25 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]"
+                                }`}
+                            >
+                                {activeBackdropIndex === idx && (
+                                    <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                                )}
+                                {b.name}
+                            </button>
+                        ))}
+                    </div>
+                </motion.div>
+            </div>
         </div>
     );
 }
@@ -340,12 +339,12 @@ function ActionPill({ icon, text, onClick }: { icon: React.ReactNode; text: stri
     return (
         <motion.button
             onClick={onClick}
-            className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 py-3 text-sm font-medium text-white backdrop-blur-md shadow-lg transition-all hover:bg-white hover:text-slate-900 cursor-pointer"
-            whileHover={{ scale: 1.05, y: -2 }}
+            className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-white/30 bg-white/20 px-3.5 py-2 sm:px-5 sm:py-2.5 min-h-[44px] text-xs sm:text-sm font-medium text-white backdrop-blur-md shadow-lg transition-all hover:bg-white hover:text-slate-900 cursor-pointer drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]"
+            whileHover={{ scale: 1.04, y: -2 }}
             whileTap={{ scale: 0.98 }}
         >
             {icon}
             <span>{text}</span>
         </motion.button>
-    )
+    );
 }

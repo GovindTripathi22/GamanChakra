@@ -87,12 +87,29 @@ export interface Hotel {
   tier?: "budget" | "comfort" | "luxury";
 }
 
+export interface TransitOption {
+  mode: string;
+  provider: string;
+  routeNumber?: string;
+  departureTime?: string;
+  arrivalTime?: string;
+  duration: string;
+  cost: string;
+  bookingUrl?: string;
+  note?: string;
+}
+
 export interface TransportationStep {
   mode: "Flight" | "Train" | "Bus" | "Taxi" | "Local";
+  title?: string;
   details: string;
   estimated_cost: string;
   duration: string;
   distance?: string;
+  from?: string;
+  to?: string;
+  hubNotice?: string;
+  available_options?: TransitOption[];
 }
 
 export interface TripData {
@@ -109,6 +126,7 @@ export interface TripData {
 
 export interface GeneratedTrip {
   trip_details: {
+    origin?: string;
     destination: string;
     duration: string;
     budget: string;

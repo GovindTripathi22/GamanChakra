@@ -282,10 +282,11 @@ export function LiveActivityCard({
           <Button
             variant="ghost"
             size="sm"
-            className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-950/30 text-[11px] font-semibold h-6 px-2 rounded-full"
+            className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-950/30 text-[11px] font-semibold h-6 px-2 rounded-full flex items-center gap-1 cursor-pointer"
             onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((activity.title || activity.place_name || "") + " " + (activity.locationName || ""))}`, '_blank')}
           >
-            Map →
+            <MapPin className="h-3 w-3 text-orange-500" />
+            Open in Google Maps ↗
           </Button>
         </div>
       </div>

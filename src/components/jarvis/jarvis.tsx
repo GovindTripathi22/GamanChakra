@@ -17,7 +17,7 @@ interface SpeechRec { lang: string; continuous: boolean; interimResults: boolean
 type SRCtor = new () => SpeechRec;
 const getSR = (): SRCtor | null => (typeof window === "undefined" ? null : ((window as unknown as { SpeechRecognition?: SRCtor; webkitSpeechRecognition?: SRCtor }).SpeechRecognition ?? (window as unknown as { webkitSpeechRecognition?: SRCtor }).webkitSpeechRecognition ?? null));
 
-const WAKE = /\b(hey|hi|ok|okay)?\s*(chakra|jarvis|चक्र|जार्विस)\b/i;
+const WAKE = /\b(hey|hi|ok|okay)?\s*(sarthi|sarathi|chakra|jarvis|सारथी|चक्र|जार्विस)\b/i;
 
 interface Msg { role: "user" | "assistant"; text: string; res?: JarvisResponse }
 interface MeterSession { ctx: AudioContext | null; stream: MediaStream | null; raf: number; stopped: boolean }
@@ -227,11 +227,15 @@ export function Jarvis() {
     stopMeter();
   }, [stopMeter]);
 
-  /* ---------- open from anywhere: window.dispatchEvent(new CustomEvent("gc:jarvis", { detail: "question" })) ---------- */
+  /* ---------- open from anywhere: window.dispatchEvent(new CustomEvent("gc:sarthi", { detail: "question" })) ---------- */
   useEffect(() => {
     const h = (e: Event) => { const q = (e as CustomEvent<unknown>).detail; setOpen(true); if (typeof q === "string" && q.trim()) askRef.current(q); };
+    window.addEventListener("gc:sarthi", h);
     window.addEventListener("gc:jarvis", h);
-    return () => window.removeEventListener("gc:jarvis", h);
+    return () => {
+      window.removeEventListener("gc:sarthi", h);
+      window.removeEventListener("gc:jarvis", h);
+    };
   }, []);
 
   /* ---------- keyboard: Ctrl/Cmd+J toggles, Esc closes ---------- */
@@ -253,14 +257,14 @@ export function Jarvis() {
       {/* Orb launcher */}
       <button
         onClick={() => (open ? listen() : setOpen(true))}
-        data-tour="jarvis"
+        data-tour="chakra"
         aria-label={open ? "Talk to Chakra" : "Open Chakra voice assistant"}
         className="fixed bottom-5 right-5 z-50 h-16 w-16 rounded-full grid place-items-center focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--gc-brand)]"
       >
         <span className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,#ff6a1a,#ffb020,#7c5cff,#22d3ee,#ff6a1a)] gc-spin-slow opacity-90" style={{ transform: `scale(${active ? scale : 1})`, transition: "transform 90ms linear" }} />
         <span className="absolute inset-[3px] rounded-full bg-[#0b1020]" />
         <span className={cn("absolute inset-[10px] rounded-full bg-[radial-gradient(circle_at_35%_30%,#fff_0%,#ffb020_18%,#ff6a1a_45%,#7c5cff_80%)]", !active && "gc-breathe")} style={{ transform: `scale(${0.85 + level * 0.3})`, transition: "transform 80ms linear", boxShadow: `0 0 ${18 + level * 40}px rgba(255,122,26,.65)` }} />
-        {wake && <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-emerald-500 ring-2 ring-[var(--gc-bg)]" title="Listening for “Hey Chakra”" />}
+        {wake && <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-emerald-500 ring-2 ring-[var(--gc-bg)]" title="Listening for “Hey Chakra” / “Hey Sarthi”" />}
       </button>
 
       {open && (
@@ -268,11 +272,11 @@ export function Jarvis() {
           <div className="flex items-center gap-3 px-4 py-3 border-b gc-line">
             <div className="relative h-9 w-9 rounded-full bg-[radial-gradient(circle_at_35%_30%,#fff_0%,#ffb020_20%,#ff6a1a_50%,#7c5cff_85%)]" style={{ transform: `scale(${1 + level * 0.2})` }} />
             <div className="min-w-0 flex-1">
-              <div className="font-display font-semibold leading-tight">Chakra <span className="gc-muted font-normal text-xs">· voice co-pilot</span></div>
+              <div className="font-display font-semibold leading-tight">Chakra <span className="gc-muted font-normal text-xs">· Sarthi voice co-pilot</span></div>
               <div className="text-[11px] gc-muted truncate">{listening ? "Listening…" : speaking ? "Speaking…" : busy ? "Thinking…" : "On-device SLM · no cloud AI"}</div>
             </div>
             <button onClick={() => { const l = lang === "en-IN" ? "hi-IN" : "en-IN"; setLang(l); try { localStorage.setItem("gc-jarvis-lang", l); } catch { /* ignore */ } }} className="h-8 px-2 rounded-lg text-xs font-semibold border gc-line" title="Language">{lang === "en-IN" ? "EN" : "हिं"}</button>
-            <button onClick={() => setWake((w) => !w)} className={cn("h-8 w-8 grid place-items-center rounded-lg", wake ? "bg-emerald-500/15 text-emerald-500" : "hover:bg-[var(--gc-panel-2)]")} title="Wake word: “Hey Chakra”" aria-pressed={wake}><Ear className="h-4 w-4" /></button>
+            <button onClick={() => setWake((w) => !w)} className={cn("h-8 w-8 grid place-items-center rounded-lg", wake ? "bg-emerald-500/15 text-emerald-500" : "hover:bg-[var(--gc-panel-2)]")} title="Wake word: “Hey Chakra” or “Hey Sarthi”" aria-pressed={wake}><Ear className="h-4 w-4" /></button>
             <button onClick={() => { setMuted((m) => { try { localStorage.setItem("gc-jarvis-muted", m ? "0" : "1"); } catch { /* ignore */ } return !m; }); window.speechSynthesis?.cancel(); }} className="h-8 w-8 grid place-items-center rounded-lg hover:bg-[var(--gc-panel-2)]" title={muted ? "Unmute voice" : "Mute voice"}>{muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}</button>
             <button onClick={() => setOpen(false)} className="h-8 w-8 grid place-items-center rounded-lg hover:bg-[var(--gc-panel-2)]" aria-label="Close"><X className="h-4 w-4" /></button>
           </div>
@@ -281,8 +285,8 @@ export function Jarvis() {
             {msgs.length === 0 && (
               <div className="text-center pt-6">
                 <Sparkles className="h-6 w-6 mx-auto text-[var(--gc-brand)]" />
-                <p className="font-display text-lg font-semibold mt-2">{lang === "hi-IN" ? "नमस्ते, मैं चक्र हूँ" : "Hi, I'm Chakra."}</p>
-                <p className="gc-muted text-sm mt-1 px-6">{lang === "hi-IN" ? "माइक दबाएँ या लिखें। “हे चक्र” बोलकर भी बुला सकते हैं।" : "Tap the mic or type. Turn on the ear to wake me with “Hey Chakra”. Ctrl/⌘ + J toggles me anywhere."}</p>
+                <p className="font-display text-lg font-semibold mt-2">{lang === "hi-IN" ? "नमस्ते, मैं चक्र हूँ (सारथी)" : "Hi, I'm Chakra (Sarthi)."}</p>
+                <p className="gc-muted text-sm mt-1 px-6">{lang === "hi-IN" ? "माइक दबाएँ या लिखें। “हे चक्र” या “हे सारथी” बोलकर भी बुला सकते हैं।" : "Tap the mic or type. Turn on the ear to wake me with “Hey Chakra” or “Hey Sarthi”. Ctrl/⌘ + J toggles me anywhere."}</p>
                 {!supported && <p className="text-xs mt-3 text-amber-600">Voice input needs Chrome or Edge — typing works everywhere.</p>}
               </div>
             )}
@@ -310,7 +314,7 @@ export function Jarvis() {
             <button type="button" onClick={listen} disabled={!supported} aria-label={listening ? "Stop listening" : "Start voice input"} className={cn("h-11 w-11 shrink-0 rounded-2xl grid place-items-center transition", listening ? "bg-red-500 text-white animate-pulse" : "bg-[var(--gc-agent)] text-white hover:brightness-110", !supported && "opacity-40")}>
               {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
             </button>
-            <input value={input} maxLength={500} onChange={(e) => setInput(e.target.value)} placeholder={lang === "hi-IN" ? "पूछिए… जैसे: क्या गोवा सुरक्षित है?" : "Ask anything… e.g. Is Bangkok safe this week?"} className="flex-1 h-11 rounded-2xl gc-panel-2 px-4 text-sm outline-none focus:ring-2 focus:ring-[var(--gc-brand)]/50" aria-label="Message Chakra" />
+            <input value={input} maxLength={500} onChange={(e) => setInput(e.target.value)} placeholder={lang === "hi-IN" ? "सारथी से पूछिए… जैसे: क्या गोवा सुरक्षित है?" : "Ask Sarthi anything… e.g. Is Bangkok safe this week?"} className="flex-1 h-11 rounded-2xl gc-panel-2 px-4 text-sm outline-none focus:ring-2 focus:ring-[var(--gc-brand)]/50" aria-label="Message Chakra" />
             <button type="submit" disabled={!input.trim() || busy} className="h-11 w-11 shrink-0 rounded-2xl grid place-items-center bg-[var(--gc-brand)] text-white disabled:opacity-40" aria-label="Send"><Send className="h-4 w-4" /></button>
           </form>
         </div>

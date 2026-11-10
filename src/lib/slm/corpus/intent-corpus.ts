@@ -2,8 +2,8 @@ import type { Intent } from "../labels";
 
 export const INTENT_TEMPLATES: Record<Intent, string[]> = {
   greeting: [
-    "hi", "hello", "hey", "hey chakra", "hello jarvis", "good morning", "good evening", "namaste", "hi there", "yo",
-    "hey jarvis are you there", "namaskar", "hello chakra how are you", "hey buddy", "good afternoon", "kaise ho",
+    "hi", "hello", "hey", "hey sarthi", "hey chakra", "hello sarthi", "hello jarvis", "good morning", "good evening", "namaste", "hi there", "yo",
+    "hey sarthi are you there", "hey jarvis are you there", "namaskar", "namaste sarthi", "hello chakra how are you", "hey buddy", "good afternoon", "kaise ho",
     "नमस्ते", "हेलो", "hey there assistant", "are you listening",
   ],
   help: [

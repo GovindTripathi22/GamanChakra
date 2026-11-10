@@ -84,15 +84,26 @@ function evaluateWeatherCode(code: number, gusts: number, precip: number, temp: 
   return { score: Math.min(96, score), condition };
 }
 
+let cachedEarthquakes: any[] = [];
+let lastEarthquakeFetch = 0;
+const EARTHQUAKE_CACHE_TTL = 5 * 60 * 1000;
+
+const weatherCache = new Map<string, { current: any; cachedAt: number }>();
+const WEATHER_CACHE_TTL = 5 * 60 * 1000;
+
 async function fetchUSGSEarthquakes() {
+  const now = Date.now();
+  if (now - lastEarthquakeFetch < EARTHQUAKE_CACHE_TTL && cachedEarthquakes.length > 0) {
+    return cachedEarthquakes;
+  }
   try {
     const res = await fetch(
       "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson",
-      { cache: "no-store", signal: AbortSignal.timeout(5000) }
+      { cache: "no-store", signal: AbortSignal.timeout(2500) }
     );
-    if (!res.ok) return [];
+    if (!res.ok) return cachedEarthquakes;
     const data = await res.json();
-    return (data.features || []).map((f: any) => ({
+    cachedEarthquakes = (data.features || []).map((f: any) => ({
       title: `M${Number(f.properties?.mag || 4.5).toFixed(1)} Seismic Event — ${f.properties?.place}`,
       mag: Number(f.properties?.mag || 4.5),
       lat: f.geometry?.coordinates?.[1] || 0,
@@ -100,12 +111,22 @@ async function fetchUSGSEarthquakes() {
       timestamp: new Date(f.properties?.time || Date.now()).toISOString(),
       url: f.properties?.url,
     }));
+    lastEarthquakeFetch = now;
+    return cachedEarthquakes;
   } catch {
-    return [];
+    return cachedEarthquakes;
   }
 }
 
+const advisoryCache = new Map<string, { advisories: any[]; cachedAt: number }>();
+const ADVISORY_CACHE_TTL = 10 * 60 * 1000;
+
 async function fetchCityNewsAdvisories(queryCity: string) {
+  const norm = queryCity.trim().toLowerCase();
+  const cached = advisoryCache.get(norm);
+  if (cached && Date.now() - cached.cachedAt < ADVISORY_CACHE_TTL) {
+    return cached.advisories;
+  }
   try {
     const q = encodeURIComponent(`${queryCity} weather OR traffic OR train OR flight OR alert`);
     const res = await fetch(
@@ -113,13 +134,13 @@ async function fetchCityNewsAdvisories(queryCity: string) {
       {
         cache: "no-store",
         headers: { "User-Agent": "GamanChakra-LiveRadar/2.0" },
-        signal: AbortSignal.timeout(4500),
+        signal: AbortSignal.timeout(2500),
       }
     );
-    if (!res.ok) return [];
+    if (!res.ok) return cached?.advisories || [];
     const xml = await res.text();
     const items = xml.match(/<item>([\s\S]*?)<\/item>/g) || [];
-    return items.slice(0, 4).map((item) => {
+    const advisories = items.slice(0, 4).map((item) => {
       const title =
         (item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) ||
           item.match(/<title>(.*?)<\/title>/))?.[1]
@@ -135,22 +156,28 @@ async function fetchCityNewsAdvisories(queryCity: string) {
         url: link,
       };
     });
+    advisoryCache.set(norm, { advisories, cachedAt: Date.now() });
+    return advisories;
   } catch {
-    return [];
+    return cached?.advisories || [];
   }
 }
 
+const geocodeCache = new Map<string, any>();
+
 async function geocodeCustomCity(query: string) {
+  const norm = query.trim().toLowerCase();
+  if (geocodeCache.has(norm)) return geocodeCache.get(norm);
   try {
     const res = await fetch(
       `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query.trim())}&count=3&language=en&format=json`,
-      { cache: "no-store", signal: AbortSignal.timeout(5000) }
+      { cache: "no-store", signal: AbortSignal.timeout(2500) }
     );
     if (!res.ok) return null;
     const data = await res.json();
     const hit = data?.results?.[0];
     if (!hit) return null;
-    return {
+    const geo = {
       city: hit.name,
       stateOrRegion: hit.admin1 || hit.country || "Region",
       country: hit.country || "Global",
@@ -158,6 +185,8 @@ async function geocodeCustomCity(query: string) {
       lon: Number(hit.longitude),
       baseSec: 18,
     };
+    geocodeCache.set(norm, geo);
+    return geo;
   } catch {
     return null;
   }
@@ -228,22 +257,47 @@ export async function GET(req: Request | NextRequest, _ctx?: any) {
     customAdvisories = await fetchCityNewsAdvisories(searchQuery);
   }
 
-  // Bulk fetch live weather from Open-Meteo for all cities in targetList
-  const lats = targetList.map((c) => c.lat).join(",");
-  const lons = targetList.map((c) => c.lon).join(",");
-  let weatherArray: any[] = [];
+  // If single place requested (e.g. Hero live search), only resolve the primary target city
+  if (hasPlace) {
+    targetList.splice(1);
+  }
 
-  try {
-    const wRes = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m,weather_code`,
-      { cache: "no-store", signal: AbortSignal.timeout(6000) }
-    );
-    if (wRes.ok) {
-      const wData = await wRes.json();
-      weatherArray = Array.isArray(wData) ? wData : [wData];
+  const now = Date.now();
+  const weatherArray: any[] = new Array(targetList.length);
+  const missingIndices: number[] = [];
+
+  for (let i = 0; i < targetList.length; i++) {
+    const hub = targetList[i];
+    const key = `${hub.lat.toFixed(2)},${hub.lon.toFixed(2)}`;
+    const cached = weatherCache.get(key);
+    if (cached && now - cached.cachedAt < WEATHER_CACHE_TTL) {
+      weatherArray[i] = { current: cached.current };
+    } else {
+      missingIndices.push(i);
     }
-  } catch {
-    weatherArray = [];
+  }
+
+  if (missingIndices.length > 0) {
+    try {
+      const lats = missingIndices.map((i) => targetList[i].lat).join(",");
+      const lons = missingIndices.map((i) => targetList[i].lon).join(",");
+      const wRes = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m,weather_code`,
+        { cache: "no-store", signal: AbortSignal.timeout(2500) }
+      );
+      if (wRes.ok) {
+        const wData = await wRes.json();
+        const fetchedArray = Array.isArray(wData) ? wData : [wData];
+        missingIndices.forEach((targetIdx, fetchIdx) => {
+          const cur = fetchedArray[fetchIdx]?.current || {};
+          weatherArray[targetIdx] = { current: cur };
+          const hub = targetList[targetIdx];
+          weatherCache.set(`${hub.lat.toFixed(2)},${hub.lon.toFixed(2)}`, { current: cur, cachedAt: now });
+        });
+      }
+    } catch {
+      // Fallback to mild seasonal baseline for missing
+    }
   }
 
   const nowIso = new Date().toISOString();

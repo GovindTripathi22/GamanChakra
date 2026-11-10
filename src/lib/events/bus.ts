@@ -1,5 +1,5 @@
 import { EventEmitter } from "node:events";
-import { db } from "@/lib/db";
+import { db, isDbAvailable } from "@/lib/db";
 
 /**
  * Real-time event bus.
@@ -22,28 +22,45 @@ export interface BusEvent { id: string; type: BusEventType; orgId: string | null
 const g = globalThis as unknown as { __gcBus?: EventEmitter };
 export const bus: EventEmitter = g.__gcBus ?? (g.__gcBus = new EventEmitter().setMaxListeners(1000));
 
+const inMemoryRecentEvents: BusEvent[] = [];
+
 export async function publish(type: BusEventType, payload: unknown, orgId: string | null = null): Promise<BusEvent> {
   let id = `mem_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   let createdAt = new Date().toISOString();
-  try {
-    const row = await db.systemEvent.create({ data: { type, orgId, payload: JSON.stringify(payload ?? {}) } });
-    id = row.id;
-    createdAt = row.createdAt.toISOString();
-  } catch {
-    /* persistence is best-effort; in-memory delivery still happens */
+  if (await isDbAvailable()) {
+    try {
+      const row = await db.systemEvent.create({ data: { type, orgId, payload: JSON.stringify(payload ?? {}) } });
+      id = row.id;
+      createdAt = row.createdAt.toISOString();
+    } catch {
+      /* persistence is best-effort; in-memory delivery still happens */
+    }
   }
   const evt: BusEvent = { id, type, orgId, payload, createdAt };
+  inMemoryRecentEvents.push(evt);
+  if (inMemoryRecentEvents.length > 500) inMemoryRecentEvents.shift();
   bus.emit("event", evt);
   return evt;
 }
 
 export async function eventsSince(since: Date, orgId: string | null, limit = 100): Promise<BusEvent[]> {
-  const rows = await db.systemEvent.findMany({
-    where: { createdAt: { gt: since }, OR: [{ orgId: null }, ...(orgId ? [{ orgId }] : [])] },
-    orderBy: { createdAt: "asc" },
-    take: limit,
-  });
-  return rows.map((r) => ({ id: r.id, type: r.type as BusEventType, orgId: r.orgId, payload: safeJson(r.payload), createdAt: r.createdAt.toISOString() }));
+  if (await isDbAvailable()) {
+    try {
+      const rows = await db.systemEvent.findMany({
+        where: { createdAt: { gt: since }, OR: [{ orgId: null }, ...(orgId ? [{ orgId }] : [])] },
+        orderBy: { createdAt: "asc" },
+        take: limit,
+      });
+      return rows.map((r) => ({ id: r.id, type: r.type as BusEventType, orgId: r.orgId, payload: safeJson(r.payload), createdAt: r.createdAt.toISOString() }));
+    } catch {
+      /* database query failed; fall back to in-memory event buffer */
+    }
+  }
+
+  const sinceIso = since.toISOString();
+  return inMemoryRecentEvents
+    .filter((e) => e.createdAt > sinceIso && (!e.orgId || !orgId || e.orgId === orgId))
+    .slice(-limit);
 }
 
 export function safeJson<T = unknown>(s: string | null | undefined, fallback: T = {} as T): T {
@@ -52,5 +69,11 @@ export function safeJson<T = unknown>(s: string | null | undefined, fallback: T 
 }
 
 export async function pruneSystemEvents(olderThanHours = 72) {
-  await db.systemEvent.deleteMany({ where: { createdAt: { lt: new Date(Date.now() - olderThanHours * 36e5) } } });
+  if (await isDbAvailable()) {
+    try {
+      await db.systemEvent.deleteMany({ where: { createdAt: { lt: new Date(Date.now() - olderThanHours * 36e5) } } });
+    } catch {
+      /* ignore */
+    }
+  }
 }

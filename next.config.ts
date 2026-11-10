@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
   turbopack: { root: path.resolve(__dirname) },
   serverExternalPackages: ["@prisma/client", "better-sqlite3", "@prisma/adapter-better-sqlite3"],
   images: {
+    qualities: [75, 95],
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "image.pollinations.ai" },

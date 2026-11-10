@@ -12,6 +12,7 @@ import {
   MapPin,
   Radio,
   ExternalLink,
+  Cpu,
 } from "lucide-react";
 
 interface CityRiskProfile {
@@ -46,6 +47,7 @@ interface CityRiskProfile {
 export default function RiskRadarPage() {
   const [cities, setCities] = useState<CityRiskProfile[]>([]);
   const [search, setSearch] = useState("");
+  const [searchMessage, setSearchMessage] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<CityRiskProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchingLive, setSearchingLive] = useState(false);
@@ -57,28 +59,51 @@ export default function RiskRadarPage() {
       else setLoading(true);
 
       const url = query
-        ? `/api/risk?q=${encodeURIComponent(query)}`
+        ? `/api/risk?place=${encodeURIComponent(query)}`
         : "/api/risk?q=all";
       const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) return;
+      if (!res.ok) {
+        if (query) setSearchMessage(`We don't know “${query}” yet — try the nearest major city.`);
+        return false;
+      }
       const data = await res.json();
       const list: CityRiskProfile[] = data.cities || [];
-      setCities(list);
-      setLastUpdated(data.fetchedAt || new Date().toISOString());
+      if (list.length > 0) {
+        setCities(list);
+        setLastUpdated(data.fetchedAt || new Date().toISOString());
 
-      if (query) {
-        const match = list.find((c) =>
-          c.city.toLowerCase().includes(query.toLowerCase())
-        );
-        if (match) setSelectedCity(match);
-      } else if (!selectedCity && list.length > 0) {
-        setSelectedCity(list[0]);
+        if (query) {
+          const match = list.find((c) =>
+            c.city.toLowerCase().includes(query.toLowerCase())
+          ) || list[0];
+          setSelectedCity(match);
+        } else if (!selectedCity && list.length > 0) {
+          setSelectedCity(list[0]);
+        }
+        return true;
+      } else {
+        if (query) setSearchMessage(`We don't know “${query}” yet — try the nearest major city.`);
+        return false;
       }
+    } catch {
+      if (query) setSearchMessage(`We don't know “${query}” yet — try the nearest major city.`);
+      return false;
     } finally {
       setLoading(false);
       setSearchingLive(false);
     }
   }, [selectedCity]);
+
+  const handleSearchSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const query = search.trim();
+    if (!query) {
+      setSearchMessage("Type a city, country or airport code.");
+      return;
+    }
+    setSearchMessage(null);
+    await fetchRiskData(query);
+  };
 
   useEffect(() => {
     fetchRiskData();
@@ -146,31 +171,36 @@ export default function RiskRadarPage() {
       </div>
 
       {/* Live Search Bar */}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (search.trim()) fetchRiskData(search.trim());
-        }}
-        className="flex gap-3"
-      >
+      <form onSubmit={handleSearchSubmit} className="flex gap-3">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
+            aria-label="Destination"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search any city or town (e.g., Amravati, Nagpur, Pune, Shimla, Tokyo)..."
+            onChange={(e) => {
+              setSearch(e.target.value);
+              if (searchMessage) setSearchMessage(null);
+            }}
+            placeholder="Search any city, country or airport code (e.g., Delhi, Amravati, Dubai, Tokyo)..."
             className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pl-10 pr-4 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-orange-500 focus:outline-none"
           />
         </div>
         <button
           type="submit"
           disabled={searchingLive}
-          className="rounded-xl bg-orange-600 hover:bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition cursor-pointer disabled:opacity-50"
+          className="rounded-xl bg-orange-600 hover:bg-orange-500 px-6 py-3 text-sm font-semibold text-white transition cursor-pointer disabled:opacity-50 flex items-center gap-2"
         >
-          {searchingLive ? "Scanning..." : "Scan City"}
+          {searchingLive ? "Checking..." : "Check"}
         </button>
       </form>
+
+      {/* Search status / error message */}
+      {searchMessage && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-sm font-medium text-amber-700 dark:text-amber-300">
+          {searchMessage}
+        </div>
+      )}
 
       {/* Main Grid: City Cards + Selected City Deep Telemetry */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -337,6 +367,79 @@ export default function RiskRadarPage() {
           )}
         </div>
       </div>
+
+      {/* Chakra-Nano SLM Headline Classifier Playground */}
+      <SlmPlayground />
+    </div>
+  );
+}
+
+function SlmPlayground() {
+  const [text, setText] = useState("IndiGo cancels 120 flights at Delhi airport as dense fog cuts visibility to zero");
+  const [out, setOut] = useState<any>(null);
+  const [busy, setBusy] = useState(false);
+
+  const run = async () => {
+    if (!text.trim()) return;
+    setBusy(true);
+    try {
+      const res = await fetch("/api/slm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: text.slice(0, 1000), task: "news" }),
+      });
+      if (res.ok) {
+        const j = await res.json();
+        setOut(j);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-4 shadow-sm">
+      <div className="flex items-center gap-2.5 font-bold text-lg text-slate-900 dark:text-white">
+        <Cpu className="h-5 w-5 text-orange-500" />
+        <span>Chakra-Nano SLM Playground</span>
+      </div>
+      <p className="text-xs text-slate-500 dark:text-slate-400">
+        Our in-house small language model — trained from scratch, runs on CPU in &lt;1 ms, no external AI.
+      </p>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={2}
+        className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 p-3 text-sm outline-none focus:border-orange-500 text-slate-900 dark:text-white font-medium"
+        aria-label="Headline to classify"
+      />
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={run}
+          disabled={busy}
+          className="rounded-xl bg-orange-600 hover:bg-orange-500 px-5 py-2.5 text-xs font-semibold text-white transition cursor-pointer disabled:opacity-50"
+        >
+          {busy ? "Classifying..." : "Classify headline"}
+        </button>
+        <span className="text-xs text-slate-400">Try a headline from today's paper.</span>
+      </div>
+      {out && (
+        <div className="mt-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 p-4 border border-slate-100 dark:border-slate-800 text-xs space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-slate-900 dark:text-white uppercase tracking-wider">{out.output.category}</span>
+            <span className="px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 font-semibold">{out.output.severity}</span>
+          </div>
+          <div className="text-slate-600 dark:text-slate-300 font-medium">
+            confidence {(out.output.categoryConfidence * 100).toFixed(1)}% · {out.output.latencyMs ? out.output.latencyMs.toFixed(1) : 1} ms
+          </div>
+          {out.output.primaryPlace && (
+            <div className="text-slate-700 dark:text-slate-300">Location: <b>{out.output.primaryPlace.name}, {out.output.primaryPlace.countryName}</b></div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

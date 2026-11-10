@@ -32,9 +32,14 @@ function AgentInner() {
   const run = async () => {
     if (running) return;
     setRunning(true);
-    const r = await attempt(() => postJson<{ runId: string }>("/api/agent/run", {}), { success: "Cycle complete" });
-    if (r?.runId) setRunId(r.runId);
-    setRunning(false); runs.reload(); tasks.reload();
+    const r = await attempt(() => postJson<{ runId: string; summary?: string }>("/api/agent/run", {}), { success: "Cycle complete" });
+    if (r?.runId) {
+      setRunId(r.runId);
+      setTimeout(() => detail.reload(), 100);
+    }
+    setRunning(false);
+    runs.reload();
+    tasks.reload();
   };
   const decide = async (id: string, decision: "approve" | "reject") => {
     if (deciding.has(id)) return;
@@ -63,7 +68,10 @@ function AgentInner() {
         </Panel>
 
         <Panel className="xl:col-span-5" title="Reasoning trace" subtitle={detail.data ? `${detail.data.run.model} · ${detail.data.run.finishedAt ? `${Math.round((new Date(detail.data.run.finishedAt).getTime() - new Date(detail.data.run.startedAt).getTime()) / 100) / 10}s` : "running"}` : "Select a cycle"}>
-          {detail.data && (
+          {detail.loading && (
+            <div className="py-12 text-center text-sm gc-muted">Loading reasoning trace...</div>
+          )}
+          {!detail.loading && detail.data && (
             <ol className="relative border-l gc-line ml-2 space-y-5">
               {detail.data.run.steps.map((s) => (
                 <li key={s.id} className="pl-5 relative">
@@ -80,7 +88,7 @@ function AgentInner() {
               ))}
             </ol>
           )}
-          {!detail.data && <Empty title="Pick a cycle to see how the agent reasoned." />}
+          {!detail.loading && !detail.data && <Empty title="Pick a cycle to see how the agent reasoned." />}
         </Panel>
 
         <Panel className="xl:col-span-4" pad={false} title="Actions" action={

@@ -23,6 +23,8 @@ import {
     Zap,
     ShieldAlert,
     Calendar,
+    ExternalLink,
+    Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -377,14 +379,6 @@ export default function TripPage() {
                     </Button>
                     <div className="flex gap-2">
                         <Button
-                            onClick={() => router.push(`/trip/${params.id}/room`)}
-                            variant="outline"
-                            className="rounded-full border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white"
-                        >
-                            <Users className="mr-2 h-4 w-4 text-orange-400" />
-                            Group Room
-                        </Button>
-                        <Button
                             onClick={() => router.push(`/trip/${params.id}/emergency`)}
                             variant="outline"
                             className="rounded-full border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white"
@@ -478,14 +472,25 @@ export default function TripPage() {
                                     {trip.transportation_plan.map((step, index) => (
                                         <div 
                                             key={index} 
-                                            className="flex gap-4 rounded-2xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/30 p-5 transition-all hover:border-orange-100 dark:hover:border-orange-950 hover:shadow-sm"
+                                            className="flex flex-col md:flex-row gap-4 rounded-2xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/30 p-5 transition-all hover:border-orange-100 dark:hover:border-orange-950 hover:shadow-sm"
                                         >
                                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-orange-600 dark:text-orange-400">
                                                 {getTransportIcon(step.mode)}
                                             </div>
-                                            <div className="flex-1 space-y-2">
+                                            <div className="flex-1 space-y-2.5">
+                                                {step.hubNotice && (
+                                                    <div className="flex items-start gap-2.5 rounded-xl border border-amber-200/90 bg-amber-50/80 dark:border-amber-900/60 dark:bg-amber-950/30 p-3 text-xs text-amber-900 dark:text-amber-200">
+                                                        <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+                                                        <p className="leading-relaxed">
+                                                            <span className="font-semibold text-amber-950 dark:text-amber-100">Regional Airport Feeder Notice: </span>
+                                                            {step.hubNotice}
+                                                        </p>
+                                                    </div>
+                                                )}
                                                 <div className="flex flex-wrap items-center justify-between gap-2">
-                                                    <h3 className="font-bold text-slate-900 dark:text-white text-base">{step.mode}</h3>
+                                                    <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                                                        {step.title || `${step.mode}: ${step.from || trip.trip_details.origin || ''} → ${step.to || trip.trip_details.destination || ''}`}
+                                                    </h3>
                                                     <div className="flex gap-2">
                                                         <Badge variant="secondary" className="bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs">
                                                             {step.duration}
@@ -495,7 +500,83 @@ export default function TripPage() {
                                                         </Badge>
                                                     </div>
                                                 </div>
-                                                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{step.details}</p>
+                                                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line">{step.details}</p>
+                                                
+                                                {step.available_options && step.available_options.length > 0 && (
+                                                    <div className="mt-3 space-y-2 border-t border-slate-200/60 dark:border-slate-800/60 pt-3">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                                                                Available Travel Modes & Real Schedules
+                                                            </span>
+                                                            <span className="text-[11px] text-slate-400">
+                                                                {step.available_options.length} verified routes
+                                                            </span>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                                                            {step.available_options.map((opt, oIdx) => (
+                                                                <div
+                                                                    key={oIdx}
+                                                                    className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-800/60 p-3 shadow-xs hover:border-orange-300 dark:hover:border-orange-700 transition-colors"
+                                                                >
+                                                                    <div className="space-y-1">
+                                                                        <div className="flex items-center justify-between gap-1.5">
+                                                                            <span className="inline-flex items-center gap-1 rounded-md bg-orange-50 dark:bg-orange-950/40 px-2 py-0.5 text-[11px] font-bold text-orange-700 dark:text-orange-300">
+                                                                                {opt.mode}
+                                                                            </span>
+                                                                            <span className="text-xs font-bold text-slate-900 dark:text-slate-100 text-right">
+                                                                                {opt.cost}
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="font-semibold text-slate-900 dark:text-white text-xs leading-tight">
+                                                                            {opt.routeNumber || opt.provider}
+                                                                        </div>
+                                                                        <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                                                                            {opt.provider !== opt.routeNumber && (
+                                                                                <span className="text-slate-600 dark:text-slate-300 font-medium">{opt.provider} • </span>
+                                                                            )}
+                                                                            Duration: {opt.duration}
+                                                                        </div>
+                                                                        {(opt.departureTime || opt.arrivalTime) && (
+                                                                            <div className="text-[11px] text-slate-600 dark:text-slate-300">
+                                                                                ⏰ {opt.departureTime} → {opt.arrivalTime}
+                                                                            </div>
+                                                                        )}
+                                                                        {opt.note && (
+                                                                            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug italic pt-0.5">
+                                                                                {opt.note}
+                                                                            </p>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-slate-100 dark:border-slate-700/60 pt-2">
+                                                                        {opt.bookingUrl && (
+                                                                            <a
+                                                                                href={opt.bookingUrl}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="inline-flex items-center gap-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 px-2 py-1 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors"
+                                                                            >
+                                                                                <span>Book / View</span>
+                                                                                <ExternalLink className="h-3 w-3" />
+                                                                            </a>
+                                                                        )}
+                                                                        {opt.mode.toLowerCase() === "train" && (
+                                                                            <Button
+                                                                                variant="ghost"
+                                                                                size="sm"
+                                                                                className="h-6 px-2 text-[11px] text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/40"
+                                                                                onClick={() => router.push(`/waitlist-rescue?train=${encodeURIComponent(opt.routeNumber || opt.provider)}`)}
+                                                                            >
+                                                                                <Train className="h-3 w-3 mr-1" />
+                                                                                Rescue Odds
+                                                                            </Button>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
                                                 <div className="flex flex-wrap items-center gap-3 pt-1">
                                                     {step.distance && (
                                                         <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
@@ -514,6 +595,26 @@ export default function TripPage() {
                                                             Waitlist Rescue Odds →
                                                         </Button>
                                                     )}
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="rounded-full text-xs font-semibold text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 gap-1.5 h-7 cursor-pointer"
+                                                        onClick={() => {
+                                                            let orig = step.from || trip.trip_details.origin || "";
+                                                            let dest = step.to || trip.trip_details.destination || "";
+                                                            if (!step.from || !step.to) {
+                                                                const arrowMatch = step.details.match(/([A-Za-z0-9\s,.-]+)\s*(?:→|->|to)\s*([A-Za-z0-9\s,.-]+?)(?:\s*\(|\.|\n|$)/);
+                                                                if (arrowMatch) {
+                                                                    orig = arrowMatch[1].replace(/Feeder Leg \d+:|Main Leg \d+:|Arrival Leg \d+:/gi, "").trim();
+                                                                    dest = arrowMatch[2].replace(/\(.*\)/g, "").trim();
+                                                                }
+                                                            }
+                                                            window.open(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(orig)}&destination=${encodeURIComponent(dest)}`, '_blank');
+                                                        }}
+                                                    >
+                                                        <Navigation className="h-3 w-3 text-orange-500" />
+                                                        Open Route in Google Maps ↗
+                                                    </Button>
                                                 </div>
                                             </div>
                                         </div>
@@ -626,6 +727,7 @@ export default function TripPage() {
                             <TripShieldCard
                                 tripId={params.id as string}
                                 destination={trip.trip_details.destination}
+                                trip={trip}
                             />
                         </motion.section>
 

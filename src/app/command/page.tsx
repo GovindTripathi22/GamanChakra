@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { attempt, toast } from "@/components/gc/toast";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Activity, AlertTriangle, Bot, CheckCircle2, Compass, Globe2, Inbox, Play, Radio, RefreshCw, ShieldAlert, Siren, Users, X } from "lucide-react";
+import { Activity, AlertTriangle, Bot, CheckCircle2, Compass, Globe2, Inbox, Play, Radio, RefreshCw, ShieldAlert, Siren, Users, X, ExternalLink, CloudRain, Wind, Thermometer, ShieldCheck } from "lucide-react";
 import { Panel, Stat, Btn, CategoryBadge, SeverityBadge, ProvenanceBadge, PageHeader, Empty, timeAgo } from "@/components/gc/ui";
 import { useApi, useEventStream, postJson, type StreamEvent } from "@/components/gc/hooks";
 import { WorldMap, type MapEvent } from "@/components/gc/world-map";
@@ -15,7 +15,36 @@ import { cn } from "@/lib/utils";
 interface Overview {
   kpis: { events24: number; high24: number; travelers: number; exposedTravelers: number; needHelp: number; executed24: number; pending: number; sampleMode: boolean };
   events: (MapEvent & { url: string; source: string; publishedAt: string; provenance: string; countryCode: string | null })[];
-  leaderboard: { name: string; countryCode: string; score: number; band: string; top: string | null; topCategory: string | null; lat: number; lng: number }[];
+  leaderboard: {
+    name: string;
+    countryCode: string;
+    score: number;
+    band: string;
+    top: string | null;
+    topCategory: string | null;
+    lat: number;
+    lng: number;
+    weather?: {
+      tempC: number;
+      condition: string;
+      windKmh: number;
+      precipMm: number;
+    };
+    seismic?: {
+      risk: number;
+      warning?: string;
+    };
+    drivers?: {
+      id: string;
+      title: string;
+      category: string;
+      severity: string;
+      source: string;
+      url?: string;
+      distanceKm?: number;
+    }[];
+    advice?: string[];
+  }[];
   lastRun: { id: string; startedAt: string; status: string; summary: string | null } | null;
   org: { name: string; autonomyLevel: string; plan: string; kind: string } | null;
 }
@@ -34,7 +63,7 @@ const TOUR: TourStep[] = [
   { target: "inbox", title: "You stay in control", body: <>Anything above the autonomy level you set waits here for one-click approval — for example, holding a new seat for a stranded traveller.</> },
   { target: "autonomy", title: "Choose how much it does on its own", body: <><b>L0</b> only watches · <b>L1</b> notifies · <b>L2</b> proposes actions · <b>L3</b> acts on routine steps · <b>L4</b> full autopilot. You can change this any time.</> },
   { target: "simulate", title: "See it handle an incident", body: <>Trigger a safe drill — an earthquake, fog, a strike — and watch the agent detect it, find affected travellers and act in seconds.</> },
-  { target: "jarvis", title: "Or just ask", body: <>Chakra, the voice assistant, answers questions like “Who is affected right now?” or “Is Dubai safe this week?” — in English or Hindi.</> },
+  { target: "sarthi", title: "Or just ask Sarthi", body: <>Sarthi, the voice assistant, answers questions like “Who is affected right now?” or “Is Dubai safe this week?” — in English or Hindi.</> },
 ];
 const PHASE_COLOR: Record<string, string> = { sense: "#38bdf8", think: "#a78bfa", plan: "#fbbf24", act: "#ff6a1a", reflect: "#34d399" };
 
@@ -47,6 +76,7 @@ export default function CommandCenter() {
   const [cat, setCat] = useState<string | null>(null);
   const [onlyHigh, setOnlyHigh] = useState(false);
   const [focus, setFocus] = useState<{ lat: number; lng: number } | null>(null);
+  const [selectedCityRisk, setSelectedCityRisk] = useState<Overview["leaderboard"][number] | null>(null);
   const [level, setLevel] = useState<string | null>(null);
   const [tour, setTour] = useState(false);
   const [sim, setSim] = useState(false);
@@ -81,7 +111,14 @@ export default function CommandCenter() {
   const runAgent = async () => {
     if (running) return;
     setRunning(true);
-    try { await postJson("/api/agent/run", {}); toast("Cycle complete", "success"); } catch (e) { toast((e as Error).message, "error"); setLog((l) => [{ id: String(Date.now()), phase: "alert", text: `Run failed: ${(e as Error).message}`, at: new Date().toISOString() }, ...l]); }
+    try {
+      const res = await postJson<{ summary?: string; exposures?: number; tasksCreated?: number; executed?: number; proposed?: number }>("/api/agent/run", {});
+      const msg = res?.summary ? res.summary.slice(0, 110) : "Cycle complete";
+      toast(msg, "success");
+    } catch (e) {
+      toast((e as Error).message, "error");
+      setLog((l) => [{ id: String(Date.now()), phase: "alert", text: `Run failed: ${(e as Error).message}`, at: new Date().toISOString() }, ...l]);
+    }
     finally { setRunning(false); ov.reload(); inbox.reload(); trav.reload(); }
   };
   const setAutonomy = async (lvl: string) => {
@@ -249,18 +286,31 @@ export default function CommandCenter() {
             </ul>
           </Panel></div>
 
-          <Panel pad={false} title="Destination risk leaderboard" subtitle="Live index from news within each city's radius">
+          <Panel pad={false} title="Destination risk leaderboard" subtitle="Live index from news & satellite telemetry (Click city for sources)">
             <ol className="divide-y divide-[var(--gc-line)]">
               {(ov.data?.leaderboard ?? []).map((c, i) => (
-                <li key={c.name} className="px-4 py-2.5 flex items-center gap-3 cursor-pointer hover:bg-[var(--gc-panel-2)]" onClick={() => setFocus({ lat: c.lat, lng: c.lng })}>
-                  <span className="w-5 text-xs gc-muted tabular-nums">{i + 1}</span>
+                <li
+                  key={c.name}
+                  className="px-4 py-2.5 flex items-center gap-3 cursor-pointer hover:bg-[var(--gc-panel-2)] transition group"
+                  onClick={() => {
+                    setFocus({ lat: c.lat, lng: c.lng });
+                    setSelectedCityRisk(c);
+                  }}
+                  title="Click to view risk breakdown and sources"
+                >
+                  <span className="w-5 text-xs gc-muted tabular-nums group-hover:text-[var(--gc-brand)] font-bold">{i + 1}</span>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium">{c.name} <span className="gc-muted text-xs">{c.countryCode}</span></div>
+                    <div className="text-sm font-medium group-hover:text-[var(--gc-brand)] transition-colors flex items-center gap-1.5">
+                      <span>{c.name}</span>
+                      <span className="gc-muted text-xs font-normal">({c.countryCode})</span>
+                    </div>
                     <div className="text-[11px] gc-muted truncate">{c.top?.replace(/^drill:\s*/i, "")}</div>
                   </div>
                   <div className="w-20">
-                    <div className="h-1.5 rounded-full bg-[var(--gc-panel-2)] overflow-hidden"><div className="h-full rounded-full" style={{ width: `${c.score}%`, background: c.score >= 55 ? "var(--gc-crit)" : c.score >= 35 ? "var(--gc-warn)" : "var(--gc-safe)" }} /></div>
-                    <div className="text-[11px] text-right tabular-nums mt-0.5">{c.score}</div>
+                    <div className="h-1.5 rounded-full bg-[var(--gc-panel-2)] overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${Math.max(8, c.score)}%`, background: c.score >= 55 ? "var(--gc-crit)" : c.score >= 35 ? "var(--gc-warn)" : "var(--gc-safe)" }} />
+                    </div>
+                    <div className="text-[11px] text-right tabular-nums mt-0.5 font-semibold">{c.score}/100</div>
                   </div>
                 </li>
               ))}
@@ -269,6 +319,123 @@ export default function CommandCenter() {
           </Panel>
         </div>
       </div>
+
+      {/* City Risk Details & Source Breakdown Modal */}
+      {selectedCityRisk && (
+        <div role="dialog" aria-modal="true" aria-label={`Risk breakdown for ${selectedCityRisk.name}`} className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto gc-fade-in">
+          <div className="relative w-full max-w-xl rounded-3xl border gc-line bg-[var(--gc-panel)] p-6 shadow-2xl space-y-5 my-8">
+            <div className="flex items-start justify-between gap-4 border-b gc-line pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-display text-2xl font-bold">{selectedCityRisk.name}</h3>
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-md border gc-line gc-muted">{selectedCityRisk.countryCode}</span>
+                </div>
+                <p className="text-xs gc-muted mt-1">Live telemetry diagnostic & verified source links</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <div className="text-xs font-semibold uppercase tracking-wider gc-muted">Risk Score</div>
+                  <div className={cn("text-2xl font-extrabold tabular-nums", selectedCityRisk.score >= 55 ? "text-red-500" : selectedCityRisk.score >= 35 ? "text-amber-500" : "text-emerald-500")}>
+                    {selectedCityRisk.score}<span className="text-sm font-normal gc-muted">/100</span>
+                  </div>
+                </div>
+                <button onClick={() => setSelectedCityRisk(null)} className="h-8 w-8 rounded-full border gc-line grid place-items-center hover:bg-[var(--gc-panel-2)] transition" aria-label="Close">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Why there is risk explanation */}
+            <div className="rounded-2xl p-4 bg-[var(--gc-panel-2)]/70 border gc-line space-y-2">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[var(--gc-brand)]">
+                <ShieldAlert className="h-4 w-4" /> Why is there risk here?
+              </div>
+              <p className="text-sm leading-relaxed">
+                {selectedCityRisk.score < 25
+                  ? `Conditions in ${selectedCityRisk.name} are normal. Satellite weather telemetry is favorable with no seismic or civil unrest emergencies.`
+                  : selectedCityRisk.top || "Elevated environmental or transit factors detected via live station monitors."}
+              </p>
+            </div>
+
+            {/* Live Weather & Telemetry Cards */}
+            {selectedCityRisk.weather && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                <div className="gc-panel p-2.5 rounded-xl border gc-line text-center">
+                  <div className="gc-muted flex items-center justify-center gap-1"><Thermometer className="h-3.5 w-3.5 text-orange-400" /> Temperature</div>
+                  <div className="font-semibold text-sm mt-1">{selectedCityRisk.weather.tempC}°C</div>
+                </div>
+                <div className="gc-panel p-2.5 rounded-xl border gc-line text-center">
+                  <div className="gc-muted flex items-center justify-center gap-1"><CloudRain className="h-3.5 w-3.5 text-blue-400" /> Rain</div>
+                  <div className="font-semibold text-sm mt-1">{selectedCityRisk.weather.precipMm} mm</div>
+                </div>
+                <div className="gc-panel p-2.5 rounded-xl border gc-line text-center">
+                  <div className="gc-muted flex items-center justify-center gap-1"><Wind className="h-3.5 w-3.5 text-sky-400" /> Wind</div>
+                  <div className="font-semibold text-sm mt-1">{selectedCityRisk.weather.windKmh} km/h</div>
+                </div>
+                <div className="gc-panel p-2.5 rounded-xl border gc-line text-center">
+                  <div className="gc-muted flex items-center justify-center gap-1"><Activity className="h-3.5 w-3.5 text-purple-400" /> Condition</div>
+                  <div className="font-semibold text-sm mt-1 truncate" title={selectedCityRisk.weather.condition}>{selectedCityRisk.weather.condition}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Verified Sources & Risk Drivers */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider gc-muted">
+                <span>Verified Sources & Risk Drivers</span>
+                <span>{(selectedCityRisk.drivers ?? []).length} items</span>
+              </div>
+              <div className="space-y-2 max-h-56 overflow-y-auto gc-scroll pr-1">
+                {(selectedCityRisk.drivers ?? []).map((d, i) => (
+                  <div key={i} className="p-3 rounded-2xl border gc-line bg-[var(--gc-panel-2)]/40 hover:bg-[var(--gc-panel-2)] transition space-y-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="text-xs font-medium leading-snug">{d.title}</div>
+                      {d.url && (
+                        <a href={d.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-xs font-semibold text-[var(--gc-brand)] hover:underline inline-flex items-center gap-1">
+                          Source <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] gc-muted">
+                      <span className="font-semibold text-[var(--gc-agent)]">{d.source}</span>
+                      <span>·</span>
+                      <span className="capitalize">{d.category.replace("_", " ")}</span>
+                      {d.distanceKm !== undefined && d.distanceKm > 0 && (
+                        <>
+                          <span>·</span>
+                          <span>{d.distanceKm} km away</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {(!selectedCityRisk.drivers || selectedCityRisk.drivers.length === 0) && (
+                  <div className="text-center py-4 text-xs gc-muted">
+                    No active incident drivers recorded for this city.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Travel Advice */}
+            {selectedCityRisk.advice && selectedCityRisk.advice.length > 0 && (
+              <div className="border-t gc-line pt-3">
+                <div className="text-xs font-semibold uppercase tracking-wider text-emerald-500 mb-1">
+                  ✓ Safety Guidance
+                </div>
+                <p className="text-xs gc-muted leading-relaxed">
+                  {selectedCityRisk.advice[0]}
+                </p>
+              </div>
+            )}
+
+            <div className="flex justify-end pt-2">
+              <Btn onClick={() => setSelectedCityRisk(null)}>Close</Btn>
+            </div>
+          </div>
+        </div>
+      )}
+
       <IncidentSimulator open={sim} onClose={closeSim} onDone={onIncident} />
       <ProductTour steps={TOUR} open={tour} onClose={closeTour} />
     </main>

@@ -11,7 +11,15 @@ import { cn } from "@/lib/utils";
 interface Traveler {
   id: string; name: string; email: string | null; phone: string | null; department: string | null; homeCity: string | null;
   destinationCity: string; destLat: number; destLng: number; tripStart: string; tripEnd: string; transportMode: string;
-  safetyStatus: "unknown" | "safe" | "needs_help" | "unreachable"; exposureScore: number; lastCheckinAt: string | null;
+  safetyStatus: "unknown" | "safe" | "needs_help" | "unreachable"; exposureScore: number;
+  exposureBand?: "clear" | "watch" | "elevated" | "critical";
+  exposureDriver?: string;
+  weatherCondition?: string;
+  tempC?: number | null;
+  windKmh?: number | null;
+  precipMm?: number | null;
+  seismicWarning?: string | null;
+  lastCheckinAt: string | null;
   pendingCheckin: { token: string; createdAt: string } | null;
 }
 
@@ -67,12 +75,31 @@ export default function DutyOfCare() {
 
   return (
     <main className="mx-auto max-w-[1440px] px-4 md:px-6 py-6">
-      <PageHeader eyebrow="B2B · Duty of care" title="Every traveller, accounted for." description="Exposure is recomputed every agent cycle from live news. Send one-tap “Are you safe?” check-ins by link or WhatsApp — replies land here in real time."
+      <PageHeader eyebrow="B2B · Duty of care" title="Every traveller, accounted for." description="Exposure is calculated in real-time from satellite weather telemetry, USGS seismic events, and live regional disruption feeds. Send one-tap “Are you safe?” check-ins by link or WhatsApp — replies land here in real time."
         actions={<>
+          <Btn variant="outline" onClick={() => reload()}><span className="text-emerald-500 mr-1">●</span>Live Sync</Btn>
           <Btn variant="outline" onClick={() => setShowImport(!showImport)}><Upload className="h-4 w-4" />Import CSV</Btn>
           <Btn variant="outline" onClick={exportCsv}><Download className="h-4 w-4" />Export</Btn>
           <Btn onClick={() => setShowAdd(!showAdd)}><Plus className="h-4 w-4" />Add traveller</Btn>
         </>} />
+
+      {/* Real-time telemetry source banner */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border gc-line gc-panel px-4 py-2.5 text-xs">
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span className="font-semibold text-[var(--gc-text)]">Live Risk Engine Active:</span>
+          <span className="gc-muted">Grounding exposure in live Open-Meteo satellite weather, USGS global seismic telemetry, and regional disruption advisories.</span>
+        </div>
+        <button
+          onClick={() => reload()}
+          className="text-xs font-semibold text-[var(--gc-brand)] hover:underline flex items-center gap-1 cursor-pointer"
+        >
+          <span>↻ Re-sync Telemetry</span>
+        </button>
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
         <Stat label="Active travellers" value={stats.total} icon={<Users className="h-4 w-4" />} />
@@ -87,7 +114,7 @@ export default function DutyOfCare() {
 
       <div className="grid xl:grid-cols-12 gap-4">
         <Panel className="xl:col-span-5" pad={false} title="Where everyone is" subtitle="◆ colour = exposure / status">
-          <WorldMap points={all.map((t) => ({ id: t.id, label: `${t.name} · ${t.destinationCity}`, lat: t.destLat, lng: t.destLng, score: t.exposureScore, status: t.safetyStatus }))} height={380} />
+          <WorldMap points={all.map((t) => ({ id: t.id, label: `${t.name} · ${t.destinationCity} (${t.tempC != null ? `${t.tempC > 0 ? `+${t.tempC}` : t.tempC}°C · ` : ""}${t.exposureDriver || "Score: " + t.exposureScore})`, lat: t.destLat, lng: t.destLng, score: t.exposureScore, status: t.safetyStatus }))} height={380} />
         </Panel>
         <Panel className="xl:col-span-7" pad={false} title="Traveller roster" subtitle={`${list.length} shown`} action={
           <Btn size="sm" variant="agent" disabled={!sel.size} loading={sending} onClick={() => checkin([...sel])}><Send className="h-3.5 w-3.5" />Check in {sel.size || ""}</Btn>
@@ -113,10 +140,39 @@ export default function DutyOfCare() {
                       <td className="px-4 py-2.5"><input type="checkbox" aria-label={`Select ${t.name}`} checked={sel.has(t.id)} onChange={(e) => { const s = new Set(sel); if (e.target.checked) s.add(t.id); else s.delete(t.id); setSel(s); }} className="accent-[var(--gc-brand)]" /></td>
                       <td className="py-2.5"><div className="font-medium">{t.name}</div><div className="text-[11px] gc-muted">{t.department ?? "—"} · {t.transportMode}</div></td>
                       <td className="py-2.5"><div>{t.destinationCity}</div><div className="text-[11px] gc-muted">{new Date(t.tripStart).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} – {new Date(t.tripEnd).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</div></td>
-                      <td className="py-2.5">
-                        <div className="flex items-center gap-2">
-                          <div className="h-1.5 w-16 rounded-full bg-[var(--gc-panel-2)] overflow-hidden"><div className="h-full" style={{ width: `${t.exposureScore}%`, background: t.exposureScore >= 55 ? "var(--gc-crit)" : t.exposureScore >= 35 ? "var(--gc-warn)" : "var(--gc-safe)" }} /></div>
-                          <span className="tabular-nums text-xs">{t.exposureScore}</span>
+                      <td className="py-2.5 min-w-[200px]">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <div className="h-1.5 w-16 rounded-full bg-[var(--gc-panel-2)] overflow-hidden">
+                              <div
+                                className="h-full transition-all duration-500"
+                                style={{
+                                  width: `${Math.max(6, t.exposureScore)}%`,
+                                  background:
+                                    t.exposureScore >= 55
+                                      ? "var(--gc-crit)"
+                                      : t.exposureScore >= 35
+                                      ? "var(--gc-warn)"
+                                      : "var(--gc-safe)",
+                                }}
+                              />
+                            </div>
+                            <span className="tabular-nums text-xs font-bold">{t.exposureScore}</span>
+                            {t.tempC != null && (
+                              <span className="rounded bg-[var(--gc-panel-2)] px-1.5 py-0.5 text-[10px] font-semibold text-slate-700 dark:text-slate-300">
+                                {t.tempC > 0 ? `+${t.tempC}` : t.tempC}°C
+                              </span>
+                            )}
+                          </div>
+                          <div
+                            className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1 font-medium truncate max-w-[210px]"
+                            title={t.exposureDriver || "Live telemetry normal"}
+                          >
+                            <span className="shrink-0 text-xs">
+                              {t.exposureScore >= 55 ? "🚨" : t.exposureScore >= 35 ? "⚠️" : "🟢"}
+                            </span>
+                            <span className="truncate">{t.exposureDriver || t.weatherCondition || "Clear & Normal"}</span>
+                          </div>
                         </div>
                       </td>
                       <td className="py-2.5"><span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", STATUS[t.safetyStatus]?.cls)}>{STATUS[t.safetyStatus]?.label}</span>{t.lastCheckinAt && <div className="text-[10px] gc-muted mt-0.5">{timeAgo(t.lastCheckinAt)}</div>}</td>
