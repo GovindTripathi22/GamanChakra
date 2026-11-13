@@ -218,7 +218,9 @@ export function calculateTripCost(
   const destName = trip.trip_details?.destination || "India";
   const rawDuration = trip.trip_details?.duration || "3 days";
   const durationDays = Math.max(1, parseNumberFromString(rawDuration) || (trip.itinerary?.length || 3));
-  const travelersCount = parseTravelersCount(trip.trip_details?.travelers);
+  const travelersCount = parseTravelersCount(
+    trip.trip_details?.travelers || trip.trip_details?.budget
+  );
 
   const rawStyle = (trip.trip_details?.budget || "standard").toLowerCase();
   const style: "budget" | "standard" | "comfort" =
@@ -228,35 +230,67 @@ export function calculateTripCost(
       ? "comfort"
       : "standard";
 
-  const parsedUserBudget = customSpendCap !== undefined
-    ? customSpendCap
-    : parseNumberFromString(trip.trip_details?.budget);
+  const rawBudgetNum = parseNumberFromString(trip.trip_details?.budget);
+  const explicitTripBudget = rawBudgetNum && rawBudgetNum >= 500 ? rawBudgetNum : undefined;
+  const effectiveCap = customSpendCap !== undefined ? customSpendCap : explicitTripBudget;
 
+  // Check if hotel has a sourced nightly rate from trip.hotels
+  const firstHotelPrice = trip.hotels?.[0]?.price;
+  const sourcedNightly = firstHotelPrice ? parseNumberFromString(firstHotelPrice.split("–")[0]) : null;
+  const hasSourcedHotel = Boolean(sourcedNightly && sourcedNightly >= 300);
+
+  // Compute baseline cost (without clamping to customSpendCap so customSpendCap can detect overruns)
   const trueCost = calculateTrueCost({
     destination: destName,
     days: durationDays,
     travelers: travelersCount,
-    budget: parsedUserBudget || undefined,
+    budget: explicitTripBudget,
     travelStyle: style === "comfort" ? "luxury" : style,
   });
+
+  const rooms = Math.ceil(travelersCount / 2);
+  const stayAmount =
+    hasSourcedHotel && !explicitTripBudget
+      ? sourcedNightly! * durationDays * rooms
+      : trueCost.breakdown.accommodation * (explicitTripBudget ? 1 : Math.max(1, rooms));
+  const transportAmount =
+    !explicitTripBudget
+      ? Math.round(3500 * (style === "comfort" ? 2.2 : style === "budget" ? 0.65 : 1.0) * travelersCount)
+      : trueCost.breakdown.flightsAndTransport;
+  const foodAmount =
+    !explicitTripBudget
+      ? Math.round(1200 * (style === "comfort" ? 2.0 : style === "budget" ? 0.65 : 1.0) * durationDays * travelersCount)
+      : trueCost.breakdown.foodAndDining;
+  const activitiesAmount =
+    !explicitTripBudget
+      ? Math.round(600 * durationDays * travelersCount)
+      : trueCost.breakdown.activitiesAndEntry;
+  const localTransitAmount =
+    !explicitTripBudget
+      ? Math.round(500 * durationDays * Math.ceil(travelersCount / 2))
+      : trueCost.breakdown.localTransit;
+
+  const subtotal = stayAmount + transportAmount + foodAmount + activitiesAmount + localTransitAmount;
+  const taxesAmount = explicitTripBudget ? trueCost.breakdown.taxesAndFees : Math.round(subtotal * 0.05);
+  const bufferAmount = explicitTripBudget ? trueCost.breakdown.emergencyBuffer : Math.round(subtotal * 0.08);
 
   const lines: CostLineItem[] = [
     {
       id: "line-stays",
       category: "stay",
       title: "Stays & Accommodations",
-      amountMin: Math.round(trueCost.breakdown.accommodation * 0.95),
-      amountMax: Math.round(trueCost.breakdown.accommodation * 1.05),
-      status: "estimated",
-      source: "Verified Regional Rate Card",
+      amountMin: Math.round(stayAmount * 0.92),
+      amountMax: Math.round(stayAmount * 1.08),
+      status: hasSourcedHotel ? "confirmed" : "estimated",
+      source: hasSourcedHotel ? "Sourced from trip accommodations" : "Verified Regional Rate Card",
       details: `${durationDays} nights for ${travelersCount} traveler${travelersCount > 1 ? "s" : ""}`,
     },
     {
       id: "line-transport",
       category: "transport",
       title: "Intercity Travel (Trains/Buses)",
-      amountMin: Math.round(trueCost.breakdown.flightsAndTransport * 0.95),
-      amountMax: Math.round(trueCost.breakdown.flightsAndTransport * 1.05),
+      amountMin: Math.round(transportAmount * 0.92),
+      amountMax: Math.round(transportAmount * 1.08),
       status: "estimated",
       source: "IRCTC / State Transport Index",
       details: `Round-trip for ${travelersCount} traveler${travelersCount > 1 ? "s" : ""}`,
@@ -265,8 +299,8 @@ export function calculateTripCost(
       id: "line-food",
       category: "food",
       title: "Food & Dining Experience",
-      amountMin: Math.round(trueCost.breakdown.foodAndDining * 0.95),
-      amountMax: Math.round(trueCost.breakdown.foodAndDining * 1.05),
+      amountMin: Math.round(foodAmount * 0.92),
+      amountMax: Math.round(foodAmount * 1.08),
       status: "estimated",
       source: "Local Dining Benchmarks",
       details: `Meals for ${durationDays} days`,
@@ -275,8 +309,8 @@ export function calculateTripCost(
       id: "line-activities",
       category: "activities",
       title: "Sightseeing & Entry Fees",
-      amountMin: Math.round(trueCost.breakdown.activitiesAndEntry * 0.95),
-      amountMax: Math.round(trueCost.breakdown.activitiesAndEntry * 1.05),
+      amountMin: Math.round(activitiesAmount * 0.92),
+      amountMax: Math.round(activitiesAmount * 1.08),
       status: "estimated",
       source: "Monuments & Cultural Benchmarks",
       details: "Monuments, parks, and cultural passes",
@@ -285,8 +319,8 @@ export function calculateTripCost(
       id: "line-local-transit",
       category: "local_transit",
       title: "Local Transit, Cabs & Autos",
-      amountMin: Math.round(trueCost.breakdown.localTransit * 0.95),
-      amountMax: Math.round(trueCost.breakdown.localTransit * 1.05),
+      amountMin: Math.round(localTransitAmount * 0.92),
+      amountMax: Math.round(localTransitAmount * 1.08),
       status: "estimated",
       source: "Local City Auto / Metro Rates",
       details: "Transfers and daily travel",
@@ -295,8 +329,8 @@ export function calculateTripCost(
       id: "line-taxes",
       category: "taxes_fees",
       title: "Taxes & Municipal Fees (GST)",
-      amountMin: Math.round(trueCost.breakdown.taxesAndFees * 0.95),
-      amountMax: Math.round(trueCost.breakdown.taxesAndFees * 1.05),
+      amountMin: Math.round(taxesAmount * 0.92),
+      amountMax: Math.round(taxesAmount * 1.08),
       status: "estimated",
       source: "Statutory Booking GST",
       details: "State tourism and gateway fees",
@@ -305,8 +339,8 @@ export function calculateTripCost(
       id: "line-buffer",
       category: "unexpected_buffer",
       title: "Unexpected Buffer (Emergency Reserve)",
-      amountMin: Math.round(trueCost.breakdown.emergencyBuffer * 0.95),
-      amountMax: Math.round(trueCost.breakdown.emergencyBuffer * 1.05),
+      amountMin: Math.round(bufferAmount * 0.92),
+      amountMax: Math.round(bufferAmount * 1.08),
       status: "estimated",
       source: "Contingency Reserve",
       details: "Surge pricing and buffer cushion",
@@ -315,6 +349,23 @@ export function calculateTripCost(
 
   const totalMin = lines.reduce((acc, l) => acc + l.amountMin, 0);
   const totalMax = lines.reduce((acc, l) => acc + l.amountMax, 0);
+  const expectedTotal = explicitTripBudget
+    ? trueCost.totalINR
+    : Math.round((totalMin + totalMax) / 2);
+
+  let budgetStatus: "within_budget" | "near_limit" | "exceeds_budget" = "within_budget";
+  let overageAmount: number | undefined = undefined;
+  const overageCulprits: CostLineItem[] = [];
+
+  if (effectiveCap && expectedTotal > effectiveCap) {
+    budgetStatus = "exceeds_budget";
+    overageAmount = expectedTotal - effectiveCap;
+    const sorted = [...lines].sort((a, b) => b.amountMax - a.amountMax);
+    for (const c of sorted.slice(0, 2)) {
+      c.isCulpritOverBudget = true;
+      overageCulprits.push(c);
+    }
+  }
 
   return {
     destination: destName,
@@ -325,12 +376,12 @@ export function calculateTripCost(
     lines,
     totalMin,
     totalMax,
-    expectedTotal: trueCost.totalINR,
-    unexpectedBufferPercent: 4,
-    userBudgetCap: parsedUserBudget || undefined,
-    budgetStatus: "within_budget",
-    overageAmount: undefined,
-    overageCulprits: [],
+    expectedTotal,
+    unexpectedBufferPercent: 8,
+    userBudgetCap: effectiveCap || undefined,
+    budgetStatus,
+    overageAmount,
+    overageCulprits,
     provenance: {
       source: "Voyage True Cost Engine (Strict INR Guarantee)",
       lastCheckedAt: new Date().toISOString(),

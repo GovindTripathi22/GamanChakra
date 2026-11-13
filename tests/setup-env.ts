@@ -1,7 +1,5 @@
-if (!process.env.DATABASE_URL || process.env.DATABASE_URL.startsWith("file:")) {
-  process.env.DATABASE_URL = process.env.DATABASE_URL_UNPOOLED 
-    || process.env.POSTGRES_URL 
-    || "postgresql://voyage_user:voyage_password@localhost:5432/voyage_test?schema=public";
+if (!process.env.DATABASE_URL || process.env.DATABASE_URL.includes("dev.db")) {
+  process.env.DATABASE_URL = "file:./test.db";
 }
 process.env.NEWS_MODE = "drill";
 process.env.GENERATIVE_SLM = "off";

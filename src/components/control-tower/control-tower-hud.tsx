@@ -7,12 +7,6 @@ import {
   Activity as ActivityIcon,
   AlertTriangle,
   PlayCircle,
-  Settings2,
-  ChevronDown,
-  CloudRain,
-  Train,
-  Users,
-  Compass,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PRESET_DISRUPTIONS } from "@/lib/disruption-simulator";
-import type { DisruptionEvent, ControlTowerStatus } from "@/types/trip";
+import type { DisruptionEvent } from "@/types/trip";
 
 interface ControlTowerHudProps {
   tripHealthScore?: number;
@@ -41,7 +35,6 @@ export function ControlTowerHud({
   onToggleGuardianMode,
   onTriggerDisruption,
   isSimulating,
-  activeDisruptionCount = 0,
 }: ControlTowerHudProps) {
   const [selectedPresetId, setSelectedPresetId] = useState<string>(PRESET_DISRUPTIONS[0].id);
 

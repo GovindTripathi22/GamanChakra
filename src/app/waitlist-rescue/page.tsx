@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { toast } from "@/components/gc/toast";
 import {
   Train,
   ShieldCheck,
@@ -104,7 +105,7 @@ export default function WaitlistRescuePage() {
       await bookBackupOptionAction("standalone_trip", opt);
       setBookingSuccess(`Backup Secured: "${opt.title}". Confirmation policy authorized!`);
     } catch (err: unknown) {
-      alert(`Booking error: ${err instanceof Error ? err.message : String(err)}`);
+      toast(`Booking error: ${err instanceof Error ? err.message : String(err)}`, "error");
     }
   };
 

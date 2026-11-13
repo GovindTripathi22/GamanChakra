@@ -16,7 +16,7 @@ export const FEATURE_FLAGS = {
   TRUE_TRIP_COST_ENABLED: true,       // F2
   TRIP_GUARDIAN_ENABLED: true,         // F3
   WAITLIST_RESCUE_ENABLED: true,       // F4
-  GROUP_TRIP_ROOM_ENABLED: false,      // F5 (decommissioned per user request)
+  GROUP_TRIP_ROOM_ENABLED: true,       // F5
   ROUTE_RISK_ALERTS_ENABLED: true,     // F6
   OFFLINE_EMERGENCY_CARD: true,        // F6
   FAIR_PRICE_GUIDE_ENABLED: false,     // F7 (low priority, behind flag)

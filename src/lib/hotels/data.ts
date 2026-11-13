@@ -731,44 +731,6 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     tier: "budget",
     amenities: ["Sunny Turquoise Pool", "Good Mantra Cafe", "Free High-Speed WiFi", "Surf Board Storage", "Scooter Rental Desk"],
   },
-
-  // PARIS & EUROPE
-  {
-    id: "paris-plaza-athenee",
-    name: "Hôtel Plaza Athénée Paris",
-    destination: "Paris",
-    address: "25 Avenue Montaigne, 75008 Paris, France",
-    pricePerNightINR: [48000, 92000],
-    rating: 4.9,
-    imageUrl: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=80",
-    description: "Legendary 5-star palace hotel on Haute Couture Avenue Montaigne with Eiffel Tower courtyard views and Dior Institut spa.",
-    tier: "luxury",
-    amenities: ["Eiffel Tower Views", "Dior Spa", "Courtyard Garden", "Michelin-Starred Dining", "Free High-Speed WiFi", "24/7 Concierge"],
-  },
-  {
-    id: "paris-novotel-les-halles",
-    name: "Novotel Paris Les Halles",
-    destination: "Paris",
-    address: "8 Place Marguerite de Navarre, 75001 Paris, France",
-    pricePerNightINR: [14000, 24000],
-    rating: 4.6,
-    imageUrl: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80",
-    description: "Upscale 4-star stay in the heart of Paris, directly linked to Châtelet-Les Halles RER/Metro hub with serene internal patio and modern lounge.",
-    tier: "comfort",
-    amenities: ["Central Metro Access", "Private Garden Patio", "French Buffet Breakfast", "Free High-Speed WiFi", "Fitness Center"],
-  },
-  {
-    id: "paris-generator",
-    name: "Generator Paris",
-    destination: "Paris",
-    address: "9-11 Place du Colonel Fabien, 75010 Paris, France",
-    pricePerNightINR: [3200, 6800],
-    rating: 4.3,
-    imageUrl: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80",
-    description: "Design-led modern hostel and boutique stay featuring rooftop bar with panoramic Sacré-Cœur views, underground club lounge, and private rooms.",
-    tier: "budget",
-    amenities: ["Rooftop Bar with Sacré-Cœur Views", "Metro Steps Away", "Co-working Space", "Free High-Speed WiFi", "24/7 Security"],
-  },
 ];
 
 /**
@@ -806,8 +768,7 @@ export function resolveRealHotels(
       (norm.includes("munnar") && dest === "kerala") ||
       (norm.includes("alleppey") && dest === "kerala") ||
       (norm.includes("leh") && dest === "ladakh") ||
-      (norm.includes("nyc") && dest === "new york") ||
-      (norm.includes("europe") && dest === "paris")
+      (norm.includes("nyc") && dest === "new york")
     );
   });
 

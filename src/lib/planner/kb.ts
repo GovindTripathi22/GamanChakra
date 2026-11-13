@@ -258,26 +258,16 @@ Singapore Botanic Gardens|leisure|1.3138|103.8159|120|0|morning|low|1|Orchid gar
 Little India & Tekka Centre|food|1.3066|103.8518|120|600|afternoon|moderate|1|Biryani and teh tarik|walk-in`,
   },
   paris: {
-    stays: [
-      ["Design hostel / budget room", "Canal Saint-Martin / 10th Arr.", 3200, 6800],
-      ["Boutique Parisian hotel", "Le Marais / 1st Arr.", 12500, 24000],
-      ["5-star luxury palace hotel", "Champs-Elysees / 8th Arr.", 48000, 95000],
-    ],
-    food: [2200, 5500],
-    transit: [900, 1800],
-    season: "Apr-Jun & Sep-Oct pleasant mild weather; Jul-Aug peak summer crowds; Nov-Feb cool winter festivities",
+    stays: [["Budget hotel", "Montmartre", 9000, 14000], ["Boutique hotel", "Le Marais", 15000, 28000], ["Luxury", "Saint-Germain", 30000, 80000]],
+    food: [3000, 6500], transit: [800, 1600], season: "Apr–Jun & Sep–Oct; Aug many shops closed",
     pois: `
-Eiffel Tower Summit & Champ de Mars|sightseeing|48.8584|2.2945|150|2800|morning|peak|1|Book 60 days advance or take the stairs to 2nd floor for shorter lines|30+ days required
-Louvre Museum & Mona Lisa Wing|culture|48.8606|2.3376|210|2200|morning|peak|0|Enter via Carrousel du Louvre underground mall to skip the Pyramid queue|3-7 days advance
-Musée d'Orsay Impressionist Masterpieces|culture|48.8599|2.3266|150|1600|afternoon|moderate|0|Stunning Beaux-Arts railway station housing Monet, Van Gogh and Renoir|3-7 days advance
-Cathédrale Notre-Dame & Île de la Cité Walk|culture|48.8530|2.3499|90|0|morning|moderate|1|Admire the restored gothic facade and stroll through the flower market|walk-in
-Montmartre Hill & Sacré-Cœur Basilica|sightseeing|48.8867|2.3431|120|0|evening|peak|1|Climb the stairs or take the funicular for sunset vistas over all Paris|walk-in
-Seine River Evening Illuminated Cruise|leisure|48.8590|2.2950|75|1500|evening|moderate|1|Board near Eiffel Tower as monuments light up; open upper deck fills early|walk-in
-Arc de Triomphe & Champs-Élysées Promenade|sightseeing|48.8738|2.2950|90|1600|afternoon|moderate|1|Rooftop platform offers 12 radiating grand avenue panorama|walk-in
-Le Marais Historic District & Place des Vosges|leisure|48.8558|2.3655|120|0|afternoon|low|1|Stroll ancient cobblestones, independent boutiques, and authentic bakeries|walk-in
-Sainte-Chapelle Radiant Stained Glass Sanctuary|culture|48.8554|2.3450|60|1250|morning|moderate|0|Visit on a sunny morning when the 1,113 stained glass scenes glow intensely|3-7 days advance
-Classic Parisian Bistro & Wine Bar Dinner|food|48.8532|2.3385|105|2500|evening|moderate|0|Savour duck confit, boeuf bourguignon, or ratatouille in Saint-Germain|walk-in
-Palace of Versailles Grand Apartments & Gardens|culture|48.8049|2.1204|300|2700|morning|peak|1|Take RER C to Versailles Château Rive Gauche; reserve morning passport entry|3-7 days advance`,
+Eiffel Tower summit|sightseeing|48.8584|2.2945|150|2700|morning|peak|1|Book summit tickets 30+ days ahead|30+ days required
+Louvre Museum|culture|48.8606|2.3376|210|2000|morning|peak|0|Timed entry; use Carrousel entrance|3-7 days advance
+Seine river cruise|leisure|48.8600|2.3100|60|1500|evening|moderate|1|Night cruise for illuminated monuments|walk-in
+Montmartre & Sacré-Cœur|culture|48.8867|2.3431|150|0|morning|moderate|1|Climb before 10 am for empty steps|walk-in
+Musée d'Orsay|culture|48.8600|2.3266|150|1500|afternoon|moderate|0|Thursday late opening|3-7 days advance
+Le Marais food & falafel walk|food|48.8575|2.3580|120|1500|afternoon|moderate|1|Rue des Rosiers falafel queue moves fast|walk-in
+Sainte-Chapelle|culture|48.8554|2.3450|60|1200|afternoon|moderate|0|Sunny afternoons light the glass|3-7 days advance`,
   },
   london: {
     stays: [["Budget hotel", "King's Cross", 9000, 15000], ["Mid-range", "South Kensington", 15000, 28000], ["Luxury", "Mayfair", 35000, 90000]],
@@ -326,6 +316,94 @@ Mount Batur sunrise trek|sightseeing|-8.2420|115.3750|360|3500|morning|moderate|
 Seminyak beach clubs|leisure|-8.6913|115.1569|180|2000|afternoon|moderate|1|Sunset is peak|walk-in
 Ubud art market & Balinese dinner|food|-8.5069|115.2625|120|900|evening|moderate|0|Try babi guling or nasi campur|walk-in`,
   },
+  manali: {
+    stays: [["Mountain hostel / homestay", "Old Manali", 1400, 3200], ["Apple orchard resort", "Log Huts / Prini", 4500, 9500], ["Luxury Alpine spa resort", "Solang / Rangri", 12000, 26000]],
+    food: [600, 1500], transit: [700, 1800], season: "Mar–Jun pleasant summer; Dec–Feb snow season; Jul–Aug landslide risk in monsoon",
+    pois: `
+Hidimba Devi Cedar Forest Temple|culture|32.2483|77.1808|90|0|morning|peak|1|1553 pagoda-style wooden temple set among giant deodar cedars; arrive by 8:30 am|walk-in
+Solang Valley Ropeway & Paragliding Meadow|leisure|32.3166|77.1575|180|1200|morning|peak|1|Depart before 8 am to beat Rohtang/Atal Tunnel highway traffic|walk-in
+Atal Tunnel & Sissu Waterfall Lahaul excursion|sightseeing|32.4020|77.2100|240|800|morning|moderate|1|9.02 km high-altitude highway tunnel into Lahaul Valley; carry warm layers|walk-in
+Jogini Waterfall pine forest trek from Vashisht|sightseeing|32.2660|77.1880|150|0|afternoon|low|1|Scenic 3 km village trail past hot springs and apple orchards|walk-in
+Old Manali Manalsu River cafes & Himachali trout dinner|food|32.2560|77.1750|120|750|evening|moderate|0|Order pan-seared Himalayan rainbow trout and hot siddu with ghee|walk-in
+Naggar Castle & Roerich Art Gallery heritage visit|culture|32.1140|77.1650|150|100|afternoon|low|1|500-year-old kath-kuni stone-and-timber castle overlooking Kullu valley|walk-in`,
+  },
+  shimla: {
+    stays: [["Heritage guesthouse", "Lakkar Bazaar / Mall Road", 1800, 3800], ["Colonial boutique hotel", "Chotta Shimla", 5000, 11000], ["Luxury Himalayan retreat", "Mashobra / Wildflower Hall", 18000, 42000]],
+    food: [600, 1500], transit: [500, 1400], season: "Mar–Jun & Sep–Nov; Dec–Jan winter snowfall",
+    pois: `
+Kalka–Shimla UNESCO Heritage Toy Train scenic ride|sightseeing|31.1030|77.1660|180|450|morning|peak|0|102 tunnels and multi-arch stone viaducts; book Shivalik Deluxe or Vistadome|30+ days required
+Viceregal Lodge (Indian Institute of Advanced Study)|culture|31.1034|77.1419|120|100|morning|moderate|0|1888 Scottish baronial palace where the 1945 Simla Conference was held|walk-in
+Jakhu Hanuman Temple & Deodar Ridge Ropeway|sightseeing|31.1008|77.1842|90|550|morning|moderate|1|Shimla's highest peak at 8,050 ft; keep spectacles secure from macaques|walk-in
+The Ridge, Christ Church & Scandal Point promenade|leisure|31.1048|77.1734|90|0|evening|peak|1|Vehicle-free colonial promenade glowing at dusk|walk-in
+Kufri Himalayan Nature Park & Mahasu Peak|sightseeing|31.0978|77.2678|180|300|afternoon|moderate|1|16 km from Shimla; panoramic views of Kedarnath and Badrinath snow peaks|walk-in
+Mall Road heritage bakery & Himachali Dham dinner|food|31.1040|77.1720|90|650|evening|moderate|0|Try Chana Madra, Babru and warm fruit cake at historic bakeries|walk-in`,
+  },
+  darjeeling: {
+    stays: [["Tea planters homestay", "Observatory Hill / Lebong", 1600, 3500], ["Colonial heritage hotel", "The Mall / Chowrasta", 5500, 12000], ["Luxury tea estate bungalow", "Glenburn / Makaibari", 16000, 38000]],
+    food: [500, 1300], transit: [600, 1500], season: "Mar–May & Oct–Dec for crystal-clear Kanchenjunga views",
+    pois: `
+Tiger Hill sunrise over Mount Kanchenjunga|sightseeing|26.9962|88.2850|150|100|morning|peak|1|Depart hotel at 3:45 am; watch golden alpenglow hit the 8,586m summit|walk-in
+Darjeeling Himalayan Railway (Joyride to Ghoom & Batasia Loop)|sightseeing|27.0410|88.2630|120|1000|morning|peak|0|1881 steam locomotive spiralling through Batasia war memorial garden|3-7 days advance
+Happy Valley Tea Estate organic plucking & tasting tour|culture|27.0510|88.2580|90|250|afternoon|low|0|Established 1854; sample aromatic First Flush and Second Flush muscatel teas|walk-in
+Padmaja Naidu Himalayan Zoological Park & HMI|sightseeing|27.0580|88.2540|120|150|morning|moderate|1|See endangered Red Pandas, Snow Leopards and Tenzing Norgay's Everest gear|walk-in
+Peace Pagoda & Japanese Temple morning bells|culture|27.0285|88.2595|75|0|evening|low|1|Serene white stupa with sweeping views of Darjeeling town|walk-in
+Keventer's / Glenary's colonial breakfast & Tibetan momo trail|food|27.0440|88.2670|90|500|evening|moderate|0|Steaming thukpa,Darjeeling tea and heritage bakery pastries on Nehru Road|walk-in`,
+  },
+  ayodhya: {
+    stays: [["Dharamshala / pilgrim guesthouse", "Ram Path / Naya Ghat", 1400, 3000], ["Mid-range pilgrim hotel", "Civil Lines / Faizabad Rd", 3800, 8000], ["Luxury tent city / heritage stay", "Saryu Riverfront", 9000, 18000]],
+    food: [450, 1000], transit: [400, 900], season: "Oct–Mar pleasant; Ram Navami (Mar/Apr) & Deepotsav (Oct/Nov) attract millions",
+    pois: `
+Shri Ram Janmabhoomi Mandir darshan|culture|26.7956|82.1944|180|0|morning|peak|0|Deposit phones & bags at free Janmabhoomi Path lockers; book Sugam Darshan slot online|3-7 days advance
+Hanuman Garhi 10th-century fortress shrine|culture|26.7949|82.2005|90|0|morning|peak|0|Climb 76 steps to the main sanctum; offer besan laddu prasad|walk-in
+Saryu River Ram Ki Paidi evening Aarti & laser show|culture|26.8090|82.2050|90|0|evening|peak|1|Arrive 45 mins before sunset for front-row ghat steps|walk-in
+Kanak Bhawan golden-crowned shrine|culture|26.7980|82.1985|60|0|afternoon|moderate|0|Melodious devotional bhajans in the open courtyard|walk-in
+Guptar Ghat & Saryu boat ride|leisure|26.7830|82.1320|90|300|evening|low|1|Peaceful riverfront ghats surrounded by gardens|walk-in
+Traditional Awadhi sattvic thali & rabri-jalebi tasting|food|26.7960|82.2010|60|300|afternoon|moderate|0|Pure vegetarian cuisine with hot kachori-sabzi and peda|walk-in`,
+  },
+  pondicherry: {
+    stays: [["Boutique guesthouse", "White Town / Rue Romain Rolland", 2500, 5500], ["Heritage Franco-Tamil villa", "French Quarter", 6500, 14000], ["Eco beach resort", "Serenity / Paradise Beach", 8000, 18000]],
+    food: [800, 1800], transit: [400, 1000], season: "Oct–Mar breezy coastal weather; Apr–Jun hot & humid",
+    pois: `
+White Town French Quarter architectural walk & cafes|culture|11.9310|79.8340|120|0|morning|low|1|Mustard-yellow colonial villas, bougainvillea lanes and artisanal croissants|walk-in
+Sri Aurobindo Ashram & Matrimandir viewing point (Auroville)|culture|12.0069|79.8106|180|0|morning|moderate|1|Silent meditation centre; inner chamber requires booking 7 days ahead|3-7 days advance
+Promenade Rock Beach sunrise & Goubert Avenue stroll|leisure|11.9338|79.8367|75|0|morning|moderate|1|Closed to motor vehicles in the morning and evening|walk-in
+Chunnambar Backwater boat ride to Paradise Beach|leisure|11.8840|79.8210|150|400|afternoon|moderate|1|Golden sand spit between the backwaters and Bay of Bengal|walk-in
+Arulmigu Manakula Vinayagar Temple|culture|11.9358|79.8336|60|0|evening|moderate|0|300-year-old Ganesha temple with vibrant ceiling murals|walk-in
+Creole & Franco-Tamil dinner in a courtyard bistro|food|11.9300|79.8335|90|1100|evening|moderate|0|Try prawn Assad, ratatouille and wood-fired sourdough pizza|walk-in`,
+  },
+  andaman: {
+    stays: [["Island guesthouse", "Port Blair / Aberdeen", 2500, 5000], ["Beach eco-cottages", "Havelock (Swaraj Dweep)", 6500, 14000], ["Luxury oceanfront villa", "Radhanagar / Neil Island", 16000, 42000]],
+    food: [900, 2200], transit: [1000, 2800], season: "Oct–Apr calm turquoise waters for scuba diving; May–Sep monsoon swells",
+    pois: `
+Cellular Jail National Memorial & Light and Sound Show|culture|11.6742|92.7478|150|350|evening|peak|0|Moving colonial freedom-struggle history; book evening show online|3-7 days advance
+Radhanagar Beach (Beach No. 7, Havelock Island)|leisure|11.9845|92.9512|180|0|evening|moderate|1|Blue Flag certified powdery white sand and dramatic forest backdrop|walk-in
+Elephant Beach coral reef snorkelling & sea walk|leisure|12.0090|92.9420|180|1800|morning|moderate|1|Take the 8 am speed boat from Havelock jetty for clearest water visibility|3-7 days advance
+Ross Island (Netaji Subhash Chandra Bose Island) heritage ruins|sightseeing|11.6769|92.7625|120|250|morning|low|1|Banyan roots enveloping 19th-century British administrative buildings and spotted deer|walk-in
+Laxmanpur Natural Rock Bridge at low tide (Neil Island)|sightseeing|11.8380|93.0280|90|0|afternoon|low|1|Living coral tide pools and natural limestone arch|walk-in
+Fresh island grilled seafood platter by the beach|food|12.0200|92.9800|90|1200|evening|moderate|0|Try freshly caught red snapper, lobster and coconut prawn curry|walk-in`,
+  },
+  coorg: {
+    stays: [["Coffee estate homestay", "Madikeri / Kushalnagar", 2000, 4500], ["Plantation bungalow", "Virajpet / Pollibetta", 5500, 12000], ["Luxury rainforest resort", "Madikeri Hills", 15000, 35000]],
+    food: [600, 1400], transit: [700, 1600], season: "Oct–May coffee blossom & harvest season; Jun–Aug misty monsoon waterfalls",
+    pois: `
+Dubare Elephant Camp river interaction & rafting|leisure|12.3714|75.9052|150|800|morning|peak|1|Cross the Cauvery at 8:30 am to watch elephant bathing and feeding|walk-in
+Abbey Falls & hanging bridge amidst coffee plantations|sightseeing|12.4570|75.7165|90|50|morning|moderate|1|70-foot cascading waterfall surrounded by pepper vines and Arabica coffee|walk-in
+Namdroling Monastery (Golden Temple, Bylakuppe)|culture|12.4323|75.9675|120|0|afternoon|moderate|0|Largest Nyingma Tibetan Buddhist teaching centre with 40-ft golden statues|walk-in
+Raja's Seat sunset panorama over Western Ghats|sightseeing|12.4148|75.7368|75|30|evening|peak|1|Historic royal pavilion overlooking rolling mist-clad valleys|walk-in
+Mercara Gold Coffee & Spice Plantation guided walk|culture|12.4280|75.7850|120|300|afternoon|low|1|Learn bean-to-cup Robusta & Arabica roasting and buy fresh green cardamom|walk-in
+Traditional Kodava Pandi Curry & Akki Rotti dinner|food|12.4220|75.7390|90|650|evening|moderate|0|Authentic Coorgi smoky Kachampuli dish, bamboo shoot curry and rice flatbread|walk-in`,
+  },
+  mysuru: {
+    stays: [["Heritage guesthouse", "Gokulam / Nazarbad", 1500, 3200], ["Royal boutique hotel", "Sayyaji Rao Road", 4000, 8500], ["Palace heritage hotel", "Lalitha Mahal Road", 10000, 24000]],
+    food: [500, 1200], transit: [400, 1000], season: "Sep–Mar; Mysuru Dasara (Oct) features grand palace illumination and processions",
+    pois: `
+Mysore Palace (Amba Vilas) Indo-Saracenic royal durbar|culture|12.3052|76.6552|150|100|morning|peak|0|Stained glass Peacock Pavilion; illuminated by 97,000 bulbs on Sundays at 7 pm|walk-in
+Chamundi Hills & Sri Chamundeshwari Temple climb|culture|12.2725|76.6708|120|50|morning|moderate|1|1,008 stone steps past the giant monolithic Nandi bull|walk-in
+Devaraja Market 130-year-old flower, kumkum & incense bazaar|food|12.3105|76.6525|90|200|evening|peak|1|Conical mounds of vibrant vermilion powder, jasmine garlands and sandalwood|walk-in
+Brindavan Gardens musical fountain & KRS Dam|leisure|12.4217|76.5728|120|100|evening|peak|1|Terraced symmetrical gardens; fountain show starts at dusk|walk-in
+St. Philomena's Neo-Gothic Cathedral & Jaganmohan Art Gallery|culture|12.3210|76.6580|90|100|afternoon|low|0|Original Raja Ravi Varma paintings and twin 175-foot church spires|walk-in
+Original Mylari Dosa & warm Mysore Pak tasting|food|12.3060|76.6540|60|300|morning|peak|0|Fluffy butter dosa served on banana leaf and melt-in-mouth ghee Mysore Pak|walk-in`,
+  },
 };
 
 function parsePois(block: string): Poi[] {
@@ -353,5 +431,12 @@ export const KB_ALIASES: Record<string, string> = {
   amritsar: "amritsar",
   hampi: "hampi",
   ooty: "ooty", udhagamandalam: "ooty", coonoor: "ooty",
-  paris: "paris", europe: "paris", "european union": "paris",
+  manali: "manali", kullu: "manali", solang: "manali",
+  shimla: "shimla", kufri: "shimla",
+  darjeeling: "darjeeling",
+  ayodhya: "ayodhya",
+  pondicherry: "pondicherry", puducherry: "pondicherry", auroville: "pondicherry",
+  andaman: "andaman", "port blair": "andaman", havelock: "andaman",
+  coorg: "coorg", madikeri: "coorg", kodagu: "coorg",
+  mysuru: "mysuru", mysore: "mysuru",
 };

@@ -105,19 +105,6 @@ function build() {
     for (const a of (aliases || "").split(";")) if (a) addPhrase(a, p, true);
     for (const code of p.iata) iataIndex.set(code, p);
   }
-
-  // Regional & Continental gateway mapping (Europe -> Paris, Southeast Asia -> Bangkok, Middle East -> Dubai)
-  const regionalGateways: Record<string, string> = {
-    "europe": "city:FR:paris",
-    "eu": "city:FR:paris",
-    "european union": "city:FR:paris",
-    "southeast asia": "city:TH:bangkok",
-    "middle east": "city:AE:dubai",
-  };
-  for (const [k, id] of Object.entries(regionalGateways)) {
-    const p = placesById.get(id);
-    if (p) addPhrase(k, p, true);
-  }
 }
 build();
 

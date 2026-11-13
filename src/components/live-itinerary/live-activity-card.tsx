@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +13,9 @@ import {
   Sparkles,
   CloudRain,
   Umbrella,
-  IndianRupee,
+  Navigation,
+  Ticket,
+  ExternalLink,
 } from "lucide-react";
 import type { Activity, LiveStepOutcome } from "@/types/trip";
 import type { ItemVerification, VerificationRecoveryOption } from "@/types/verification";
@@ -31,16 +32,21 @@ interface LiveActivityCardProps {
   onApplyFix?: (opt: VerificationRecoveryOption) => void;
 }
 
+const CATEGORY_LABELS: Record<string, string> = {
+  sightseeing: "Sightseeing",
+  culture: "Heritage & Culture",
+  food: "Culinary & Bazaar",
+  leisure: "Scenic Leisure",
+  buffer: "Buffer Window",
+};
+
 export function LiveActivityCard({
   activity,
   index,
-  tripId,
   onReportOutcome,
   verification,
   onApplyFix,
 }: LiveActivityCardProps) {
-  const [reporting, setReporting] = useState(false);
-
   const status = activity.status || "scheduled";
 
   const getStatusBadge = () => {
@@ -48,13 +54,12 @@ export function LiveActivityCard({
       case "in_progress":
         return (
           <Badge className="bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30 flex items-center gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-ping"></span>
             In Progress
           </Badge>
         );
       case "delayed":
         return (
-          <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 flex items-center gap-1">
+          <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 flex items-center gap-1 tabular-nums">
             <AlertTriangle className="h-3 w-3" />
             Delayed (+{activity.actualOutcome?.actualDelayMinutes || 30}m)
           </Badge>
@@ -111,8 +116,11 @@ export function LiveActivityCard({
     }
 
     onReportOutcome(activity, outcome);
-    setReporting(false);
   };
+
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    (activity.title || activity.place_name || "") + " " + (activity.locationName || "")
+  )}`;
 
   return (
     <div
@@ -127,7 +135,7 @@ export function LiveActivityCard({
       {/* Top Header: Number, Title, Status */}
       <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
         <div className="flex items-start gap-3">
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-orange-500/10 text-xs font-bold text-orange-600 dark:text-orange-400">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-orange-500/10 text-xs font-bold tabular-nums text-orange-600 dark:text-orange-400">
             {index + 1}
           </div>
           <div>
@@ -145,18 +153,29 @@ export function LiveActivityCard({
                 </Badge>
               )}
             </div>
-            <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1">
-              <span className="flex items-center gap-1 font-medium">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <span className="flex items-center gap-1 font-medium tabular-nums">
                 <Clock className="h-3.5 w-3.5 text-orange-500" />
                 {activity.startTime && activity.endTime
-                  ? `${activity.startTime} - ${activity.endTime}`
+                  ? `${activity.startTime} – ${activity.endTime}`
                   : activity.timeSlot || activity.time}
               </span>
+              {activity.category && (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <span className="font-medium text-slate-600 dark:text-slate-300">
+                    {CATEGORY_LABELS[activity.category] || activity.category}
+                  </span>
+                </>
+              )}
               {(activity.locationName || activity.place_name) && (
-                <span className="flex items-center gap-1 truncate max-w-[200px]">
-                  <MapPin className="h-3.5 w-3.5 text-slate-400" />
-                  {activity.locationName || activity.place_name}
-                </span>
+                <>
+                  <span aria-hidden="true">·</span>
+                  <span className="flex items-center gap-1 truncate max-w-[220px]">
+                    <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                    {activity.locationName || activity.place_name}
+                  </span>
+                </>
               )}
             </div>
           </div>
@@ -186,6 +205,32 @@ export function LiveActivityCard({
         {activity.description || activity.details}
       </p>
 
+      {/* Transfer Logistics & Booking Window Strip */}
+      {(activity.logistics || activity.bookingDeadline || activity.offPeakTip) && (
+        <div className="mb-3 rounded-xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-800/30 px-3.5 py-2.5 text-xs space-y-1.5">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-slate-600 dark:text-slate-300">
+            {activity.logistics && (
+              <span className="flex items-center gap-1.5 font-medium">
+                <Navigation className="h-3.5 w-3.5 text-orange-500 shrink-0" />
+                <span>{activity.logistics}</span>
+              </span>
+            )}
+            {activity.bookingDeadline && (
+              <span className="flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                <Ticket className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
+                <span>Booking: {activity.bookingDeadline}</span>
+              </span>
+            )}
+          </div>
+          {activity.offPeakTip && (
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              <span className="font-semibold text-slate-700 dark:text-slate-200">Timing Strategy: </span>
+              {activity.offPeakTip}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Reactive Object Metadata Bar (Dependencies, Predictions, Shield) */}
       <div className="rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800/80 p-3 mb-3 text-xs flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
@@ -197,9 +242,9 @@ export function LiveActivityCard({
             </span>
           )}
 
-          {/* AI Risk Prediction */}
+          {/* Risk Prediction */}
           {activity.prediction && (
-            <span className="flex items-center gap-1 text-[11px] text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 py-0.5 px-2 rounded-md border border-slate-200/60 dark:border-slate-800">
+            <span className="flex items-center gap-1 text-[11px] tabular-nums text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 py-0.5 px-2 rounded-md border border-slate-200/60 dark:border-slate-800">
               <TrendingUp className="h-3 w-3 text-emerald-500" />
               Delay Risk: {activity.prediction.delayRiskScore}%
             </span>
@@ -209,7 +254,7 @@ export function LiveActivityCard({
           {activity.prediction?.weatherSensitivity === "outdoor_high" ? (
             <span className="flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 bg-amber-500/10 py-0.5 px-2 rounded-md">
               <CloudRain className="h-3 w-3" />
-              Monsoon Sensitive
+              Outdoor Exposure
             </span>
           ) : (
             <span className="flex items-center gap-1 text-[11px] text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 py-0.5 px-2 rounded-md">
@@ -221,7 +266,7 @@ export function LiveActivityCard({
 
         {/* Voyage Shield Assurance */}
         {activity.isProtectedByShield && (
-          <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+          <span className="flex items-center gap-1 text-[11px] font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
             <ShieldCheck className="h-3.5 w-3.5" />
             Shield Protected (₹{activity.shieldPayoutAmount || 1500})
           </span>
@@ -270,26 +315,27 @@ export function LiveActivityCard({
         {/* Cost / Ticket Info & Map Link */}
         <div className="flex items-center gap-3">
           {(activity.ticket_price || activity.estimatedCost) && (
-            <div className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+            <div className="text-[11px] font-semibold tabular-nums text-slate-700 dark:text-slate-300 flex items-center gap-1">
               <span>Entry:</span>
               <span>
                 {activity.estimatedCost
-                  ? `${activity.estimatedCost.currency}${activity.estimatedCost.amount}`
+                  ? `${activity.estimatedCost.currency}${activity.estimatedCost.amount.toLocaleString("en-IN")}`
                   : activity.ticket_price}
               </span>
             </div>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-950/30 text-[11px] font-semibold h-6 px-2 rounded-full flex items-center gap-1 cursor-pointer"
-            onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((activity.title || activity.place_name || "") + " " + (activity.locationName || ""))}`, '_blank')}
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-950/30 text-[11px] font-semibold h-6 px-2 rounded-full transition-colors"
           >
-            <MapPin className="h-3 w-3 text-orange-500" />
-            Open in Google Maps ↗
-          </Button>
+            <span>Map</span>
+            <ExternalLink className="h-3 w-3" />
+          </a>
         </div>
       </div>
     </div>
   );
 }
+

@@ -20,14 +20,7 @@ export default function CheckinPage() {
     try {
       const r = await fetch(`/api/checkin/${encodeURIComponent(String(token ?? ""))}`, { cache: "no-store" });
       const j = await r.json().catch(() => ({}));
-      if (!r.ok) {
-        if (token === "not-a-real-token" || r.status === 404) {
-          setErr("This check-in link is not valid or not found.");
-        } else {
-          setErr(j.error ?? "This link is not valid.");
-        }
-        return;
-      }
+      if (!r.ok) { setErr(j.error ?? "This link is not valid."); return; }
       setInfo(j);
       if (j.status !== "pending" && j.status !== "expired") setDone(j.status);
     } catch { setErr("No connection. Check your signal and tap retry."); }

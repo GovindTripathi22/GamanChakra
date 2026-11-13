@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "@/components/gc/toast";
 import {
   Store,
   Hotel,
@@ -65,7 +66,7 @@ export default function LiquidityExchangePage() {
       setConfirmedReservation(null);
       await loadListings();
     } catch (err: any) {
-      alert(err.message || "Failed to place inventory hold.");
+      toast(err.message || "Failed to place inventory hold.", "error");
     }
   };
 
@@ -79,7 +80,7 @@ export default function LiquidityExchangePage() {
       setHoldSecondsLeft(0);
       await loadListings();
     } catch (err: any) {
-      alert(err.message || "Failed to confirm reservation.");
+      toast(err.message || "Failed to confirm reservation.", "error");
     } finally {
       setConfirming(false);
     }

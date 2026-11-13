@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { db, isDbAvailable } from "@/lib/db";
+import { db } from "@/lib/db";
 import { publish, safeJson } from "@/lib/events/bus";
 import { ingestNews, type IngestResult } from "@/lib/news/pipeline";
 import { loadSubjects, matchExposures, recentEvents, type Exposure } from "@/lib/risk/engine";
@@ -9,7 +9,6 @@ import { decide, TASK_POLICY, type TaskKind } from "./policy";
 import { executeTask } from "./executor";
 import { generate, generativeAvailable, CHAKRA_SYSTEM_PROMPT } from "@/lib/slm/generative";
 import { NANO_INFO } from "@/lib/slm/nano";
-import { agentMemoryStore } from "./memory-store";
 
 export interface AgentCycleOptions {
   trigger: "schedule" | "manual" | "news" | "voice" | "automation";
@@ -61,31 +60,12 @@ function safeStringify(v: unknown, max = 20000): string {
 async function runAgentCycleInner(opts: AgentCycleOptions): Promise<AgentCycleResult> {
   const t0 = Date.now();
   const now = opts.now ?? new Date();
-  const dbOk = await isDbAvailable();
   const useGen = await generativeAvailable();
-  const modelName = useGen ? `${NANO_INFO.name} + local generative SLM` : NANO_INFO.name;
-  
-  let run: { id: string } | null = null;
-  if (dbOk) {
-    try {
-      run = await db.agentRun.create({ data: { orgId: opts.orgId ?? null, trigger: opts.trigger, goal: "Protect every active trip and traveller from real-world events", model: modelName } });
-    } catch {}
-  }
-  if (!run) {
-    run = agentMemoryStore.createRun({ orgId: opts.orgId ?? null, trigger: opts.trigger, goal: "Protect every active trip and traveller from real-world events", model: modelName });
-  }
-
+  const run = await db.agentRun.create({ data: { orgId: opts.orgId ?? null, trigger: opts.trigger, goal: "Protect every active trip and traveller from real-world events", model: useGen ? `${NANO_INFO.name} + local generative SLM` : NANO_INFO.name } });
   let idx = 0;
   const step = async (phase: string, thought: string, tool: string | null, input: unknown, output: unknown, ms = 0) => {
-    const currentIdx = idx++;
-    if (dbOk) {
-      try {
-        await db.agentStep.create({ data: { runId: run!.id, idx: currentIdx, phase, thought, tool, input: safeStringify(input, 5000), output: safeStringify(output), durationMs: ms } });
-      } catch {}
-    } else {
-      agentMemoryStore.addStep({ runId: run!.id, idx: currentIdx, phase, thought, tool, input: safeStringify(input, 5000), output: safeStringify(output), durationMs: ms });
-    }
-    await publish("agent.step", { runId: run!.id, idx: currentIdx, phase, thought, tool }, opts.orgId ?? null);
+    const s = await db.agentStep.create({ data: { runId: run.id, idx: idx++, phase, thought, tool, input: safeStringify(input, 5000), output: safeStringify(output), durationMs: ms } });
+    await publish("agent.step", { runId: run.id, idx: s.idx, phase, thought, tool }, opts.orgId ?? null);
   };
   await publish("agent.run", { runId: run.id, status: "running", trigger: opts.trigger }, opts.orgId ?? null);
 
@@ -105,21 +85,17 @@ async function runAgentCycleInner(opts: AgentCycleOptions): Promise<AgentCycleRe
     const t1 = Date.now();
     const events = await recentEvents(72, now);
     const exposures = matchExposures(events, subjects, now);
-    if (dbOk) {
-      for (const x of exposures.slice(0, 400)) {
-        await db.riskAssessment.upsert({
-          where: { subjectType_subjectId_newsEventId: { subjectType: x.subject.type, subjectId: x.subject.id, newsEventId: x.event.id } },
-          create: { subjectType: x.subject.type, subjectId: x.subject.id, newsEventId: x.event.id, score: x.score, distanceKm: x.distanceKm, reason: x.reason },
-          update: { score: x.score, distanceKm: x.distanceKm, reason: x.reason },
-        }).catch(() => {});
-      }
+    for (const x of exposures.slice(0, 400)) {
+      await db.riskAssessment.upsert({
+        where: { subjectType_subjectId_newsEventId: { subjectType: x.subject.type, subjectId: x.subject.id, newsEventId: x.event.id } },
+        create: { subjectType: x.subject.type, subjectId: x.subject.id, newsEventId: x.event.id, score: x.score, distanceKm: x.distanceKm, reason: x.reason },
+        update: { score: x.score, distanceKm: x.distanceKm, reason: x.reason },
+      });
     }
     // Update traveller exposure scores (max over events)
     const maxByTraveler = new Map<string, number>();
     for (const x of exposures) if (x.subject.type === "traveler") maxByTraveler.set(x.subject.id, Math.max(maxByTraveler.get(x.subject.id) ?? 0, x.score));
-    if (dbOk) {
-      for (const s of subjects.filter((s) => s.type === "traveler")) await db.traveler.update({ where: { id: s.id }, data: { exposureScore: maxByTraveler.get(s.id) ?? 0 } }).catch(() => {});
-    }
+    for (const s of subjects.filter((s) => s.type === "traveler")) await db.traveler.update({ where: { id: s.id }, data: { exposureScore: maxByTraveler.get(s.id) ?? 0 } }).catch(() => {});
     const exposed = new Set(exposures.map((x) => `${x.subject.type}:${x.subject.id}`)).size;
     await step("think", `Matched ${events.length} live events against ${subjects.length} trips/travellers → ${exposures.length} exposures across ${exposed} subjects. Highest: ${exposures[0] ? `${exposures[0].subject.name} (${exposures[0].score}/100, ${exposures[0].event.category})` : "none"}.`, "match_exposures", { events: events.length, subjects: subjects.length }, { exposures: exposures.slice(0, 15).map((x) => ({ subject: x.subject.name, dest: x.subject.destination, event: x.event.title, score: x.score, band: x.band, km: x.distanceKm })) }, Date.now() - t1);
     for (const x of exposures.filter((x) => x.score >= 55).slice(0, 10)) await publish("risk.alert", { subject: x.subject.name, subjectType: x.subject.type, subjectId: x.subject.id, destination: x.subject.destination, event: x.event.title, score: x.score, band: x.band }, x.subject.orgId);
@@ -127,12 +103,7 @@ async function runAgentCycleInner(opts: AgentCycleOptions): Promise<AgentCycleRe
     // ---------- PLAN ----------
     const t2 = Date.now();
     const orgIds = [...new Set(subjects.map((s) => s.orgId).filter(Boolean))] as string[];
-    let orgs: any[] = [];
-    if (dbOk) {
-      try {
-        orgs = await db.organization.findMany({ where: { id: { in: orgIds } }, include: { rules: { where: { enabled: true } }, _count: { select: { webhooks: true } } } });
-      } catch {}
-    }
+    const orgs = await db.organization.findMany({ where: { id: { in: orgIds } }, include: { rules: { where: { enabled: true } }, _count: { select: { webhooks: true } } } });
     const orgMap = new Map(orgs.map((o) => [o.id, o]));
     const planned: { spec: TaskSpec; x: Exposure; level: string }[] = [];
     for (const x of exposures) {
@@ -143,7 +114,7 @@ async function runAgentCycleInner(opts: AgentCycleOptions): Promise<AgentCycleRe
         const conditions = safeJson(r.conditions, {});
         if (ruleMatches(conditions, x)) {
           specs.push(...tasksFromRule({ name: r.name, actions: safeJson(r.actions, []) }, x));
-          await db.automationRule.update({ where: { id: r.id }, data: { runCount: { increment: 1 }, lastRunAt: now } }).catch(() => {});
+          await db.automationRule.update({ where: { id: r.id }, data: { runCount: { increment: 1 }, lastRunAt: now } });
         }
       }
       // collapse duplicate kinds per exposure (rule + playbook may both ask for the same thing)
@@ -156,41 +127,17 @@ async function runAgentCycleInner(opts: AgentCycleOptions): Promise<AgentCycleRe
     for (const p of planned) {
       if (created.length >= max) break;
       const key = createHash("sha1").update(`${p.spec.kind}|${p.x.subject.type}|${p.x.subject.id}|${p.x.event.id}`).digest("hex").slice(0, 32);
-      
-      let exists = false;
-      if (dbOk) {
-        try {
-          const found = await db.agentTask.findUnique({ where: { idempotencyKey: key }, select: { id: true } });
-          exists = !!found;
-        } catch {}
-      } else {
-        exists = !!agentMemoryStore.findTaskByKey(key);
-      }
+      const exists = await db.agentTask.findUnique({ where: { idempotencyKey: key }, select: { id: true } });
       if (exists) continue;
-
       const decision = decide(p.spec.kind as TaskKind, p.level);
-      let taskId = "";
-      if (dbOk) {
-        try {
-          const t = await db.agentTask.create({
-            data: {
-              runId: run.id, orgId: p.x.subject.orgId, subjectType: p.x.subject.type, subjectId: p.x.subject.id, newsEventId: p.x.event.id,
-              kind: p.spec.kind, title: p.spec.title, detail: p.spec.detail, payload: JSON.stringify({ ...p.spec.payload, source: p.spec.source }),
-              autonomyLevel: p.level, status: decision === "record" ? "recorded" : "proposed", idempotencyKey: key,
-            },
-          });
-          taskId = t.id;
-        } catch {}
-      }
-      if (!taskId) {
-        const t = agentMemoryStore.createTask({
+      const t = await db.agentTask.create({
+        data: {
           runId: run.id, orgId: p.x.subject.orgId, subjectType: p.x.subject.type, subjectId: p.x.subject.id, newsEventId: p.x.event.id,
           kind: p.spec.kind, title: p.spec.title, detail: p.spec.detail, payload: JSON.stringify({ ...p.spec.payload, source: p.spec.source }),
           autonomyLevel: p.level, status: decision === "record" ? "recorded" : "proposed", idempotencyKey: key,
-        });
-        taskId = t.id;
-      }
-      created.push({ id: taskId, decision, kind: p.spec.kind });
+        },
+      });
+      created.push({ id: t.id, decision, kind: t.kind });
     }
     const byKind: Record<string, number> = {};
     for (const c of created) byKind[c.kind] = (byKind[c.kind] ?? 0) + 1;
@@ -200,7 +147,7 @@ async function runAgentCycleInner(opts: AgentCycleOptions): Promise<AgentCycleRe
     const t3 = Date.now();
     let executed = 0, proposed = 0;
     for (const c of created) {
-      if (c.decision === "execute") { const r = await executeTask(c.id, "agent").catch(() => null); if (r?.status === "executed") executed++; }
+      if (c.decision === "execute") { const r = await executeTask(c.id, "agent"); if (r.status === "executed") executed++; }
       else if (c.decision === "propose") proposed++;
     }
     await step("act", `Executed ${executed} actions automatically within policy; ${proposed} await human approval in the inbox.`, "execute_tasks", {}, { executed, proposed }, Date.now() - t3);
@@ -213,24 +160,12 @@ async function runAgentCycleInner(opts: AgentCycleOptions): Promise<AgentCycleRe
       if (g2) summary = g2;
     }
     await step("reflect", summary, null, {}, { executed, proposed });
-    if (dbOk) {
-      try {
-        await db.agentRun.update({ where: { id: run.id }, data: { status: "succeeded", summary, eventsSeen: events.length, actionsTaken: executed, finishedAt: new Date() } });
-      } catch {}
-    } else {
-      agentMemoryStore.updateRun(run.id, { status: "succeeded", summary, eventsSeen: events.length, actionsTaken: executed, finishedAt: new Date() });
-    }
+    await db.agentRun.update({ where: { id: run.id }, data: { status: "succeeded", summary, eventsSeen: events.length, actionsTaken: executed, finishedAt: new Date() } });
     await publish("agent.run", { runId: run.id, status: "succeeded", summary, executed, proposed }, opts.orgId ?? null);
     return { runId: run.id, ingest, exposures: exposures.length, tasksCreated: created.length, executed, proposed, summary, ms: Date.now() - t0 };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    if (dbOk) {
-      try {
-        await db.agentRun.update({ where: { id: run.id }, data: { status: "failed", summary: msg.slice(0, 500), finishedAt: new Date() } });
-      } catch {}
-    } else {
-      agentMemoryStore.updateRun(run.id, { status: "failed", summary: msg.slice(0, 500), finishedAt: new Date() });
-    }
+    await db.agentRun.update({ where: { id: run.id }, data: { status: "failed", summary: msg.slice(0, 500), finishedAt: new Date() } }).catch(() => {});
     await publish("agent.run", { runId: run.id, status: "failed", error: msg.slice(0, 300) }, opts.orgId ?? null).catch(() => null);
     throw e;
   }

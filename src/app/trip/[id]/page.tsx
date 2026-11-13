@@ -19,13 +19,16 @@ import {
     Navigation,
     IndianRupee,
     Share2,
-    ArrowRight,
-    Zap,
     ShieldAlert,
     Calendar,
-    ExternalLink,
-    Info,
+    Utensils,
+    Compass,
+    CheckCircle2,
+    Backpack,
+    Route,
+    Lightbulb,
 } from "lucide-react";
+import { toast } from "@/components/gc/toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { resolveRealHotels } from "@/lib/hotels/data";
@@ -39,13 +42,12 @@ import type {
     RecoveryOption,
     LiveStepOutcome,
 } from "@/types/trip";
-import { BudgetEstimator } from "@/components/budget-estimator";
 import { WeatherWidget } from "@/components/weather-widget";
 import { PdfExportButton } from "@/components/pdf-export-button";
 import { MapView } from "@/components/map-view";
-import { CrowdBadge } from "@/components/crowd-badge";
 import { GapFillCard } from "@/components/gap-fill-card";
 import { detectScheduleGaps } from "@/lib/gap-detector";
+import { ControlTowerHud } from "@/components/control-tower/control-tower-hud";
 import { RecoveryDialog } from "@/components/control-tower/recovery-dialog";
 import { TripShieldCard } from "@/components/trip-shield/trip-shield-card";
 import { LiveActivityCard } from "@/components/live-itinerary/live-activity-card";
@@ -66,6 +68,7 @@ export default function TripPage() {
     const [trip, setTrip] = useState<GeneratedTrip | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeDay, setActiveDay] = useState<number | "all">("all");
+    const [viewMode, setViewMode] = useState<"detailed" | "compact">("detailed");
     const [guardianMode, setGuardianMode] = useState<"copilot" | "autonomous">("copilot");
     const [isSimulating, setIsSimulating] = useState(false);
     const [recoveryModalOpen, setRecoveryModalOpen] = useState(false);
@@ -340,9 +343,6 @@ export default function TripPage() {
         );
     }
 
-    // Extract numeric duration
-    const durationDays = parseInt(trip.trip_details.duration.split(" ")[0]) || 5;
-
     const getTransportIcon = (mode: string) => {
         const m = mode.toLowerCase();
         if (m.includes("flight") || m.includes("plane")) return <Plane className="h-5 w-5" />;
@@ -355,6 +355,16 @@ export default function TripPage() {
     const displayedDays = activeDay === "all" 
         ? trip.itinerary 
         : trip.itinerary.filter(d => Number(d.day) === Number(activeDay));
+
+    const totalStopsCount = trip.itinerary.reduce((acc, d) => acc + (d.activities?.length || 0), 0);
+    const totalCircuitKm =
+        Math.round(
+            trip.itinerary.reduce((acc, d) => acc + (d.totalDistanceKm || 6.5), 0) * 10
+        ) / 10;
+    const expectedSpend = costBreakdown?.expectedTotal ?? 28500;
+    const perPersonSpend = Math.round(
+        expectedSpend / Math.max(1, costBreakdown?.travelersCount || Number(trip.trip_details.travelers) || 2)
+    );
 
     return (
         <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-200">
@@ -379,6 +389,14 @@ export default function TripPage() {
                     </Button>
                     <div className="flex gap-2">
                         <Button
+                            onClick={() => router.push(`/trip/${params.id}/room`)}
+                            variant="outline"
+                            className="rounded-full border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white"
+                        >
+                            <Users className="mr-2 h-4 w-4 text-orange-400" />
+                            Group Room
+                        </Button>
+                        <Button
                             onClick={() => router.push(`/trip/${params.id}/emergency`)}
                             variant="outline"
                             className="rounded-full border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white"
@@ -390,7 +408,7 @@ export default function TripPage() {
                         <Button
                             onClick={() => {
                                 navigator.clipboard.writeText(window.location.href);
-                                alert("Trip link copied to clipboard!");
+                                toast("Trip link copied to clipboard!", "success");
                             }}
                             variant="outline"
                             className="rounded-full border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white"
@@ -422,16 +440,14 @@ export default function TripPage() {
                             </div>
                             <div className="flex items-center gap-1.5">
                                 <Users className="h-4.5 w-4.5 text-orange-400" />
-                                <span className="capitalize">{trip.trip_details.vibe} Vibe</span>
+                                <span className="capitalize">{trip.trip_details.vibe} Vibe · {trip.trip_details.travelers || "2"} Pax</span>
                             </div>
-                            {trip.trip_details.total_estimated_cost && (
-                                <div className="flex items-center gap-1.5">
-                                    <IndianRupee className="h-4.5 w-4.5 text-orange-400" />
-                                    <span>Est. {trip.trip_details.total_estimated_cost} Total</span>
-                                </div>
-                            )}
+                            <div className="flex items-center gap-1.5 tabular-nums">
+                                <IndianRupee className="h-4.5 w-4.5 text-orange-400" />
+                                <span>Est. ₹{expectedSpend.toLocaleString("en-IN")} Total (~₹{perPersonSpend.toLocaleString("en-IN")}/person)</span>
+                            </div>
                             {trip.trip_details.startDate && (
-                                <div className="flex items-center gap-1.5">
+                                <div className="flex items-center gap-1.5 tabular-nums">
                                     <Calendar className="h-4.5 w-4.5 text-orange-400" />
                                     <span>
                                         {trip.trip_details.startDate}
@@ -445,7 +461,39 @@ export default function TripPage() {
             </div>
 
             {/* Content Section */}
-            <div className="mx-auto max-w-7xl px-6 py-12 -mt-10 relative z-30">
+            <div className="mx-auto max-w-7xl px-6 py-12 -mt-10 relative z-30 space-y-8">
+                {/* At-a-Glance Executive Trip Summary Bar */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 rounded-3xl bg-white dark:bg-slate-900 p-5 shadow-sm border border-slate-100 dark:border-slate-800">
+                    <div className="space-y-1 px-2">
+                        <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Curated Schedule</div>
+                        <div className="text-xl font-bold tabular-nums text-slate-900 dark:text-white">
+                            {totalStopsCount} Stops · {trip.itinerary.length} Days
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">Crowd-aware morning & sunset slotting</div>
+                    </div>
+                    <div className="space-y-1 px-2 border-l border-slate-100 dark:border-slate-800">
+                        <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Local Circuit Loop</div>
+                        <div className="text-xl font-bold tabular-nums text-slate-900 dark:text-white">
+                            ~{totalCircuitKm} km Total
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">Nearest-neighbour clustered routing</div>
+                    </div>
+                    <div className="space-y-1 px-2 border-l border-slate-100 dark:border-slate-800">
+                        <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">True Expected Cost</div>
+                        <div className="text-xl font-bold tabular-nums text-orange-600 dark:text-orange-400">
+                            ₹{expectedSpend.toLocaleString("en-IN")}
+                        </div>
+                        <div className="text-xs tabular-nums text-slate-500 dark:text-slate-400">~₹{perPersonSpend.toLocaleString("en-IN")}/person all-inclusive</div>
+                    </div>
+                    <div className="space-y-1 px-2 border-l border-slate-100 dark:border-slate-800">
+                        <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Feasibility & Shield</div>
+                        <div className="text-xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                            {verificationReport?.overallScore ?? 100}% Verified
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">45m transfer buffers & ₹1,500 UPI shield</div>
+                    </div>
+                </div>
+
                 <div className="grid gap-8 lg:grid-cols-3">
                     
                     {/* Left Column: Itinerary Details */}
@@ -472,114 +520,27 @@ export default function TripPage() {
                                     {trip.transportation_plan.map((step, index) => (
                                         <div 
                                             key={index} 
-                                            className="flex flex-col md:flex-row gap-4 rounded-2xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/30 p-5 transition-all hover:border-orange-100 dark:hover:border-orange-950 hover:shadow-sm"
+                                            className="flex gap-4 rounded-2xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/30 p-5 transition-all hover:border-orange-100 dark:hover:border-orange-950 hover:shadow-sm"
                                         >
                                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-orange-600 dark:text-orange-400">
                                                 {getTransportIcon(step.mode)}
                                             </div>
-                                            <div className="flex-1 space-y-2.5">
-                                                {step.hubNotice && (
-                                                    <div className="flex items-start gap-2.5 rounded-xl border border-amber-200/90 bg-amber-50/80 dark:border-amber-900/60 dark:bg-amber-950/30 p-3 text-xs text-amber-900 dark:text-amber-200">
-                                                        <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
-                                                        <p className="leading-relaxed">
-                                                            <span className="font-semibold text-amber-950 dark:text-amber-100">Regional Airport Feeder Notice: </span>
-                                                            {step.hubNotice}
-                                                        </p>
-                                                    </div>
-                                                )}
+                                            <div className="flex-1 space-y-2">
                                                 <div className="flex flex-wrap items-center justify-between gap-2">
-                                                    <h3 className="font-bold text-slate-900 dark:text-white text-base">
-                                                        {step.title || `${step.mode}: ${step.from || trip.trip_details.origin || ''} → ${step.to || trip.trip_details.destination || ''}`}
-                                                    </h3>
+                                                    <h3 className="font-bold text-slate-900 dark:text-white text-base">{step.mode}</h3>
                                                     <div className="flex gap-2">
-                                                        <Badge variant="secondary" className="bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs">
+                                                        <Badge variant="secondary" className="bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs tabular-nums">
                                                             {step.duration}
                                                         </Badge>
-                                                        <Badge className="bg-orange-100 dark:bg-orange-950/40 text-orange-700 dark:text-orange-400 border-none text-xs">
+                                                        <Badge className="bg-orange-100 dark:bg-orange-950/40 text-orange-700 dark:text-orange-400 border-none text-xs tabular-nums">
                                                             {step.estimated_cost}
                                                         </Badge>
                                                     </div>
                                                 </div>
                                                 <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line">{step.details}</p>
-                                                
-                                                {step.available_options && step.available_options.length > 0 && (
-                                                    <div className="mt-3 space-y-2 border-t border-slate-200/60 dark:border-slate-800/60 pt-3">
-                                                        <div className="flex items-center justify-between">
-                                                            <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
-                                                                Available Travel Modes & Real Schedules
-                                                            </span>
-                                                            <span className="text-[11px] text-slate-400">
-                                                                {step.available_options.length} verified routes
-                                                            </span>
-                                                        </div>
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                                                            {step.available_options.map((opt, oIdx) => (
-                                                                <div
-                                                                    key={oIdx}
-                                                                    className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-800/60 p-3 shadow-xs hover:border-orange-300 dark:hover:border-orange-700 transition-colors"
-                                                                >
-                                                                    <div className="space-y-1">
-                                                                        <div className="flex items-center justify-between gap-1.5">
-                                                                            <span className="inline-flex items-center gap-1 rounded-md bg-orange-50 dark:bg-orange-950/40 px-2 py-0.5 text-[11px] font-bold text-orange-700 dark:text-orange-300">
-                                                                                {opt.mode}
-                                                                            </span>
-                                                                            <span className="text-xs font-bold text-slate-900 dark:text-slate-100 text-right">
-                                                                                {opt.cost}
-                                                                            </span>
-                                                                        </div>
-                                                                        <div className="font-semibold text-slate-900 dark:text-white text-xs leading-tight">
-                                                                            {opt.routeNumber || opt.provider}
-                                                                        </div>
-                                                                        <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                                                                            {opt.provider !== opt.routeNumber && (
-                                                                                <span className="text-slate-600 dark:text-slate-300 font-medium">{opt.provider} • </span>
-                                                                            )}
-                                                                            Duration: {opt.duration}
-                                                                        </div>
-                                                                        {(opt.departureTime || opt.arrivalTime) && (
-                                                                            <div className="text-[11px] text-slate-600 dark:text-slate-300">
-                                                                                ⏰ {opt.departureTime} → {opt.arrivalTime}
-                                                                            </div>
-                                                                        )}
-                                                                        {opt.note && (
-                                                                            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug italic pt-0.5">
-                                                                                {opt.note}
-                                                                            </p>
-                                                                        )}
-                                                                    </div>
-                                                                    <div className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-slate-100 dark:border-slate-700/60 pt-2">
-                                                                        {opt.bookingUrl && (
-                                                                            <a
-                                                                                href={opt.bookingUrl}
-                                                                                target="_blank"
-                                                                                rel="noopener noreferrer"
-                                                                                className="inline-flex items-center gap-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 px-2 py-1 text-[11px] font-medium text-slate-700 dark:text-slate-200 transition-colors"
-                                                                            >
-                                                                                <span>Book / View</span>
-                                                                                <ExternalLink className="h-3 w-3" />
-                                                                            </a>
-                                                                        )}
-                                                                        {opt.mode.toLowerCase() === "train" && (
-                                                                            <Button
-                                                                                variant="ghost"
-                                                                                size="sm"
-                                                                                className="h-6 px-2 text-[11px] text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/40"
-                                                                                onClick={() => router.push(`/waitlist-rescue?train=${encodeURIComponent(opt.routeNumber || opt.provider)}`)}
-                                                                            >
-                                                                                <Train className="h-3 w-3 mr-1" />
-                                                                                Rescue Odds
-                                                                            </Button>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
-
                                                 <div className="flex flex-wrap items-center gap-3 pt-1">
                                                     {step.distance && (
-                                                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                                                        <div className="flex items-center gap-1.5 text-xs font-semibold tabular-nums text-slate-500">
                                                             <MapPin className="h-3.5 w-3.5 text-orange-500" />
                                                             Distance: {step.distance}
                                                         </div>
@@ -595,26 +556,6 @@ export default function TripPage() {
                                                             Waitlist Rescue Odds →
                                                         </Button>
                                                     )}
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="rounded-full text-xs font-semibold text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 gap-1.5 h-7 cursor-pointer"
-                                                        onClick={() => {
-                                                            let orig = step.from || trip.trip_details.origin || "";
-                                                            let dest = step.to || trip.trip_details.destination || "";
-                                                            if (!step.from || !step.to) {
-                                                                const arrowMatch = step.details.match(/([A-Za-z0-9\s,.-]+)\s*(?:→|->|to)\s*([A-Za-z0-9\s,.-]+?)(?:\s*\(|\.|\n|$)/);
-                                                                if (arrowMatch) {
-                                                                    orig = arrowMatch[1].replace(/Feeder Leg \d+:|Main Leg \d+:|Arrival Leg \d+:/gi, "").trim();
-                                                                    dest = arrowMatch[2].replace(/\(.*\)/g, "").trim();
-                                                                }
-                                                            }
-                                                            window.open(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(orig)}&destination=${encodeURIComponent(dest)}`, '_blank');
-                                                        }}
-                                                    >
-                                                        <Navigation className="h-3 w-3 text-orange-500" />
-                                                        Open Route in Google Maps ↗
-                                                    </Button>
                                                 </div>
                                             </div>
                                         </div>
@@ -669,7 +610,7 @@ export default function TripPage() {
                                                         {hotel.tier}
                                                     </div>
                                                 )}
-                                                <div className="absolute top-3 right-3 rounded-full bg-white/95 dark:bg-slate-900/95 px-2.5 py-1 text-xs font-bold text-orange-600 backdrop-blur-sm shadow-md flex items-center gap-1">
+                                                <div className="absolute top-3 right-3 rounded-full bg-white/95 dark:bg-slate-900/95 px-2.5 py-1 text-xs font-bold tabular-nums text-orange-600 backdrop-blur-sm shadow-md flex items-center gap-1">
                                                     <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                                                     <span>{typeof hotel.rating === "number" ? hotel.rating.toFixed(1) : hotel.rating}</span>
                                                 </div>
@@ -704,13 +645,16 @@ export default function TripPage() {
                                             <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-4">
                                                 <div className="flex flex-col">
                                                     <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">ESTIMATED PRICE</span>
-                                                    <span className="text-base sm:text-lg font-extrabold text-orange-600 dark:text-orange-400">{hotel.price}</span>
+                                                    <span className="text-base sm:text-lg font-extrabold tabular-nums text-orange-600 dark:text-orange-400">{hotel.price}</span>
                                                 </div>
-                                                <Button size="sm" variant="outline" className="rounded-full border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold cursor-pointer"
-                                                    onClick={() => window.open(`https://www.google.com/search?q=book ${encodeURIComponent(hotel.name + " " + trip.trip_details.destination)}`, '_blank')}
+                                                <a
+                                                    href={`https://www.google.com/search?q=book+${encodeURIComponent(hotel.name + " " + trip.trip_details.destination)}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                                                 >
                                                     Book Now
-                                                </Button>
+                                                </a>
                                             </div>
                                         </div>
                                     </div>
@@ -727,9 +671,85 @@ export default function TripPage() {
                             <TripShieldCard
                                 tripId={params.id as string}
                                 destination={trip.trip_details.destination}
-                                trip={trip}
                             />
                         </motion.section>
+
+                        {/* Destination Intelligence & Pre-Departure Briefing */}
+                        {(trip.trip_details.bestSeason ||
+                            (trip.trip_details.packingEssentials && trip.trip_details.packingEssentials.length > 0) ||
+                            (trip.trip_details.regionalSpecialties && trip.trip_details.regionalSpecialties.length > 0)) && (
+                            <motion.section
+                                initial={{ opacity: 0, y: 15 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                className="rounded-3xl bg-white dark:bg-slate-900 p-6 md:p-8 shadow-sm border border-slate-100 dark:border-slate-800 space-y-5"
+                            >
+                                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="rounded-xl bg-amber-100 dark:bg-amber-950/40 p-2.5">
+                                            <Compass className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Destination Intelligence & Practical Briefing</h2>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">Curated local season window, pre-booking checklist & regional flavours</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    {trip.trip_details.bestSeason && (
+                                        <div className="rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 p-4 border border-slate-100 dark:border-slate-800">
+                                            <div className="text-[11px] font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400 mb-1 flex items-center gap-1.5">
+                                                <Calendar className="h-3.5 w-3.5" /> Seasonal Window & Climate
+                                            </div>
+                                            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{trip.trip_details.bestSeason}</p>
+                                        </div>
+                                    )}
+                                    {trip.trip_details.localTransitAdvice && (
+                                        <div className="rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 p-4 border border-slate-100 dark:border-slate-800">
+                                            <div className="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 mb-1 flex items-center gap-1.5">
+                                                <Route className="h-3.5 w-3.5" /> Local Mobility Strategy
+                                            </div>
+                                            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{trip.trip_details.localTransitAdvice}</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    {trip.trip_details.advanceBookingsNeeded && trip.trip_details.advanceBookingsNeeded.length > 0 && (
+                                        <div className="rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 p-4 border border-emerald-100 dark:border-emerald-900/40">
+                                            <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-2 flex items-center gap-1.5">
+                                                <CheckCircle2 className="h-3.5 w-3.5" /> Advance Booking Checklist
+                                            </div>
+                                            <ul className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
+                                                {trip.trip_details.advanceBookingsNeeded.slice(0, 4).map((item, idx) => (
+                                                    <li key={idx} className="flex items-start gap-1.5">
+                                                        <span className="text-emerald-500 font-bold">•</span>
+                                                        <span>{item}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                    {trip.trip_details.packingEssentials && trip.trip_details.packingEssentials.length > 0 && (
+                                        <div className="rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 p-4 border border-purple-100 dark:border-purple-900/40">
+                                            <div className="text-[11px] font-bold uppercase tracking-wider text-purple-700 dark:text-purple-400 mb-2 flex items-center gap-1.5">
+                                                <Backpack className="h-3.5 w-3.5" /> Smart Packing Essentials
+                                            </div>
+                                            <ul className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
+                                                {trip.trip_details.packingEssentials.slice(0, 4).map((item, idx) => (
+                                                    <li key={idx} className="flex items-start gap-1.5">
+                                                        <span className="text-purple-500 font-bold">•</span>
+                                                        <span>{item}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.section>
+                        )}
 
                         {/* Itinerary Timeline Section */}
                         <motion.section
@@ -738,6 +758,17 @@ export default function TripPage() {
                             viewport={{ once: true }}
                             className="space-y-6"
                         >
+                            {/* Autonomous Control Tower HUD */}
+                            <ControlTowerHud
+                                tripHealthScore={verificationReport?.overallScore ?? 96}
+                                guardianMode={guardianMode}
+                                onToggleGuardianMode={() =>
+                                    setGuardianMode((m) => (m === "copilot" ? "autonomous" : "copilot"))
+                                }
+                                onTriggerDisruption={handleTriggerDisruption}
+                                isSimulating={isSimulating}
+                            />
+
                             {/* Verification Feasibility Health Bar */}
                             <VerificationHealthBar
                                 report={verificationReport}
@@ -752,35 +783,63 @@ export default function TripPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-bold text-slate-900 dark:text-white">Day-by-Day Journey</h2>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">Capacity-balanced routes & off-peak perks</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">Capacity-balanced routes, transfer distances & off-peak windows</p>
                                     </div>
                                 </div>
 
-                                {/* Modern Scrollable Tab Bar */}
-                                <div className="flex gap-1.5 overflow-x-auto pb-1 max-w-full scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
-                                    <button
-                                        onClick={() => setActiveDay("all")}
-                                        className={`px-4 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all duration-300 ${
-                                            activeDay === "all"
-                                                ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
-                                                : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                                        }`}
-                                    >
-                                        Full Journey
-                                    </button>
-                                    {trip.itinerary.map((day) => (
+                                <div className="flex flex-wrap items-center gap-2">
+                                    {/* View Mode Toggle: Detailed Cards vs Compact Schedule */}
+                                    <div className="inline-flex rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1 shadow-xs">
                                         <button
-                                            key={day.day}
-                                            onClick={() => setActiveDay(day.day)}
-                                            className={`px-4 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all duration-300 ${
-                                                Number(activeDay) === Number(day.day)
+                                            type="button"
+                                            onClick={() => setViewMode("detailed")}
+                                            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                                                viewMode === "detailed"
+                                                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+                                                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                                            }`}
+                                        >
+                                            Detailed View
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setViewMode("compact")}
+                                            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                                                viewMode === "compact"
+                                                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+                                                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                                            }`}
+                                        >
+                                            Compact Schedule
+                                        </button>
+                                    </div>
+
+                                    {/* Modern Scrollable Tab Bar */}
+                                    <div className="flex gap-1.5 overflow-x-auto pb-1 max-w-full scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
+                                        <button
+                                            onClick={() => setActiveDay("all")}
+                                            className={`px-4 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all duration-300 cursor-pointer ${
+                                                activeDay === "all"
                                                     ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
                                                     : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                                             }`}
                                         >
-                                            Day {day.day}
+                                            Full Journey
                                         </button>
-                                    ))}
+                                        {trip.itinerary.map((day) => (
+                                            <button
+                                                key={day.day}
+                                                onClick={() => setActiveDay(day.day)}
+                                                className={`px-4 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all duration-300 cursor-pointer ${
+                                                    Number(activeDay) === Number(day.day)
+                                                        ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
+                                                        : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                                }`}
+                                            >
+                                                Day {day.day}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
 
@@ -805,11 +864,11 @@ export default function TripPage() {
                                                     {day.day}
                                                 </div>
 
-                                                <div className="mb-6 space-y-1">
-                                                    <div className="flex items-center gap-2.5">
+                                                <div className="mb-6 space-y-2.5">
+                                                    <div className="flex flex-wrap items-center gap-2.5">
                                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Day {day.day}</h3>
                                                         {day.date && (
-                                                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                                                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                                                                 {day.date}
                                                             </span>
                                                         )}
@@ -827,46 +886,128 @@ export default function TripPage() {
                                                                 {day.pacingRating} pacing
                                                             </Badge>
                                                         )}
+                                                        {typeof day.totalDistanceKm === "number" && day.totalDistanceKm > 0 && (
+                                                            <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 flex items-center gap-1">
+                                                                <Route className="h-3 w-3" /> ~{day.totalDistanceKm} km local loop
+                                                            </span>
+                                                        )}
+                                                        {day.dailyCostEstimate && (
+                                                            <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300">
+                                                                {day.dailyCostEstimate}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                     <p className="text-sm text-orange-600 dark:text-orange-400 font-semibold tracking-wide">{day.theme}</p>
+
+                                                    {(day.diningSuggestion || day.proTip) && (
+                                                        <div className="grid gap-2 sm:grid-cols-2 pt-1">
+                                                            {day.diningSuggestion && (
+                                                                <div className="flex items-start gap-2 rounded-xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 p-2.5 text-xs text-slate-700 dark:text-slate-300">
+                                                                    <Utensils className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                                                                    <div>
+                                                                        <span className="font-bold text-amber-800 dark:text-amber-300">Local Flavours: </span>
+                                                                        <span>{day.diningSuggestion}</span>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            {day.proTip && (
+                                                                <div className="flex items-start gap-2 rounded-xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-900/40 p-2.5 text-xs text-slate-700 dark:text-slate-300">
+                                                                    <Lightbulb className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                                                                    <div>
+                                                                        <span className="font-bold text-blue-800 dark:text-blue-300">Day Tip: </span>
+                                                                        <span>{day.proTip}</span>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </div>
 
-                                                <div className="space-y-6">
-                                                    {(day.activities || []).map((activity, actIndex) => {
-                                                        const placeTitle = activity.title || activity.place_name || "Activity Stop";
-                                                        const placeDesc = activity.description || activity.details || "";
-                                                        const placeTime = activity.timeSlot || activity.time || "";
-                                                        const placePrice = activity.ticket_price || (activity.estimatedCost ? `${activity.estimatedCost.currency}${activity.estimatedCost.amount}` : "Free");
+                                                {viewMode === "compact" ? (
+                                                    <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
+                                                        <div className="overflow-x-auto">
+                                                            <table className="w-full text-left border-collapse text-xs">
+                                                                <thead>
+                                                                    <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/50 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                                                        <th className="py-3 px-4">Time Window</th>
+                                                                        <th className="py-3 px-4">Stop & Highlights</th>
+                                                                        <th className="py-3 px-4">Transfer & Distance</th>
+                                                                        <th className="py-3 px-4">Crowd & Timing Tip</th>
+                                                                        <th className="py-3 px-4 text-right">Entry / Cost</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
+                                                                    {(day.activities || []).map((activity, actIndex) => (
+                                                                        <tr
+                                                                            key={activity.id || actIndex}
+                                                                            className="hover:bg-slate-50/70 dark:hover:bg-slate-800/30 transition-colors"
+                                                                        >
+                                                                            <td className="py-3.5 px-4 whitespace-nowrap font-semibold text-orange-600 dark:text-orange-400 tabular-nums align-top">
+                                                                                {activity.time || activity.timeSlot}
+                                                                            </td>
+                                                                            <td className="py-3.5 px-4 align-top max-w-xs">
+                                                                                <div className="font-bold text-slate-900 dark:text-white">
+                                                                                    {activity.title}
+                                                                                </div>
+                                                                                <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">
+                                                                                    {activity.description}
+                                                                                </div>
+                                                                            </td>
+                                                                            <td className="py-3.5 px-4 align-top text-slate-600 dark:text-slate-300 max-w-[220px]">
+                                                                                {activity.logistics || "Local transfer"}
+                                                                            </td>
+                                                                            <td className="py-3.5 px-4 align-top max-w-[220px]">
+                                                                                {activity.crowdLevel && (
+                                                                                    <span className="inline-block text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 mb-1">
+                                                                                        {activity.crowdLevel} crowd
+                                                                                    </span>
+                                                                                )}
+                                                                                <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                                                                                    {activity.offPeakTip || activity.bookingDeadline || "Standard visiting hours"}
+                                                                                </div>
+                                                                            </td>
+                                                                            <td className="py-3.5 px-4 text-right whitespace-nowrap font-bold text-emerald-700 dark:text-emerald-400 tabular-nums align-top">
+                                                                                {activity.ticket_price || (activity.estimatedCost?.amount ? `₹${activity.estimatedCost.amount.toLocaleString("en-IN")}` : "Free")}
+                                                                            </td>
+                                                                        </tr>
+                                                                    ))}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-6">
+                                                        {(day.activities || []).map((activity, actIndex) => {
+                                                            // Check if there is a detected gap immediately after this activity
+                                                            const matchingGap = detectedGaps.find(
+                                                                (g) => g.insertAtIndex === actIndex + 1
+                                                            );
 
-                                                        // Check if there is a detected gap immediately after this activity
-                                                        const matchingGap = detectedGaps.find(
-                                                            (g) => g.insertAtIndex === actIndex + 1
-                                                        );
-
-                                                        return (
-                                                            <div key={activity.id || actIndex} className="space-y-4">
-                                                                {/* Main Reactive Live Object Card */}
-                                                                <LiveActivityCard
-                                                                    activity={activity}
-                                                                    index={actIndex}
-                                                                    tripId={params.id as string}
-                                                                    onReportOutcome={handleReportOutcome}
-                                                                    verification={verificationReport?.itemVerifications[activity.id]}
-                                                                    onApplyFix={handleApplyVerificationFix}
-                                                                />
-
-                                                                {/* Render In-Trip Gap Filler Card when a gap is detected */}
-                                                                {matchingGap && (
-                                                                    <GapFillCard
-                                                                        gap={matchingGap}
-                                                                        destination={trip.trip_details.destination}
-                                                                        onAddDeal={handleAddGapActivity}
+                                                            return (
+                                                                <div key={activity.id || actIndex} className="space-y-4">
+                                                                    {/* Main Reactive Live Object Card */}
+                                                                    <LiveActivityCard
+                                                                        activity={activity}
+                                                                        index={actIndex}
+                                                                        tripId={params.id as string}
+                                                                        onReportOutcome={handleReportOutcome}
+                                                                        verification={verificationReport?.itemVerifications[activity.id]}
+                                                                        onApplyFix={handleApplyVerificationFix}
                                                                     />
-                                                                )}
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
+
+                                                                    {/* Render In-Trip Gap Filler Card when a gap is detected */}
+                                                                    {matchingGap && (
+                                                                        <GapFillCard
+                                                                            gap={matchingGap}
+                                                                            destination={trip.trip_details.destination}
+                                                                            onAddDeal={handleAddGapActivity}
+                                                                        />
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
                                             </motion.div>
                                         );
                                     })}

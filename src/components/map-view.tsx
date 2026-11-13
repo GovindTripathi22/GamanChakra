@@ -104,7 +104,6 @@ export function MapView({ destination, hotels, itinerary }: MapViewProps) {
                             <p style="font-size: 12px; margin: 0 0 4px 0;">${point.details}</p>
                             ${point.price ? `<p style="font-size: 12px; color: green; font-weight: 600; margin: 0;">${point.price}</p>` : ''}
                             ${point.time ? `<p style="font-size: 12px; color: orange; font-weight: 600; margin: 0;">${point.time}</p>` : ''}
-                            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(point.title + ' ' + destination)}" target="_blank" rel="noopener noreferrer" style="display:inline-block; margin-top:8px; font-size:11px; font-weight:700; color:#ea580c; text-decoration:none;">Open in Google Maps &rarr;</a>
                         </div>
                     `);
                 });
@@ -133,21 +132,6 @@ export function MapView({ destination, hotels, itinerary }: MapViewProps) {
                     <span className="text-slate-500 dark:text-slate-400">Loading map...</span>
                 </div>
             )}
-            {/* Google Maps Route Button */}
-            <div className="absolute top-4 right-4 z-[400]">
-                <button
-                    onClick={() => {
-                        const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
-                        window.open(url, "_blank");
-                    }}
-                    className="flex items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-1.5 text-xs font-bold text-slate-800 shadow-md backdrop-blur-md transition-all hover:bg-white hover:text-orange-600 dark:bg-slate-900/95 dark:text-slate-200 dark:hover:text-orange-400 border border-slate-200 dark:border-slate-700 cursor-pointer"
-                >
-                    <svg className="h-3.5 w-3.5 text-orange-500 fill-current" viewBox="0 0 24 24">
-                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                    </svg>
-                    <span>Open in Google Maps ↗</span>
-                </button>
-            </div>
             <div ref={mapContainerRef} className="h-full w-full" />
         </div>
     );

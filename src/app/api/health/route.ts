@@ -1,25 +1,15 @@
 import { json } from "@/lib/api";
-import { db, isDbAvailable } from "@/lib/db";
+import { db } from "@/lib/db";
 import { NANO_INFO } from "@/lib/slm/nano";
 import { generativeStatus, generativeAvailable } from "@/lib/slm/generative";
 
 export const dynamic = "force-dynamic";
 export async function GET() {
   const t0 = Date.now();
-  const dbOk = await isDbAvailable();
-  let lastNews: { ingestedAt: Date; provenance: string } | null = null;
-  let lastRun: { startedAt: Date; status: string } | null = null;
-
-  if (dbOk) {
-    try {
-      [lastNews, lastRun] = await Promise.all([
-        db.newsEvent.findFirst({ orderBy: { ingestedAt: "desc" }, select: { ingestedAt: true, provenance: true } }).catch(() => null),
-        db.agentRun.findFirst({ orderBy: { startedAt: "desc" }, select: { startedAt: true, status: true } }).catch(() => null),
-      ]);
-    } catch {
-      /* ignore */
-    }
-  }
+  let dbOk = false;
+  try { await db.$queryRaw`SELECT 1`; dbOk = true; } catch { dbOk = false; }
+  const lastNews = await db.newsEvent.findFirst({ orderBy: { ingestedAt: "desc" }, select: { ingestedAt: true, provenance: true } }).catch(() => null);
+  const lastRun = await db.agentRun.findFirst({ orderBy: { startedAt: "desc" }, select: { startedAt: true, status: true } }).catch(() => null);
   await generativeAvailable();
   return json({
     status: dbOk ? "ok" : "degraded",

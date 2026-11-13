@@ -402,8 +402,11 @@ export async function addExpenseAction(
       const payerExists = room.members.some((m) => m.id === paidById);
       const actualPayerId = payerExists ? paidById : room.members[0].id;
 
-      await db.$transaction(async (tx) => {
-        const createdExpense = await tx.expense.create({
+      const participants = participantIds && participantIds.length > 0 ? participantIds : room.members.map((m) => m.id);
+      const splitAmount = Math.round((amount / participants.length) * 100) / 100;
+
+      const createdExpense = await db.$transaction(async (tx) => {
+        const exp = await tx.expense.create({
           data: {
             roomId: room.id,
             payerId: actualPayerId,
@@ -414,27 +417,25 @@ export async function addExpenseAction(
           },
         });
 
-        const participants = participantIds && participantIds.length > 0 ? participantIds : room.members.map((m) => m.id);
-        const splitAmount = Math.round((amount / participants.length) * 100) / 100;
-
         for (const partId of participants) {
           await tx.expenseSplit.create({
             data: {
-              expenseId: createdExpense.id,
+              expenseId: exp.id,
               memberId: partId,
               amount: splitAmount,
             },
           });
         }
+        return exp;
+      });
 
-        await logAuditEvent({
-          actor: "USER",
-          actorId: actualPayerId,
-          entity: "Expense",
-          entityId: createdExpense.id,
-          event: "expense_logged",
-          data: { amount, title, splitAmongCount: participants.length },
-        });
+      await logAuditEvent({
+        actor: "USER",
+        actorId: actualPayerId,
+        entity: "Expense",
+        entityId: createdExpense.id,
+        event: "expense_logged",
+        data: { amount, title, splitAmongCount: participants.length },
       });
     }
   } catch (err) {

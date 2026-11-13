@@ -166,6 +166,28 @@ describe("keyless trip planner", () => {
     expect(h.rating).toBeGreaterThanOrEqual(4.0);
     expect(h.amenities?.length).toBeGreaterThan(0);
   });
+  it("enriches activities with detailed context, inter-stop distances, day-level dining & trip briefing", () => {
+    const richTrip = planTripLocally({
+      origin: "Delhi",
+      destination: "Manali",
+      days: "3",
+      budget: "Moderate",
+      travelers: "2",
+      vibe: "Adventure",
+    });
+    expect(richTrip.trip_details.bestSeason).toMatch(/Mar–Jun|snow/i);
+    expect(richTrip.trip_details.packingEssentials?.length).toBeGreaterThan(0);
+    expect(richTrip.trip_details.regionalSpecialties?.length).toBeGreaterThan(0);
+    const firstDay = richTrip.itinerary[0];
+    expect(firstDay.dailyCostEstimate).toMatch(/₹.*\/person/);
+    expect(firstDay.diningSuggestion).toMatch(/Trout|Siddu|Dham/i);
+    expect(firstDay.proTip).toBeTruthy();
+    expect(firstDay.totalDistanceKm).toBeGreaterThan(0);
+    const firstAct = firstDay.activities[0];
+    expect(firstAct.description.length).toBeGreaterThan(60);
+    expect(firstAct.description).not.toBe(`${firstAct.offPeakTip}.`);
+    expect(firstAct.logistics).toMatch(/km.*min/i);
+  });
 });
 
 describe("re-routing alternatives", () => {

@@ -95,7 +95,7 @@ export async function jarvisRespond(text: string, opts: { session: SessionPayloa
 
   switch (intent) {
     case "greeting":
-      reply = T(hi, `Hello${session ? ` ${session.name.split(" ")[0]}` : ""}! I'm Sarthi. I watch world news against your trips. Ask me "is it safe to go to Bangkok?" or "plan 4 days in Goa".`, `नमस्ते${session ? ` ${session.name.split(" ")[0]}` : ""}! मैं सारथी हूँ। मैं दुनिया की खबरों को आपकी यात्रा से मिलाकर देखता हूँ। पूछिए — "क्या बैंकॉक जाना सुरक्षित है?"`);
+      reply = T(hi, `Hello${session ? ` ${session.name.split(" ")[0]}` : ""}! I'm Chakra. I watch world news against your trips. Ask me "is it safe to go to Bangkok?" or "plan 4 days in Goa".`, `नमस्ते${session ? ` ${session.name.split(" ")[0]}` : ""}! मैं चक्र हूँ। मैं दुनिया की खबरों को आपकी यात्रा से मिलाकर देखता हूँ। पूछिए — "क्या बैंकॉक जाना सुरक्षित है?"`);
       followUps = ["What's happening in the world?", "Is my trip safe?", "Plan 3 days in Jaipur"];
       break;
     case "help":
@@ -239,7 +239,7 @@ export async function jarvisRespond(text: string, opts: { session: SessionPayloa
         const targets = travelers.slice(0, 25);
         let sent = 0;
         for (const t of targets) {
-          const task = await db.agentTask.create({ data: { orgId: session.oid, subjectType: "traveler", subjectId: t.id, kind: "checkin", title: `Voice check-in: ${t.name}`, detail: `Requested by ${session.name} via Sarthi`, autonomyLevel: "L2", status: "approved", decidedBy: session.uid, decidedAt: new Date(), idempotencyKey: `voice-${t.id}-${Date.now()}` } });
+          const task = await db.agentTask.create({ data: { orgId: session.oid, subjectType: "traveler", subjectId: t.id, kind: "checkin", title: `Voice check-in: ${t.name}`, detail: `Requested by ${session.name} via Jarvis`, autonomyLevel: "L2", status: "approved", decidedBy: session.uid, decidedAt: new Date(), idempotencyKey: `voice-${t.id}-${Date.now()}` } });
           const done = await executeTask(task.id, session.uid);
           if (done.status === "executed") sent++;
           await db.traveler.update({ where: { id: t.id }, data: { safetyStatus: t.safetyStatus === "safe" ? "safe" : "unknown" } });

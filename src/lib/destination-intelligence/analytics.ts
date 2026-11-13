@@ -1,4 +1,4 @@
-import { db, isDbAvailable } from "@/lib/db";
+import { db } from "@/lib/db";
 import { logAuditEvent } from "@/lib/audit/logger";
 import { findPlace } from "@/lib/geo/gazetteer";
 
@@ -239,7 +239,6 @@ async function withDbTimeout<T>(promise: Promise<T>, timeoutMs = 350): Promise<T
  * Initializes destination metrics in database if empty
  */
 export async function seedDestinationMetricsIfEmpty() {
-  if (!(await isDbAvailable())) return;
   try {
     const count = await withDbTimeout(db.destinationMetric.count());
     if (count >= DEFAULT_METRIC_FIXTURES.length) return;
@@ -281,30 +280,28 @@ export async function seedDestinationMetricsIfEmpty() {
  */
 export async function getDestinationIntelligence(destination?: string): Promise<DestinationMetricRecord[]> {
   try {
-    if (await isDbAvailable()) {
-      await seedDestinationMetricsIfEmpty();
+    await seedDestinationMetricsIfEmpty();
 
-      const where = destination && destination !== "all" ? { destination } : {};
-      const dbMetrics = await withDbTimeout(
-        db.destinationMetric.findMany({
-          where,
-          orderBy: { observedVisitors: "desc" },
-        })
-      );
+    const where = destination && destination !== "all" ? { destination } : {};
+    const dbMetrics = await withDbTimeout(
+      db.destinationMetric.findMany({
+        where,
+        orderBy: { observedVisitors: "desc" },
+      })
+    );
 
-      if (dbMetrics && dbMetrics.length > 0) {
-        return dbMetrics.map((m) => {
-          const fix = DEFAULT_METRIC_FIXTURES.find(
-            (f) => f.destination.toLowerCase() === m.destination.toLowerCase()
-          );
-          return {
-            ...m,
-            state: fix?.state || "India",
-            region: fix?.region || "North",
-            category: fix?.category || "Heritage",
-          };
-        });
-      }
+    if (dbMetrics && dbMetrics.length > 0) {
+      return dbMetrics.map((m) => {
+        const fix = DEFAULT_METRIC_FIXTURES.find(
+          (f) => f.destination.toLowerCase() === m.destination.toLowerCase()
+        );
+        return {
+          ...m,
+          state: fix?.state || "India",
+          region: fix?.region || "North",
+          category: fix?.category || "Heritage",
+        };
+      });
     }
   } catch (e) {
     // Database offline; fall back gracefully to in-memory fixtures
@@ -408,12 +405,10 @@ export async function simulateDestinationScenario(
   let base: DestinationMetricRecord = DEFAULT_METRIC_FIXTURES[0];
 
   try {
-    if (await isDbAvailable()) {
-      const found = await db.destinationMetric.findFirst({
-        where: { destination },
-      });
-      if (found) base = found as any;
-    }
+    const found = await db.destinationMetric.findFirst({
+      where: { destination },
+    });
+    if (found) base = found as any;
   } catch (e) {
     // Database offline
   }

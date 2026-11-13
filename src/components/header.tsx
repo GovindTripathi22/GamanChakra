@@ -16,7 +16,6 @@ import {
   Bot,
   Workflow,
   Scale,
-  Radio,
   CreditCard,
   Bell,
   LogOut,
@@ -55,6 +54,7 @@ interface Notif {
 }
 
 function Notifications() {
+  const { isSignedIn } = useUser();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<Notif[]>([]);
   const [unread, setUnread] = useState(0);
@@ -73,11 +73,12 @@ function Notifications() {
   };
 
   useEffect(() => {
+    if (!isSignedIn) return;
     load();
-  }, []);
+  }, [isSignedIn]);
 
   useEventStream((e) => {
-    if (e.type === "notification" || e.type === "checkin.update") load();
+    if (isSignedIn && (e.type === "notification" || e.type === "checkin.update")) load();
   });
 
   useEffect(() => {

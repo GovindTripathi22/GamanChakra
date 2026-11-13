@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { toast } from "@/components/gc/toast";
 import {
   Radar,
   AlertTriangle,
@@ -120,10 +121,10 @@ export default function ControlTowerPage() {
         estimatedCostINR: option.costDelta?.amount || 0,
         autonomyLevel: "L2",
       });
-      alert(`Recovery dispatched to Autonomous Execution Engine: ${option.title}`);
+      toast(`Recovery dispatched to Autonomous Execution Engine: ${option.title}`, "success");
       await loadOverview();
     } catch (e: any) {
-      alert(`Dispatch failed: ${e.message}`);
+      toast(`Dispatch failed: ${e.message}`, "error");
     } finally {
       setDispatching(null);
     }

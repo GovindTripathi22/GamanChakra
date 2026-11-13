@@ -10,6 +10,7 @@ export interface Activity {
   coordinates: { lat: number; lng: number };
   crowdLevel?: "low" | "moderate" | "peak";
   offPeakTip?: string;
+  bookingTip?: string;
   bookingDeadline?: "walk-in" | "3-7 days advance" | "30+ days required";
   estimatedCost?: { amount: number; currency: string };
   isGapFiller?: boolean;
@@ -39,6 +40,10 @@ export interface DayPlan {
   theme: string;
   date?: string;
   pacingRating?: "light" | "balanced" | "intense";
+  dailyCostEstimate?: string;
+  diningSuggestion?: string;
+  proTip?: string;
+  totalDistanceKm?: number;
   activities: Activity[];
 }
 
@@ -87,29 +92,12 @@ export interface Hotel {
   tier?: "budget" | "comfort" | "luxury";
 }
 
-export interface TransitOption {
-  mode: string;
-  provider: string;
-  routeNumber?: string;
-  departureTime?: string;
-  arrivalTime?: string;
-  duration: string;
-  cost: string;
-  bookingUrl?: string;
-  note?: string;
-}
-
 export interface TransportationStep {
   mode: "Flight" | "Train" | "Bus" | "Taxi" | "Local";
-  title?: string;
   details: string;
   estimated_cost: string;
   duration: string;
   distance?: string;
-  from?: string;
-  to?: string;
-  hubNotice?: string;
-  available_options?: TransitOption[];
 }
 
 export interface TripData {
@@ -126,7 +114,6 @@ export interface TripData {
 
 export interface GeneratedTrip {
   trip_details: {
-    origin?: string;
     destination: string;
     duration: string;
     budget: string;
@@ -136,6 +123,11 @@ export interface GeneratedTrip {
     startDate?: string;
     endDate?: string;
     includeTravelDays?: boolean | "yes" | "no";
+    bestSeason?: string;
+    localTransitAdvice?: string;
+    advanceBookingsNeeded?: string[];
+    packingEssentials?: string[];
+    regionalSpecialties?: string[];
   };
   transportation_plan: TransportationStep[];
   hotels: Hotel[];

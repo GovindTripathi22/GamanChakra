@@ -62,9 +62,11 @@ export async function saveTripToDatabase(
     const origin = trip.itinerary[0]?.activities[0]?.title ? "India" : "Delhi";
     const travelers = trip.trip_details.travelers || "2";
 
-    // Extract budget max if numeric
-    const budgetRaw = trip.trip_details.total_estimated_cost?.replace(/[^0-9]/g, "");
-    const budgetMax = budgetRaw ? parseFloat(budgetRaw) : 50000;
+    // Extract budget max from the first currency figure (avoid concatenating ranges like "₹25,000 – ₹35,000")
+    const firstCurrencyMatch = trip.trip_details.total_estimated_cost?.match(/₹?\s*([\d,]{3,})/);
+    const budgetMax = firstCurrencyMatch
+      ? parseFloat(firstCurrencyMatch[1].replace(/,/g, ""))
+      : 50000;
 
     // 2. Prepare items data
     const itemsToCreate: any[] = [];
@@ -74,7 +76,8 @@ export async function saveTripToDatabase(
       const dayPlan = trip.itinerary[dayIdx];
       for (let actIdx = 0; actIdx < dayPlan.activities.length; actIdx++) {
         const act = dayPlan.activities[actIdx];
-        const stableId = act.id || `item-d${dayPlan.day}-a${actIdx + 1}-${tripId}`;
+        const baseId = act.id || `item-d${dayPlan.day}-a${actIdx + 1}`;
+        const stableId = baseId.endsWith(`-${tripId}`) ? baseId : `${baseId}-${tripId}`;
 
         let itemType = "activity";
         const cat = (act.category || "").toLowerCase();
@@ -106,10 +109,25 @@ export async function saveTripToDatabase(
             ticketPrice: act.ticket_price,
             logistics: act.logistics,
             crowdLevel: act.crowdLevel,
+            offPeakTip: act.offPeakTip,
+            bookingTip: act.bookingTip,
             weatherSensitivity: act.prediction?.weatherSensitivity || "outdoor_sheltered",
             coordinates: act.geo_coordinates || act.coordinates,
             isProtectedByShield: act.isProtectedByShield ?? true,
             locationName: act.locationName || act.title,
+            dayTheme: dayPlan.theme,
+            dailyCostEstimate: dayPlan.dailyCostEstimate,
+            diningSuggestion: dayPlan.diningSuggestion,
+            proTip: dayPlan.proTip,
+            totalDistanceKm: dayPlan.totalDistanceKm,
+            tripSnapshot:
+              dayIdx === 0 && actIdx === 0
+                ? {
+                    trip_details: trip.trip_details,
+                    transportation_plan: trip.transportation_plan,
+                    hotels: trip.hotels,
+                  }
+                : undefined,
           }),
         });
 
@@ -212,15 +230,43 @@ export async function getTripFromDatabase(tripId: string): Promise<GeneratedTrip
 
     // Group items into days
     const dayMap = new Map<number, Activity[]>();
+    const dayMetaMap = new Map<number, {
+      theme?: string;
+      dailyCostEstimate?: string;
+      diningSuggestion?: string;
+      proTip?: string;
+      totalDistanceKm?: number;
+    }>();
+    type SavedTripSnapshot = {
+      trip_details?: GeneratedTrip["trip_details"];
+      transportation_plan?: GeneratedTrip["transportation_plan"];
+      hotels?: GeneratedTrip["hotels"];
+    };
+    let savedSnapshot: SavedTripSnapshot | null = null;
 
-    trip.items.forEach((item, idx) => {
+    for (let idx = 0; idx < trip.items.length; idx++) {
+      const item = trip.items[idx];
       let meta: any = {};
       try {
         meta = JSON.parse(item.meta || "{}");
       } catch {}
 
+      if (!savedSnapshot && meta.tripSnapshot) {
+        savedSnapshot = meta.tripSnapshot as SavedTripSnapshot;
+      }
+
       const dayMatch = item.id.match(/-d(\d+)-/);
       const day = dayMatch ? parseInt(dayMatch[1], 10) : Math.floor(idx / 3) + 1;
+
+      if (!dayMetaMap.has(day) && (meta.dayTheme || meta.dailyCostEstimate || meta.diningSuggestion)) {
+        dayMetaMap.set(day, {
+          theme: meta.dayTheme,
+          dailyCostEstimate: meta.dailyCostEstimate,
+          diningSuggestion: meta.diningSuggestion,
+          proTip: meta.proTip,
+          totalDistanceKm: meta.totalDistanceKm,
+        });
+      }
 
       const act: Activity = {
         id: item.id,
@@ -232,6 +278,8 @@ export async function getTripFromDatabase(tripId: string): Promise<GeneratedTrip
         ticket_price: meta.ticketPrice || `₹${item.costMin}`,
         logistics: meta.logistics || "",
         crowdLevel: meta.crowdLevel || "moderate",
+        offPeakTip: meta.offPeakTip,
+        bookingTip: meta.bookingTip,
         category: (item.type as any) || "sightseeing",
         locationName: meta.locationName || item.title,
         status: (item.status as any) || "scheduled",
@@ -242,21 +290,31 @@ export async function getTripFromDatabase(tripId: string): Promise<GeneratedTrip
 
       if (!dayMap.has(day)) dayMap.set(day, []);
       dayMap.get(day)!.push(act);
-    });
+    }
 
     const daysSorted = Array.from(dayMap.keys()).sort((a, b) => a - b);
-    const itinerary: DayPlan[] = daysSorted.map((dayNum) => ({
-      day: dayNum,
-      theme: `Day ${dayNum} in ${trip.destination}`,
-      activities: dayMap.get(dayNum) || [],
-    }));
+    const itinerary: DayPlan[] = daysSorted.map((dayNum) => {
+      const dm = dayMetaMap.get(dayNum);
+      return {
+        day: dayNum,
+        theme: dm?.theme || `Day ${dayNum} in ${trip.destination}`,
+        dailyCostEstimate: dm?.dailyCostEstimate,
+        diningSuggestion: dm?.diningSuggestion,
+        proTip: dm?.proTip,
+        totalDistanceKm: dm?.totalDistanceKm,
+        activities: dayMap.get(dayNum) || [],
+      };
+    });
 
-    const resolvedHotels = resolveRealHotels(
-      trip.destination,
-      1,
-      parseInt(trip.travelers || "2", 10) || 2,
-      trip.budgetMax || 25000
-    );
+    const resolvedHotels =
+      savedSnapshot?.hotels && savedSnapshot.hotels.length > 0
+        ? savedSnapshot.hotels
+        : resolveRealHotels(
+            trip.destination,
+            1,
+            parseInt(trip.travelers || "2", 10) || 2,
+            trip.budgetMax || 25000
+          );
 
     return {
       trip_details: {
@@ -268,8 +326,9 @@ export async function getTripFromDatabase(tripId: string): Promise<GeneratedTrip
         total_estimated_cost: trip.budgetMax ? `₹${trip.budgetMax.toLocaleString("en-IN")}` : "₹25,000",
         startDate: trip.startDate || undefined,
         endDate: trip.endDate || undefined,
+        ...(savedSnapshot?.trip_details || {}),
       },
-      transportation_plan: [],
+      transportation_plan: savedSnapshot?.transportation_plan || [],
       hotels: resolvedHotels,
       itinerary: itinerary.length > 0 ? (itinerary as any) : [
         {

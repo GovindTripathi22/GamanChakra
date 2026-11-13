@@ -9,8 +9,12 @@ import { loadSubjects } from "@/lib/risk/engine";
 
 let orgId = "";
 beforeAll(async () => {
-  const { org } = await ensureDemoWorkspace();
+  const { org } = await ensureDemoWorkspace({ force: true });
   orgId = org.id;
+  await db.organization.update({ where: { id: orgId }, data: { autonomyLevel: "L3" } });
+  await db.agentStep.deleteMany({ where: { run: { orgId } } });
+  await db.agentTask.deleteMany({ where: { orgId } });
+  await db.agentRun.deleteMany({ where: { orgId } });
 });
 
 describe("real-time ingestion (drill mode, offline-safe)", () => {
