@@ -605,8 +605,14 @@ export default function TripPage() {
                                                         No Preview Image
                                                     </div>
                                                 )}
+                                                {hotel.city && (
+                                                    <div className="absolute top-3 left-3 rounded-full bg-slate-950/85 px-2.5 py-0.5 text-[11px] font-semibold text-orange-300 backdrop-blur-sm shadow-md border border-white/10 flex items-center gap-1 z-10">
+                                                        <MapPin className="h-3 w-3 text-orange-400" />
+                                                        <span>{hotel.city}</span>
+                                                    </div>
+                                                )}
                                                 {hotel.tier && (
-                                                    <div className="absolute top-3 left-3 rounded-full bg-slate-950/80 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur-sm shadow-md capitalize border border-white/10">
+                                                    <div className={`absolute ${hotel.city ? "top-10" : "top-3"} left-3 rounded-full bg-slate-950/80 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur-sm shadow-md capitalize border border-white/10 z-10`}>
                                                         {hotel.tier}
                                                     </div>
                                                 )}
@@ -642,19 +648,52 @@ export default function TripPage() {
                                             </div>
                                         </div>
                                         <div className="p-5 pt-0">
-                                            <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-4">
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-4 gap-3">
                                                 <div className="flex flex-col">
                                                     <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">ESTIMATED PRICE</span>
                                                     <span className="text-base sm:text-lg font-extrabold tabular-nums text-orange-600 dark:text-orange-400">{hotel.price}</span>
                                                 </div>
-                                                <a
-                                                    href={`https://www.google.com/search?q=book+${encodeURIComponent(hotel.name + " " + trip.trip_details.destination)}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="inline-flex items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                                                >
-                                                    Book Now
-                                                </a>
+                                                <div className="flex flex-wrap items-center gap-1.5">
+                                                    <Button
+                                                        size="sm"
+                                                        className="rounded-full bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold px-3 py-1.5 h-8 shadow-sm flex items-center gap-1 cursor-pointer"
+                                                        onClick={() => {
+                                                            const searchCity = hotel.city || trip.trip_details.destination;
+                                                            const url = hotel.bookingUrls?.googleHotels || hotel.bookingUrl || `https://www.google.com/travel/hotels?q=${encodeURIComponent(hotel.name + " " + searchCity)}`;
+                                                            window.open(url, '_blank', 'noopener,noreferrer');
+                                                        }}
+                                                        title="Book directly on Google Hotels"
+                                                    >
+                                                        <span>Book Direct</span>
+                                                        <ExternalLink className="h-3 w-3" />
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="rounded-full text-[11px] font-medium border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 h-8 px-2.5 cursor-pointer"
+                                                        onClick={() => {
+                                                            const searchCity = hotel.city || trip.trip_details.destination;
+                                                            const url = hotel.bookingUrls?.bookingCom || `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(hotel.name + ", " + searchCity)}`;
+                                                            window.open(url, '_blank', 'noopener,noreferrer');
+                                                        }}
+                                                        title="Book on Booking.com"
+                                                    >
+                                                        Booking.com ↗
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        className="rounded-full text-[11px] font-medium text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/40 h-8 px-2 cursor-pointer"
+                                                        onClick={() => {
+                                                            const searchCity = hotel.city || trip.trip_details.destination;
+                                                            const url = hotel.bookingUrls?.makeMyTrip || `https://www.makemytrip.com/hotels/hotel-listing/?city=${encodeURIComponent(searchCity)}&searchText=${encodeURIComponent(hotel.name)}`;
+                                                            window.open(url, '_blank', 'noopener,noreferrer');
+                                                        }}
+                                                        title="Book on MakeMyTrip"
+                                                    >
+                                                        MMT ↗
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

@@ -114,11 +114,18 @@ const vibeOptions = [
     },
 ];
 
+interface DestinationStop {
+    city: string;
+    days?: number;
+}
+
 export function TripWizard() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState(false);
     const [isPrefilled, setIsPrefilled] = useState(false);
+    const [addedDestinations, setAddedDestinations] = useState<DestinationStop[]>([]);
+    const [stopDaysInput, setStopDaysInput] = useState<string>("");
     const [formData, setFormData] = useState<TripFormData>({
         origin: "",
         destination: "",
@@ -141,10 +148,47 @@ export function TripWizard() {
         let travelModeParam = searchParams.get("travelMode") || undefined;
         let includeTravelParam = searchParams.get("includeTravelDays") || undefined;
 
+        // If destParam contains multiple stops separated by |, parse into addedDestinations
+        if (destParam && destParam.includes("|")) {
+            const parts = destParam.split("|").map(p => p.trim()).filter(Boolean);
+            const parsedStops: DestinationStop[] = parts.map(part => {
+                const match = part.match(/^(.*?)(?::\s*(\d+)|\s*\(\s*(\d+)\s*(?:days?|d)?\s*\)|\s*-\s*(\d+)\s*(?:days?|d)?|\s+(\d+)\s*(?:days?|d))$/i);
+                if (match) {
+                    const daysVal = parseInt(match[2] || match[3] || match[4] || match[5], 10);
+                    return {
+                        city: match[1].trim(),
+                        days: !isNaN(daysVal) && daysVal > 0 ? daysVal : undefined,
+                    };
+                }
+                return { city: part, days: undefined };
+            });
+            setAddedDestinations(parsedStops);
+            destParam = "";
+        }
+
         // If destParam contains conversational tokens or multiple words, run prompt parser as fallback
         if (destParam && (/\b(from|to|for|under|budget|couple|family|friends|solo|days?|din|k|lakh)\b/i.test(destParam) || destParam.trim().includes(" "))) {
             const parsed = parseTripPrompt(destParam);
-            if (parsed.destination) destParam = parsed.destination;
+            if (parsed.destination) {
+                if (parsed.destination.includes("|")) {
+                    const parts = parsed.destination.split("|").map(p => p.trim()).filter(Boolean);
+                    const parsedStops: DestinationStop[] = parts.map(part => {
+                        const match = part.match(/^(.*?)(?::\s*(\d+)|\s*\(\s*(\d+)\s*(?:days?|d)?\s*\)|\s*-\s*(\d+)\s*(?:days?|d)?|\s+(\d+)\s*(?:days?|d))$/i);
+                        if (match) {
+                            const daysVal = parseInt(match[2] || match[3] || match[4] || match[5], 10);
+                            return {
+                                city: match[1].trim(),
+                                days: !isNaN(daysVal) && daysVal > 0 ? daysVal : undefined,
+                            };
+                        }
+                        return { city: part, days: undefined };
+                    });
+                    setAddedDestinations(parsedStops);
+                    destParam = "";
+                } else {
+                    destParam = parsed.destination;
+                }
+            }
             if (!originParam && parsed.origin) originParam = parsed.origin;
             if (!daysParam && parsed.days) daysParam = parsed.days;
             if (!budgetParam && parsed.budget) budgetParam = parsed.budget;
@@ -214,7 +258,6 @@ export function TripWizard() {
         }
     }, [searchParams]);
 
-    const [addedDestinations, setAddedDestinations] = useState<string[]>([]);
     // Computed in the browser (local timezone) so server and client HTML always match.
     const [minDate, setMinDate] = useState("");
     useEffect(() => {
@@ -246,14 +289,45 @@ export function TripWizard() {
     }, [formData.destination]);
 
     const handleAddDestination = () => {
-        if (formData.destination && formData.destination.length > 2) {
-            setAddedDestinations([...addedDestinations, formData.destination]);
-            setFormData(prev => ({ ...prev, destination: "" }));
+        const rawDest = formData.destination.trim();
+        if (!rawDest) return;
+
+        // Check if user already typed days in parentheses e.g. "Delhi (2 days)" or in stopDaysInput
+        const daysMatch = rawDest.match(/^(.*?)(?::\s*(\d+)|\s*\(\s*(\d+)\s*(?:days?|d)?\s*\)|\s*-\s*(\d+)\s*(?:days?|d)?|\s+(\d+)\s*(?:days?|d))$/i);
+        let city = rawDest;
+        let explicitDays: number | undefined = stopDaysInput ? parseInt(stopDaysInput, 10) : undefined;
+        if (daysMatch) {
+            city = daysMatch[1].trim();
+            const extracted = parseInt(daysMatch[2] || daysMatch[3] || daysMatch[4] || daysMatch[5], 10);
+            if (!isNaN(extracted) && extracted > 0) explicitDays = extracted;
+        }
+
+        const newStop: DestinationStop = {
+            city,
+            days: explicitDays && !isNaN(explicitDays) && explicitDays > 0 ? explicitDays : undefined,
+        };
+
+        const nextStops = [...addedDestinations, newStop];
+        setAddedDestinations(nextStops);
+        setFormData((prev) => ({ ...prev, destination: "" }));
+        setStopDaysInput("");
+
+        // Auto-sync total trip days if stops have explicit days
+        const totalDaysFromStops = nextStops.reduce((sum, s) => sum + (s.days || 0), 0);
+        const hasAnyStopDays = nextStops.some((s) => typeof s.days === "number" && s.days > 0);
+        if (hasAnyStopDays && totalDaysFromStops > 0) {
+            setFormData((prev) => ({ ...prev, days: String(totalDaysFromStops) }));
         }
     };
 
     const handleRemoveDestination = (index: number) => {
-        setAddedDestinations(addedDestinations.filter((_, i) => i !== index));
+        const nextStops = addedDestinations.filter((_, i) => i !== index);
+        setAddedDestinations(nextStops);
+        const totalDaysFromStops = nextStops.reduce((sum, s) => sum + (s.days || 0), 0);
+        const hasAnyStopDays = nextStops.some((s) => typeof s.days === "number" && s.days > 0);
+        if (hasAnyStopDays && totalDaysFromStops > 0) {
+            setFormData((prev) => ({ ...prev, days: String(totalDaysFromStops) }));
+        }
     };
 
     const handleInputChange = (name: string, value: string) => {
@@ -264,26 +338,47 @@ export function TripWizard() {
     };
 
     const isFormValid = () => {
-        return (
+        const totalDaysFromStops = addedDestinations.reduce((sum, s) => sum + (s.days || 0), 0);
+        return Boolean(
             formData.origin &&
             (formData.destination || addedDestinations.length > 0) &&
-            formData.days &&
+            (formData.days || totalDaysFromStops > 0) &&
             formData.budget &&
-            // Travelers is now optional
             formData.vibe
         );
     };
 
     const onGenerateTrip = async () => {
         setLoading(true);
-        // Combine all destinations
-        const allDestinations = [...addedDestinations, formData.destination].filter(Boolean);
-        const finalDestination = allDestinations.join(" | ");
+        const allStops = [...addedDestinations];
+        if (formData.destination.trim()) {
+            const rawDest = formData.destination.trim();
+            const daysMatch = rawDest.match(/^(.*?)(?::\s*(\d+)|\s*\(\s*(\d+)\s*(?:days?|d)?\s*\)|\s*-\s*(\d+)\s*(?:days?|d)?|\s+(\d+)\s*(?:days?|d))$/i);
+            let city = rawDest;
+            let explicitDays: number | undefined = stopDaysInput ? parseInt(stopDaysInput, 10) : undefined;
+            if (daysMatch) {
+                city = daysMatch[1].trim();
+                const extracted = parseInt(daysMatch[2] || daysMatch[3] || daysMatch[4] || daysMatch[5], 10);
+                if (!isNaN(extracted) && extracted > 0) explicitDays = extracted;
+            }
+            allStops.push({
+                city,
+                days: explicitDays && !isNaN(explicitDays) && explicitDays > 0 ? explicitDays : undefined,
+            });
+        }
+
+        const finalDestination = allStops
+            .map((s) => (s.days ? `${s.city} (${s.days} days)` : s.city))
+            .join(" | ");
+
+        const totalDaysFromStops = allStops.reduce((sum, s) => sum + (s.days || 0), 0);
+        const effectiveDays = formData.days || (totalDaysFromStops > 0 ? String(totalDaysFromStops) : "3");
 
         const params = new URLSearchParams({
             ...formData,
             destination: finalDestination,
-            travelers: formData.travelers || "2 People", // Default if not selected
+            days: effectiveDays,
+            travelers: formData.travelers || "2 People",
             startDate: formData.startDate || "",
             travelMode: formData.travelMode || "",
             includeTravelDays: formData.includeTravelDays || "yes",
@@ -291,7 +386,8 @@ export function TripWizard() {
         router.push(`/generate?${params.toString()}`);
     };
 
-    const parsedDays = parseInt(formData.days, 10) || 0;
+    const totalDaysFromStops = addedDestinations.reduce((sum, s) => sum + (s.days || 0), 0);
+    const parsedDays = parseInt(formData.days, 10) || totalDaysFromStops || 0;
     const hasTravelDays = formData.includeTravelDays !== "no";
     const totalTripDays = parsedDays > 0 ? (hasTravelDays ? parsedDays : parsedDays + 2) : 0;
 
@@ -411,18 +507,39 @@ export function TripWizard() {
                                 className="space-y-6 overflow-hidden"
                             >
                                 {/* Step 2: Destination Input */}
-                                <div className="mb-8 space-y-6">
-                                    <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors">
-                                        Where do you want to go?
-                                    </label>
-                                    {/* Added Destinations List */}
+                                <div className="mb-8 space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors">
+                                            Where do you want to go?
+                                        </label>
+                                        {addedDestinations.length > 0 && (
+                                            <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">
+                                                {addedDestinations.length} {addedDestinations.length === 1 ? "Stop" : "Stops"} Added
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Added Destinations Badges */}
                                     {addedDestinations.length > 0 && (
-                                        <div className="mb-3 flex flex-wrap gap-2">
+                                        <div className="flex flex-wrap gap-2 p-3 rounded-2xl bg-orange-50/70 dark:bg-orange-950/20 border border-orange-200/60 dark:border-orange-800/40">
                                             {addedDestinations.map((dest, index) => (
-                                                <div key={index} className="flex items-center gap-1 rounded-full bg-orange-100 px-3 py-1 text-sm font-medium text-orange-700">
-                                                    <MapPin className="h-3 w-3" />
-                                                    {dest}
-                                                    <button onClick={() => handleRemoveDestination(index)} className="ml-1 hover:text-red-500">
+                                                <div
+                                                    key={index}
+                                                    className="flex items-center gap-1.5 rounded-full bg-white dark:bg-slate-800 border border-orange-200 dark:border-orange-800/80 px-3.5 py-1.5 text-xs sm:text-sm font-medium text-orange-700 dark:text-orange-300 shadow-xs"
+                                                >
+                                                    <MapPin className="h-3.5 w-3.5 text-orange-500 shrink-0" />
+                                                    <span className="font-semibold">{dest.city}</span>
+                                                    {dest.days && (
+                                                        <span className="rounded-full bg-orange-100 dark:bg-orange-900/60 px-2 py-0.5 text-[11px] font-bold text-orange-800 dark:text-orange-200">
+                                                            {dest.days} {dest.days === 1 ? "day" : "days"}
+                                                        </span>
+                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveDestination(index)}
+                                                        className="ml-1 text-slate-400 hover:text-red-500 font-bold text-base leading-none cursor-pointer"
+                                                        title={`Remove ${dest.city}`}
+                                                    >
                                                         ×
                                                     </button>
                                                 </div>
@@ -430,11 +547,12 @@ export function TripWizard() {
                                         </div>
                                     )}
 
-                                    <div className="relative flex gap-2">
+                                    {/* Destination Input Row with Optional Days Input */}
+                                    <div className="flex flex-col sm:flex-row gap-2">
                                         <div className="relative flex-1">
                                             <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5 z-10" />
                                             <PlaceAutocomplete
-                                                placeholder={addedDestinations.length > 0 ? "Add another destination..." : "Search for a destination (e.g., Paris)"}
+                                                placeholder={addedDestinations.length > 0 ? "Add next city (e.g., Jaipur)..." : "Search destination (e.g., Delhi, Paris)"}
                                                 value={formData.destination}
                                                 onChange={(val) => handleInputChange("destination", val)}
                                                 onKeyDown={(e) => {
@@ -443,19 +561,41 @@ export function TripWizard() {
                                                         handleAddDestination();
                                                     }
                                                 }}
-                                                className="h-14 pl-12 rounded-xl border-slate-200 text-lg shadow-sm focus-visible:ring-orange-500"
+                                                className="h-14 pl-12 rounded-xl border-slate-200 text-base sm:text-lg shadow-sm focus-visible:ring-orange-500"
                                             />
                                         </div>
-                                        <Button
-                                            onClick={handleAddDestination}
-                                            disabled={!formData.destination}
-                                            className="h-14 w-14 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200"
-                                        >
-                                            +
-                                        </Button>
+                                        <div className="flex gap-2">
+                                            <div className="relative w-28 sm:w-32">
+                                                <Input
+                                                    type="number"
+                                                    min="1"
+                                                    max="30"
+                                                    placeholder="Days (opt)"
+                                                    value={stopDaysInput}
+                                                    onChange={(e) => setStopDaysInput(e.target.value)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            handleAddDestination();
+                                                        }
+                                                    }}
+                                                    className="h-14 rounded-xl border-slate-200 text-center text-sm shadow-sm focus-visible:ring-orange-500"
+                                                    title="Optional: Number of days to spend in this city (e.g., 2)"
+                                                />
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                onClick={handleAddDestination}
+                                                disabled={!formData.destination}
+                                                className="h-14 px-4 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-semibold cursor-pointer shrink-0 shadow-sm"
+                                                title="Add destination stop"
+                                            >
+                                                + Add Stop
+                                            </Button>
+                                        </div>
                                     </div>
-                                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 italic">
-                                        Tip: Add multiple cities to create a full route!
+                                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 italic">
+                                        Tip: For multi-destination trips, specify optional days for each city (e.g., 2 days in Delhi, 3 days in Jaipur).
                                     </p>
                                 </div>
 

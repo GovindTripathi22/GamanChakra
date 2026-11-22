@@ -53,4 +53,12 @@ describe("Natural Language Trip Prompt Parser", () => {
     const res = parseTripPrompt("Goa");
     expect(res.destination.toLowerCase()).toBe("goa");
   });
+
+  it("extracts multi-destination queries with per-city days", () => {
+    const res = parseTripPrompt("2 days in Delhi and 3 days in Jaipur from Mumbai");
+    expect(res.destination).toContain("Delhi (2 days)");
+    expect(res.destination).toContain("Jaipur (3 days)");
+    expect(res.origin?.toLowerCase()).toContain("mumbai");
+    expect(res.days).toBe("5");
+  });
 });

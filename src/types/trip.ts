@@ -90,6 +90,13 @@ export interface Hotel {
   description?: string;
   amenities?: string[];
   tier?: "budget" | "comfort" | "luxury";
+  city?: string;
+  bookingUrl?: string;
+  bookingUrls?: {
+    googleHotels: string;
+    bookingCom: string;
+    makeMyTrip: string;
+  };
 }
 
 export interface TransportationStep {

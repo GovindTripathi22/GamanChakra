@@ -76,6 +76,34 @@ describe("keyless trip planner", () => {
     expect(h.rating).toBeGreaterThanOrEqual(4.0);
     expect(h.amenities?.length).toBeGreaterThan(0);
   });
+  it("provides direct hotel booking links (Google Hotels, Booking.com, MMT) and realistic market pricing", () => {
+    const jaipurTrip = planTripLocally({ origin: "Delhi", destination: "Jaipur", days: "3", budget: "Moderate", travelers: "2", vibe: "Cultural" });
+    const h = jaipurTrip.hotels[0];
+    expect(h.bookingUrl).toContain("google.com/travel/hotels");
+    expect(h.bookingUrls?.googleHotels).toContain("google.com/travel/hotels");
+    expect(h.bookingUrls?.bookingCom).toContain("booking.com");
+    expect(h.bookingUrls?.makeMyTrip).toContain("makemytrip.com");
+    // Ensure hotel prices are authentic rates and never absurd ₹208–₹213
+    expect(h.price).not.toMatch(/₹20[0-9]|₹21[0-9]\/night/);
+    expect(h.price).toMatch(/₹[\d,]+–₹[\d,]+\/night/);
+  });
+  it("handles multi-destination trips with optional per-city days and intercity transit", () => {
+    const multiTrip = planTripLocally({
+      origin: "Delhi",
+      destination: "Jaipur (2 days) | Udaipur (3 days)",
+      days: "5",
+      budget: "Moderate",
+      travelers: "2",
+      vibe: "Cultural",
+    });
+    expect(multiTrip.itinerary).toHaveLength(5);
+    // Hotels from both Jaipur and Udaipur should be present
+    expect(multiTrip.hotels.some((h) => (h.city || h.name).toLowerCase().includes("jaipur"))).toBe(true);
+    expect(multiTrip.hotels.some((h) => (h.city || h.name).toLowerCase().includes("udaipur"))).toBe(true);
+    // Transition day (Day 3) includes an intercity transit journey between Jaipur and Udaipur
+    const day3Acts = multiTrip.itinerary[2].activities;
+    expect(day3Acts.some((a) => a.title.includes("Intercity") || a.title.includes("Jaipur → Udaipur"))).toBe(true);
+  });
   it("handles 11-day trip with travel days included: Day 1 departure, Days 2-10 destination, Day 11 return", () => {
     const trip11Incl = planTripLocally({
       origin: "Delhi",

@@ -733,16 +733,7 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
   },
 ];
 
-/**
- * Return real hotels for any destination query, with real high-resolution images,
- * realistic prices in INR, star ratings, and amenities.
- */
-export function resolveRealHotels(
-  destination: string,
-  tier: 0 | 1 | 2 = 1,
-  _pax = 2,
-  _userBudget?: number
-): {
+export interface ResolvedHotel {
   name: string;
   address: string;
   price: string;
@@ -754,8 +745,79 @@ export function resolveRealHotels(
   tier: "budget" | "comfort" | "luxury";
   nightlyMin: number;
   nightlyMax: number;
-}[] {
+  city?: string;
+  bookingUrl: string;
+  bookingUrls: {
+    googleHotels: string;
+    bookingCom: string;
+    makeMyTrip: string;
+  };
+}
+
+/**
+ * Return real hotels for any destination query, with real high-resolution images,
+ * realistic prices in INR, star ratings, amenities, and direct booking links.
+ * Handles both single destination and multi-city routes (e.g. "Delhi (2 days) | Jaipur (3 days)").
+ */
+export function resolveRealHotels(
+  destination: string,
+  tier: 0 | 1 | 2 = 1,
+  _pax = 2,
+  _userBudget?: number
+): ResolvedHotel[] {
+  // If destination contains multiple stops (e.g., "Delhi (2 days) | Jaipur (3 days)" or "Delhi -> Jaipur")
+  const rawSegments = destination.split(/\||->/).map((s) => s.trim()).filter(Boolean);
+  if (rawSegments.length > 1) {
+    const results: ResolvedHotel[] = [];
+    const seenNames = new Set<string>();
+
+    for (const seg of rawSegments) {
+      // Strip days notation like "(2 days)" or ":2"
+      const cleanStop = seg.replace(/\s*\(\s*\d+\s*(?:days?|d)?\s*\)|\s*:\s*\d+/gi, "").trim();
+      if (!cleanStop) continue;
+      const stopHotels = resolveSingleDestinationHotels(cleanStop, tier);
+      for (const h of stopHotels) {
+        if (!seenNames.has(h.name)) {
+          seenNames.add(h.name);
+          results.push(h);
+        }
+      }
+    }
+
+    if (results.length > 0) {
+      return results;
+    }
+  }
+
+  return resolveSingleDestinationHotels(destination, tier);
+}
+
+function cleanDestinationName(dest: string): string {
+  return dest
+    .replace(/\s*\(\s*\d+\s*(?:days?|d)?\s*\)|\s*:\s*\d+/gi, "")
+    .split(/,|-|\|/)[0]
+    .trim()
+    .replace(/\s+(india|district|city)$/i, "");
+}
+
+function resolveSingleDestinationHotels(
+  destination: string,
+  tier: 0 | 1 | 2 = 1
+): ResolvedHotel[] {
   const norm = destination.toLowerCase().trim();
+  const cleanCity = cleanDestinationName(destination);
+
+  const tierName: "budget" | "comfort" | "luxury" =
+    tier === 0 ? "budget" : tier === 2 ? "luxury" : "comfort";
+
+  const buildBookingUrls = (hotelName: string, city: string) => {
+    const searchTarget = `${hotelName} ${city}`.trim();
+    return {
+      googleHotels: `https://www.google.com/travel/hotels?q=${encodeURIComponent(searchTarget)}`,
+      bookingCom: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(`${hotelName}, ${city}`)}`,
+      makeMyTrip: `https://www.makemytrip.com/hotels/hotel-listing/?city=${encodeURIComponent(city)}&searchText=${encodeURIComponent(hotelName)}`,
+    };
+  };
 
   // 1. Find direct matches in the curated real hotels DB
   const matched = REAL_HOTELS_DB.filter((h) => {
@@ -772,34 +834,35 @@ export function resolveRealHotels(
     );
   });
 
-  const tierName: "budget" | "comfort" | "luxury" =
-    tier === 0 ? "budget" : tier === 2 ? "luxury" : "comfort";
-
   if (matched.length > 0) {
-    // Sort so the selected tier comes first, followed by other options
     const sorted = [...matched].sort((a, b) => {
       if (a.tier === tierName && b.tier !== tierName) return -1;
       if (b.tier === tierName && a.tier !== tierName) return 1;
       return b.rating - a.rating;
     });
 
-    return sorted.slice(0, 3).map((h) => ({
-      name: h.name,
-      address: h.address,
-      price: `₹${h.pricePerNightINR[0].toLocaleString("en-IN")}–₹${h.pricePerNightINR[1].toLocaleString("en-IN")}/night (estimate)`,
-      image_query: `${h.name} ${h.destination}`,
-      image_url: h.imageUrl,
-      rating: h.rating,
-      description: h.description,
-      amenities: h.amenities,
-      tier: h.tier,
-      nightlyMin: h.pricePerNightINR[0],
-      nightlyMax: h.pricePerNightINR[1],
-    }));
+    return sorted.slice(0, 3).map((h) => {
+      const urls = buildBookingUrls(h.name, h.destination);
+      return {
+        name: h.name,
+        address: h.address,
+        price: `₹${h.pricePerNightINR[0].toLocaleString("en-IN")}–₹${h.pricePerNightINR[1].toLocaleString("en-IN")}/night (estimate)`,
+        image_query: `${h.name} ${h.destination}`,
+        image_url: h.imageUrl,
+        rating: h.rating,
+        description: h.description,
+        amenities: h.amenities,
+        tier: h.tier,
+        nightlyMin: h.pricePerNightINR[0],
+        nightlyMax: h.pricePerNightINR[1],
+        city: h.destination,
+        bookingUrl: urls.googleHotels,
+        bookingUrls: urls,
+      };
+    });
   }
 
   // 2. Dynamic high-fidelity real hotel generation for unlisted destinations
-  const cleanCity = destination.split(/,|-|\|/)[0].trim().replace(/\s+(india|district|city)$/i, "");
   const dynamicPicks = [
     {
       name: `${cleanCity} Grand Heritage Palace & Spa Resort`,
@@ -839,17 +902,23 @@ export function resolveRealHotels(
     return b.rating - a.rating;
   });
 
-  return sortedDynamic.map((h) => ({
-    name: h.name,
-    address: h.address,
-    price: `₹${h.pricePerNightINR[0].toLocaleString("en-IN")}–₹${h.pricePerNightINR[1].toLocaleString("en-IN")}/night (estimate)`,
-    image_query: `${h.name} ${cleanCity}`,
-    image_url: h.imageUrl,
-    rating: h.rating,
-    description: h.description,
-    amenities: h.amenities,
-    tier: h.tier,
-    nightlyMin: h.pricePerNightINR[0],
-    nightlyMax: h.pricePerNightINR[1],
-  }));
+  return sortedDynamic.map((h) => {
+    const urls = buildBookingUrls(h.name, cleanCity);
+    return {
+      name: h.name,
+      address: h.address,
+      price: `₹${h.pricePerNightINR[0].toLocaleString("en-IN")}–₹${h.pricePerNightINR[1].toLocaleString("en-IN")}/night (estimate)`,
+      image_query: `${h.name} ${cleanCity}`,
+      image_url: h.imageUrl,
+      rating: h.rating,
+      description: h.description,
+      amenities: h.amenities,
+      tier: h.tier,
+      nightlyMin: h.pricePerNightINR[0],
+      nightlyMax: h.pricePerNightINR[1],
+      city: cleanCity,
+      bookingUrl: urls.googleHotels,
+      bookingUrls: urls,
+    };
+  });
 }

@@ -42,41 +42,75 @@ export function parseTripPrompt(input: string): ParsedTripQuery {
   let startDate: string | undefined = undefined;
   let includeTravelDays: "yes" | "no" | undefined = undefined;
 
+  // Check for multi-city pattern with days e.g. "2 days in Delhi and 3 days in Jaipur" or "Delhi 2 days, Jaipur 3 days"
+  const multiCityWithDaysRegex = /(\d+)\s*(?:days?|d|nights?|din)\s*(?:in|at)?\s*([a-zA-Z\s]+?)(?=\s+(?:and|,|then|\d+|\bfrom\b|$))|([a-zA-Z\s]+?)\s*(?:for\s*)?(\d+)\s*(?:days?|d|nights?|din)(?=\s+(?:and|,|then|\d+|\bfrom\b|$))/gi;
+  const multiMatches: { city: string; days: number }[] = [];
+  let mMatch: RegExpExecArray | null;
+  while ((mMatch = multiCityWithDaysRegex.exec(text)) !== null) {
+    let daysNum = 0;
+    let rawCity = "";
+    if (mMatch[1] && mMatch[2]) {
+      daysNum = parseInt(mMatch[1], 10);
+      rawCity = mMatch[2].trim();
+    } else if (mMatch[3] && mMatch[4]) {
+      rawCity = mMatch[3].trim();
+      daysNum = parseInt(mMatch[4], 10);
+    }
+    const cleanCity = cleanPlaceString(rawCity);
+    if (cleanCity && cleanCity.length > 2 && !/^(trip|tour|travel|from|to|and|the|visit|in|at)$/i.test(cleanCity) && daysNum > 0) {
+      multiMatches.push({ city: formatPlaceTitle(cleanCity), days: daysNum });
+    }
+  }
+
+  // Also check if "from [Origin]" exists in prompt
+  const originFromMatch = lower.match(/\bfrom\s+([a-zA-Z\s]+?)(?=\s+(?:for|under|in|on|with|next|this|budget|starting|start|cheap|luxury|moderate|couple|solo|family|friends|group|relaxed|adventure|foodie|spiritual|\d+\s*(?:days?|nights?|din|k|lakh|rs|inr))\b|[,.?!]|$)/i);
+  if (originFromMatch) {
+    origin = formatPlaceTitle(cleanPlaceString(originFromMatch[1]));
+  }
+
+  if (multiMatches.length >= 2) {
+    destination = multiMatches.map((m) => `${m.city} (${m.days} days)`).join(" | ");
+    const totalDays = multiMatches.reduce((acc, cur) => acc + cur.days, 0);
+    days = totalDays.toString();
+  }
+
   // Delimiter for parameters that usually follow origin/destination
   const trailingBoundaries = `(?=\\s+(?:for|under|in|on|with|next|this|budget|starting|start|cheap|luxury|moderate|couple|solo|family|friends|group|relaxed|adventure|foodie|spiritual|\\d+\\s*(?:days?|nights?|din|k|lakh|rs|inr))\\b|[,.?!]|$)`;
 
-  // 1. ORIGIN & DESTINATION EXTRACTION
-  const fromToMatch = lower.match(new RegExp(`\\bfrom\\s+([a-zA-Z\\s]+?)\\s+to\\s+([a-zA-Z\\s]+?)${trailingBoundaries}`, "i"));
-  const toFromMatch = lower.match(new RegExp(`\\b(?:trip|travel|tour|going|holiday|vacation)?\\s*to\\s+([a-zA-Z\\s]+?)\\s+from\\s+([a-zA-Z\\s]+?)${trailingBoundaries}`, "i"));
-  const directToMatch = lower.match(new RegExp(`^(?:a\\s+)?(?:trip|travel|tour)?\\s*([a-zA-Z\\s]+?)\\s+to\\s+([a-zA-Z\\s]+?)${trailingBoundaries}`, "i"));
-  const seTakMatch = lower.match(new RegExp(`([a-zA-Z\\s]+?)\\s+(?:se|say)\\s+([a-zA-Z\\s]+?)(?:\\s+(?:tak|jana|jaana|ke\\s+liye))?${trailingBoundaries}`, "i"));
+  // 1. ORIGIN & DESTINATION EXTRACTION (if not already found via multiMatches)
+  if (!destination) {
+    const fromToMatch = lower.match(new RegExp(`\\bfrom\\s+([a-zA-Z\\s]+?)\\s+to\\s+([a-zA-Z\\s]+?)${trailingBoundaries}`, "i"));
+    const toFromMatch = lower.match(new RegExp(`\\b(?:trip|travel|tour|going|holiday|vacation)?\\s*to\\s+([a-zA-Z\\s]+?)\\s+from\\s+([a-zA-Z\\s]+?)${trailingBoundaries}`, "i"));
+    const directToMatch = lower.match(new RegExp(`^(?:a\\s+)?(?:trip|travel|tour)?\\s*([a-zA-Z\\s]+?)\\s+to\\s+([a-zA-Z\\s]+?)${trailingBoundaries}`, "i"));
+    const seTakMatch = lower.match(new RegExp(`([a-zA-Z\\s]+?)\\s+(?:se|say)\\s+([a-zA-Z\\s]+?)(?:\\s+(?:tak|jana|jaana|ke\\s+liye))?${trailingBoundaries}`, "i"));
 
-  if (fromToMatch) {
-    origin = cleanPlaceString(fromToMatch[1]);
-    destination = cleanPlaceString(fromToMatch[2]);
-  } else if (toFromMatch) {
-    destination = cleanPlaceString(toFromMatch[1]);
-    origin = cleanPlaceString(toFromMatch[2]);
-  } else if (directToMatch) {
-    origin = cleanPlaceString(directToMatch[1]);
-    destination = cleanPlaceString(directToMatch[2]);
-  } else if (seTakMatch) {
-    origin = cleanPlaceString(seTakMatch[1]);
-    destination = cleanPlaceString(seTakMatch[2]);
-  } else {
-    // Check gazetteer places
-    if (slmSlots.origin?.name) {
-      origin = slmSlots.origin.name;
-    }
-    if (slmSlots.destination?.name) {
-      destination = slmSlots.destination.name;
-    }
+    if (fromToMatch) {
+      origin = cleanPlaceString(fromToMatch[1]);
+      destination = cleanPlaceString(fromToMatch[2]);
+    } else if (toFromMatch) {
+      destination = cleanPlaceString(toFromMatch[1]);
+      origin = cleanPlaceString(toFromMatch[2]);
+    } else if (directToMatch) {
+      origin = cleanPlaceString(directToMatch[1]);
+      destination = cleanPlaceString(directToMatch[2]);
+    } else if (seTakMatch) {
+      origin = cleanPlaceString(seTakMatch[1]);
+      destination = cleanPlaceString(seTakMatch[2]);
+    } else {
+      // Check gazetteer places
+      if (slmSlots.origin?.name) {
+        origin = slmSlots.origin.name;
+      }
+      if (slmSlots.destination?.name) {
+        destination = slmSlots.destination.name;
+      }
 
-    // Direct pattern "to [Destination]"
-    if (!destination) {
-      const justTo = lower.match(new RegExp(`\\b(?:to|in|at|visit|visiting)\\s+([a-zA-Z\\s]+?)${trailingBoundaries}`, "i"));
-      if (justTo) {
-        destination = cleanPlaceString(justTo[1]);
+      // Direct pattern "to [Destination]"
+      if (!destination) {
+        const justTo = lower.match(new RegExp(`\\b(?:to|in|at|visit|visiting)\\s+([a-zA-Z\\s]+?)${trailingBoundaries}`, "i"));
+        if (justTo) {
+          destination = cleanPlaceString(justTo[1]);
+        }
       }
     }
   }
@@ -106,24 +140,28 @@ export function parseTripPrompt(input: string): ParsedTripQuery {
   }
 
   // Normalize capitalization of destination and origin
-  destination = formatPlaceTitle(destination);
+  if (!destination.includes("|")) {
+    destination = formatPlaceTitle(destination);
+  }
   if (origin) {
     origin = formatPlaceTitle(origin);
   }
 
   // 2. DURATION / DAYS EXTRACTION
-  if (slmSlots.days) {
-    days = slmSlots.days.toString();
-  } else {
-    const daysMatch = lower.match(/(\d+)\s*(?:-|\s)?(?:days?|nights?|din|raat)/i);
-    if (daysMatch) {
-      days = daysMatch[1];
-    } else if (/\b(?:a|one)\s+week\b/i.test(lower)) {
-      days = "7";
-    } else if (/\b(?:two|2)\s+weeks\b/i.test(lower)) {
-      days = "14";
-    } else if (/\bweekend\b/i.test(lower)) {
-      days = "2";
+  if (!days) {
+    if (slmSlots.days) {
+      days = slmSlots.days.toString();
+    } else {
+      const daysMatch = lower.match(/(\d+)\s*(?:-|\s)?(?:days?|nights?|din|raat)/i);
+      if (daysMatch) {
+        days = daysMatch[1];
+      } else if (/\b(?:a|one)\s+week\b/i.test(lower)) {
+        days = "7";
+      } else if (/\b(?:two|2)\s+weeks\b/i.test(lower)) {
+        days = "14";
+      } else if (/\bweekend\b/i.test(lower)) {
+        days = "2";
+      }
     }
   }
 

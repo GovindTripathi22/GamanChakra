@@ -21,6 +21,15 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "loremflickr.com" },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/destinations",
+        destination: "/destination-intelligence",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

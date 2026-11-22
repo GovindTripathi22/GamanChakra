@@ -569,8 +569,31 @@ function buildDepartureTravelActivities(
 }
 
 export function planTripLocally(input: TripData): GeneratedTrip {
-  const stops = input.destination.split("|").map((d) => d.trim()).filter(Boolean);
-  const rawDays = parseInt(input.days, 10) || 3;
+  // Parse stops and extract optional explicit per-stop days e.g. "Delhi (2 days)" or "Jaipur: 3"
+  const rawStops = input.destination.split("|").map((d) => d.trim()).filter(Boolean);
+  const parsedStops = rawStops.map((raw) => {
+    const match = raw.match(/^(.*?)(?::\s*(\d+)|\s*\(\s*(\d+)\s*(?:days?|d)?\s*\)|\s*-\s*(\d+)\s*(?:days?|d)?|\s+(\d+)\s*(?:days?|d))$/i);
+    if (match) {
+      const cleanName = match[1].trim();
+      const explicitDays = parseInt(match[2] || match[3] || match[4] || match[5], 10);
+      return {
+        raw,
+        cleanName: cleanName || raw,
+        explicitDays: !isNaN(explicitDays) && explicitDays > 0 ? explicitDays : undefined,
+      };
+    }
+    return {
+      raw,
+      cleanName: raw,
+      explicitDays: undefined,
+    };
+  });
+
+  const stops = parsedStops.map((p) => p.cleanName);
+  const hasExplicitStopDays = parsedStops.some((p) => typeof p.explicitDays === "number");
+  const explicitDaysSum = parsedStops.reduce((sum, p) => sum + (p.explicitDays || 0), 0);
+
+  const rawDays = parseInt(input.days, 10) || (hasExplicitStopDays ? explicitDaysSum : 3);
   const requestedDays = Math.max(1, Math.min(21, rawDays));
   const pax = travelersCount(input.travelers || "2");
   const tier = budgetTier(input.budget || "Moderate");
@@ -596,12 +619,25 @@ export function planTripLocally(input: TripData): GeneratedTrip {
     ? Math.max(1, requestedDays - 2)
     : requestedDays;
 
-  const perStop = stops.map((s, i) => ({
-    name: s,
-    place: findPlace(s),
-    kb: kbFor(s),
-    days: Math.floor(destStayDays / stops.length) + (i < destStayDays % stops.length ? 1 : 0),
-  }));
+  // Allocate days per stop:
+  // If stops have explicit days specified, allocate them accurately.
+  // If some stops have explicit days and others don't, allocate the remainder.
+  const perStop = parsedStops.map((s) => {
+    let allocatedDays = s.explicitDays;
+    if (allocatedDays === undefined) {
+      const unassignedStops = parsedStops.filter((p) => p.explicitDays === undefined);
+      const remainingDays = Math.max(unassignedStops.length, destStayDays - explicitDaysSum);
+      const unassignedIdx = unassignedStops.findIndex((p) => p === s);
+      allocatedDays = Math.floor(remainingDays / unassignedStops.length) + (unassignedIdx < remainingDays % unassignedStops.length ? 1 : 0);
+    }
+    const cleanCity = s.cleanName;
+    return {
+      name: cleanCity,
+      place: findPlace(cleanCity),
+      kb: kbFor(cleanCity),
+      days: Math.max(1, allocatedDays),
+    };
+  });
 
   const rawStartDate = input.startDate?.trim();
   const validStartDate = rawStartDate && /^\d{4}-\d{2}-\d{2}$/.test(rawStartDate) ? rawStartDate : undefined;
@@ -655,6 +691,9 @@ export function planTripLocally(input: TripData): GeneratedTrip {
         amenities: rh.amenities,
         tier: rh.tier,
         geo_coordinates: stop.place ? { lat: stop.place.lat, lng: stop.place.lng } : undefined,
+        city: rh.city || stop.name,
+        bookingUrl: rh.bookingUrl,
+        bookingUrls: rh.bookingUrls,
       });
     }
 
@@ -687,12 +726,13 @@ export function planTripLocally(input: TripData): GeneratedTrip {
   }
 
   // Generate Destination Stay Days
+  let stopIndex = 0;
   for (const stop of perStop) {
     const place = stop.place;
     const kb = stop.kb;
     const perDay = /relax|chill/i.test(input.vibe || "") ? 2 : 3;
     const neededPois = perDay * Math.max(1, stop.days);
-    const pois = getDestinationPois(stop.name, place, kb, seed, input.vibe, neededPois);
+    const pois = getDestinationPois(stop.name, place, kb, seed + stopIndex * 31, input.vibe, neededPois);
 
     const vibeOutdoor = /adventure|nature|beach/i.test(input.vibe || "");
     const vibeCulture = /culture|heritage|spiritual|history/i.test(input.vibe || "");
@@ -703,13 +743,15 @@ export function planTripLocally(input: TripData): GeneratedTrip {
     const chosen = ranked.slice(0, Math.min(ranked.length, neededPois));
 
     for (let d = 0; d < stop.days; d++) {
-      const dayPois = orderByProximity(chosen.slice(d * perDay, d * perDay + perDay));
+      const isTransitionDay = stopIndex > 0 && d === 0;
+      const dayPois = orderByProximity(chosen.slice(d * perDay, d * perDay + (isTransitionDay ? Math.max(1, perDay - 1) : perDay)));
       // slot assignment: peak-crowd & outdoor -> morning, evening items -> evening
       const slots: Record<string, Poi[]> = { morning: [], afternoon: [], evening: [] };
       for (const p of dayPois) {
-        let slot: string = p.slot === "any" ? "afternoon" : p.slot;
-        if (p.crowd === "peak" && p.slot !== "evening") slot = "morning";
-        if (slots[slot].length >= 1) slot = ["morning", "afternoon", "evening"].find((s) => slots[s].length === 0) ?? slot;
+        let slot: string = p.slot === "any" ? (isTransitionDay ? "afternoon" : "afternoon") : p.slot;
+        if (isTransitionDay && slot === "morning") slot = "afternoon";
+        if (p.crowd === "peak" && p.slot !== "evening" && !isTransitionDay) slot = "morning";
+        if (slots[slot].length >= 1) slot = ["afternoon", "evening", "morning"].find((s) => slots[s].length === 0) ?? slot;
         slots[slot].push(p);
       }
       const acts: Activity[] = [];
@@ -717,6 +759,41 @@ export function planTripLocally(input: TripData): GeneratedTrip {
       let dayTicketsTotal = 0;
       let dayDistanceKm = 0;
       let prevCoords: { lat: number; lng: number } | null = place ? { lat: place.lat, lng: place.lng } : null;
+
+      // If this is a transition day between multi-destination stops, prepend intercity travel
+      if (isTransitionDay) {
+        const prevStop = perStop[stopIndex - 1];
+        const prevPlace = prevStop.place;
+        const currPlace = stop.place;
+        const distKm = prevPlace && currPlace ? Math.round(haversineKm(prevPlace, currPlace)) : 260;
+        const transitCostMin = Math.round(distKm * 1.5 * pax);
+        const transitCostMax = Math.round(distKm * 3.5 * pax);
+        acts.push({
+          id: `act-${dayNo}-intercity`,
+          title: `Intercity Scenic Journey: ${prevStop.name} → ${stop.name}`,
+          place_name: `Intercity Route (${prevStop.name} to ${stop.name})`,
+          description: `Morning journey from ${prevStop.name} to ${stop.name} (~${distKm} km). Enjoy the changing scenery by express train (e.g. Vande Bharat / Superfast Express) or intercity highway cab. Check into your hotel in ${stop.name} and refresh before afternoon sightseeing.`,
+          details: `Direct transit between ${prevStop.name} and ${stop.name}.`,
+          category: "leisure",
+          locationName: `${stop.name} Arrival Hub`,
+          timeSlot: "08:30 AM - 12:00 PM",
+          time: "08:30 AM - 12:00 PM",
+          startTime: "08:30",
+          endTime: "12:00",
+          crowdLevel: "moderate",
+          offPeakTip: `Depart early from ${prevStop.name} to make the most of your first afternoon in ${stop.name}.`,
+          bookingDeadline: "3-7 days advance",
+          ticket_price: `₹${transitCostMin.toLocaleString("en-IN")}–₹${transitCostMax.toLocaleString("en-IN")}`,
+          estimatedCost: { amount: Math.round((transitCostMin + transitCostMax) / 2), currency: "₹" },
+          coordinates: currPlace ? { lat: currPlace.lat, lng: currPlace.lng } : { lat: 0, lng: 0 },
+          geo_coordinates: currPlace ? { lat: currPlace.lat, lng: currPlace.lng } : undefined,
+          logistics: "Intercity connection transfer",
+          prediction: { delayRiskScore: 16, predictedCrowdLevel: "moderate", weatherSensitivity: "indoor", estimatedTransitMinutes: 180 },
+          isProtectedByShield: true,
+          image_query: `${prevStop.name} to ${stop.name} travel`,
+        });
+        activitiesCost += Math.round((transitCostMin + transitCostMax) / 2);
+      }
 
       for (const slot of ["morning", "afternoon", "evening"] as const) {
         for (const p of slots[slot]) {
@@ -812,7 +889,9 @@ export function planTripLocally(input: TripData): GeneratedTrip {
         .slice(0, 2)
         .map((a) => a.title.split("(")[0].trim())
         .join(" & ");
-      const dayTheme = !hasTravelDaysSplit && d === 0
+      const dayTheme = isTransitionDay
+        ? `Journey to ${stop.name} & Afternoon Highlights${highlightNames ? ` — ${highlightNames}` : ""}`
+        : !hasTravelDaysSplit && d === 0 && stopIndex === 0
         ? `Arrive & discover ${stop.name}${highlightNames ? ` — ${highlightNames}` : ""}`
         : `${stop.name} ${acts.some((a) => a.category === "culture") ? "Heritage & Culture" : "Scenic & Local Trail"}${highlightNames ? ` — ${highlightNames}` : ""}`;
       itinerary.push({
@@ -828,6 +907,7 @@ export function planTripLocally(input: TripData): GeneratedTrip {
       });
       dayNo++;
     }
+    stopIndex++;
   }
 
   // If travel days are split: Final Day is Return Travel & Departure
@@ -1066,13 +1146,6 @@ export function clampTripToUserBudget<
     hotels?: any[];
   }
 >(trip: T, rawUserBudget?: number): T {
-  const extractedBudget =
-    typeof rawUserBudget === "number" && rawUserBudget > 0
-      ? rawUserBudget
-      : Number(String(trip.budget || trip.trip_details?.budget || "").replace(/[^\d]/g, "")) || 10000;
-  const userBudget = Math.max(100, extractedBudget);
-  const targetTotalCost = Math.floor(userBudget * 0.91); // e.g., ₹4,550 for a ₹5,000 budget
-
   const daysList = Array.isArray(trip.days)
     ? trip.days
     : Array.isArray(trip.itinerary)
@@ -1080,6 +1153,26 @@ export function clampTripToUserBudget<
     : [];
   const numDays = Math.max(1, daysList.length);
   const pax = Number(trip.trip_details?.travelers) || 1;
+
+  let extractedBudget = typeof rawUserBudget === "number" && rawUserBudget > 0 ? rawUserBudget : 0;
+  if (extractedBudget <= 0) {
+    const rawStr = String(trip.budget || trip.trip_details?.budget || "");
+    const parsedNum = Number(rawStr.replace(/[^\d]/g, ""));
+    if (parsedNum > 0) {
+      extractedBudget = parsedNum;
+    } else {
+      if (/luxury|royal|premium/i.test(rawStr)) {
+        extractedBudget = numDays * pax * 18000;
+      } else if (/budget|cheap|low/i.test(rawStr)) {
+        extractedBudget = numDays * pax * 3500;
+      } else {
+        extractedBudget = numDays * pax * 7500;
+      }
+    }
+  }
+
+  const userBudget = Math.max(1000, extractedBudget);
+  const targetTotalCost = Math.floor(userBudget * 0.91); // e.g., ₹4,550 for a ₹5,000 budget
 
   // Realistic category allocations matching calculateTrueCost in cost engine
   const targetTransport = Math.round(targetTotalCost * 0.27);
@@ -1110,21 +1203,14 @@ export function clampTripToUserBudget<
     });
   }
 
-  // 2. Harmonize Hotels: Nightly rate fits accommodation allocation
+  // 2. Harmonize Hotels: Preserve authentic hotel names and realistic pricing from resolveRealHotels
   if (Array.isArray(trip.hotels) && trip.hotels.length > 0) {
-    const rooms = Math.ceil(pax / 2);
-    const nightlyStay = Math.max(250, Math.round(targetStay / (numDays * rooms)));
-    const minH = Math.round(nightlyStay * 0.85);
-    const maxH = Math.round(nightlyStay * 1.15);
     trip.hotels.forEach((hotel: any) => {
-      hotel.price = `₹${minH.toLocaleString("en-IN")}–₹${maxH.toLocaleString("en-IN")}/night (estimate)`;
-      if (nightlyStay < 1000) {
-        if (!/hostel|homestay|guesthouse/i.test(hotel.name)) {
-          hotel.name = `Budget Traveler Homestay / Hostel · Central`;
-        }
-        hotel.description = `Clean, verified budget stay or homestay fitting within your ₹${userBudget.toLocaleString("en-IN")} trip budget.`;
-      } else if (nightlyStay < 2500) {
-        hotel.description = `Comfortable hotel fitting within your ₹${userBudget.toLocaleString("en-IN")} trip budget.`;
+      // Never overwrite real hotel prices with impossible ~₹200/night rates or rename to generic hostel
+      if (!hotel.price || /₹20[0-9]|₹21[0-9]/i.test(hotel.price)) {
+        const floorMin = hotel.tier === "luxury" ? 14000 : hotel.tier === "comfort" ? 4500 : 1800;
+        const floorMax = hotel.tier === "luxury" ? 28000 : hotel.tier === "comfort" ? 8500 : 3400;
+        hotel.price = `₹${floorMin.toLocaleString("en-IN")}–₹${floorMax.toLocaleString("en-IN")}/night (estimate)`;
       }
     });
   }

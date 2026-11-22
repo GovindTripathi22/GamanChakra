@@ -39,22 +39,22 @@ export function VerificationHealthBar({
           </div>
           <div>
             <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-              Itinerary Feasibility Engine
+              Itinerary Verification & Schedule Check
             </h4>
             <p className="text-xs text-slate-500">
-              Provider timetable, transit buffer, and opening hours checks
+              Opening hours, transit buffers, and pacing verified for your trip
             </p>
           </div>
         </div>
         <Button
           size="sm"
           variant="outline"
-          className="rounded-full text-xs font-semibold gap-1.5"
+          className="rounded-full text-xs font-semibold gap-1.5 cursor-pointer"
           onClick={onReverify}
           disabled={isValidating}
         >
           <RefreshCw className={`h-3.5 w-3.5 ${isValidating ? "animate-spin" : ""}`} />
-          Run Verification
+          Verify Itinerary
         </Button>
       </div>
     );
