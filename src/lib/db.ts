@@ -58,7 +58,8 @@ if (!process.env.DATABASE_URL) {
   } else if (process.env.POSTGRES_URL) {
     process.env.DATABASE_URL = process.env.POSTGRES_URL;
   } else {
-    process.env.DATABASE_URL = "file:./dev.db";
+    // Safe build-time dummy so next build / prisma client initialization does not error during deployment build
+    process.env.DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/postgres";
   }
 }
 

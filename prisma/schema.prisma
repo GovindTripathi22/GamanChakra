@@ -1,5 +1,5 @@
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -29,6 +29,7 @@ model Trip {
   alerts      Alert[]
   actions     Action[]
   groupRooms  GroupRoom[]
+  claims      ClaimCase[]
 
   @@index([ownerId])
 }
@@ -136,6 +137,34 @@ model Action {
 
   @@index([tripId])
   @@index([idempotencyKey])
+}
+
+model ClaimCase {
+  id                    String      @id @default(cuid())
+  tripId                String
+  trip                  Trip        @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  ownerId               String
+  incidentType          String      // flight_delay | flight_cancellation | train_delay | baggage_delay | medical_emergency | trip_interruption | other
+  incidentDate          String
+  provider              String
+  description           String?
+  isSimulatedDisruption Boolean     @default(false)
+  disruptionAlertId     String?
+  evidenceChecklist     String      @default("[]") // JSON array of EvidenceItem
+  incidentTimeline      String      @default("[]") // JSON array of IncidentTimelineEvent
+  insurerName           String?
+  policyNumberLast4     String?     // Last 4 digits only (no full policy numbers stored)
+  insurerEmail          String?
+  status                String      @default("draft") // draft | email_prepared | sent_by_traveler | insurer_acknowledged | settled | rejected
+  followUpDate          String?
+  emailDraft            String?     // JSON EmailDraft
+  notes                 String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([tripId])
+  @@index([ownerId])
+  @@index([status])
 }
 
 model AuditEvent {
