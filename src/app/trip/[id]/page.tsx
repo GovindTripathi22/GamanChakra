@@ -27,6 +27,7 @@ import {
     Backpack,
     Route,
     Lightbulb,
+    ExternalLink,
 } from "lucide-react";
 import { toast } from "@/components/gc/toast";
 import { Button } from "@/components/ui/button";

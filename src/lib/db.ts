@@ -1,4 +1,47 @@
 import { PrismaClient } from "@prisma/client";
+import net from "node:net";
+
+let lastDbCheck = 0;
+let lastDbResult = false;
+
+/** Fast TCP probe to check if database is alive before allowing Prisma queries to hang */
+export async function isDbAvailable(): Promise<boolean> {
+  const now = Date.now();
+  if (now - lastDbCheck < 30_000) return lastDbResult;
+  lastDbCheck = now;
+
+  const urlStr = process.env.DATABASE_URL || "";
+  if (!urlStr.startsWith("postgresql://") && !urlStr.startsWith("postgres://")) {
+    lastDbResult = true;
+    return true;
+  }
+
+  try {
+    const parsed = new URL(urlStr);
+    const port = Number(parsed.port || 5432);
+    const host = parsed.hostname || "127.0.0.1";
+
+    lastDbResult = await new Promise<boolean>((resolve) => {
+      const sock = net.createConnection({ port, host, timeout: 350 });
+      sock.on("connect", () => {
+        sock.destroy();
+        resolve(true);
+      });
+      sock.on("error", () => {
+        sock.destroy();
+        resolve(false);
+      });
+      sock.on("timeout", () => {
+        sock.destroy();
+        resolve(false);
+      });
+    });
+    return lastDbResult;
+  } catch {
+    lastDbResult = false;
+    return false;
+  }
+}
 
 /**
  * Prisma Client singleton for the Next.js App Router.
