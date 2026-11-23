@@ -61,7 +61,8 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@playwright/test": "1.56",
+    "@playwright/test": "^1.56.1",
+    "playwright": "^1.56.1",
     "@tailwindcss/postcss": "^4",
     "@types/d3-geo": "^3.1.1",
     "@types/node": "^20",
