@@ -90,12 +90,16 @@ export interface Hotel {
   description?: string;
   amenities?: string[];
   tier?: "budget" | "comfort" | "luxury";
+  propertyType?: "hostel" | "hotel" | "resort" | "homestay";
+  roomType?: string;
   city?: string;
   bookingUrl?: string;
   bookingUrls?: {
     googleHotels: string;
     bookingCom: string;
     makeMyTrip: string;
+    hostelworld?: string;
+    directBrand?: string;
   };
 }
 

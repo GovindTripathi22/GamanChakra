@@ -8,6 +8,9 @@ export interface RealHotelRecord {
   imageUrl: string;
   description: string;
   tier: "budget" | "comfort" | "luxury";
+  propertyType?: "hostel" | "hotel" | "resort" | "homestay";
+  roomType?: string;
+  directUrl?: string;
   amenities: string[];
 }
 
@@ -54,12 +57,42 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     name: "Zostel Morjim Beach",
     destination: "Goa",
     address: "Vithaldaswada, Morjim, North Goa 403512",
-    pricePerNightINR: [1200, 2600],
-    rating: 4.4,
+    pricePerNightINR: [550, 1100],
+    rating: 4.5,
     imageUrl: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80",
-    description: "Vibrant social stay by the olive ridley turtle beach with common working café, dorms, and private sunlit cottages.",
+    description: "Vibrant social backpacker stay by the olive ridley turtle beach with common working café, AC dorm beds, and private sunlit cottages.",
     tier: "budget",
-    amenities: ["Co-working Space", "Beachfront Cafe", "Free High-Speed WiFi", "Community Events", "Air Conditioning"],
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["AC Dormitory Bed", "Co-working Space", "Beachfront Cafe", "Free High-Speed WiFi", "Community Events", "Personal Lockers"],
+  },
+  {
+    id: "goa-the-hosteller-anjuna",
+    name: "The Hosteller Goa (Anjuna)",
+    destination: "Goa",
+    address: "Near Anjuna Flea Market, Anjuna, North Goa 403509",
+    pricePerNightINR: [499, 950],
+    rating: 4.4,
+    imageUrl: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80",
+    description: "Lively hostel with outdoor swimming pool, palm-shaded co-working courtyard, scooter rentals, and easy access to Anjuna beach.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["Swimming Pool", "AC Dormitory Bed", "Scooter Rental Desk", "Free WiFi", "Cafe & Bar", "Community Bonfires"],
+  },
+  {
+    id: "goa-gostops-vagator",
+    name: "goSTOPS Goa (Vagator)",
+    destination: "Goa",
+    address: "Near Chapora Fort Road, Vagator, North Goa 403509",
+    pricePerNightINR: [450, 850],
+    rating: 4.3,
+    imageUrl: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80",
+    description: "Social backpacker stay near Chapora Fort and Vagator cliff sunsets with swimming pool, gaming area, and AC dorm pods.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["Swimming Pool", "AC Dorm Pods", "Chapora Fort Views", "High-Speed WiFi", "Lockers", "Common Kitchen"],
   },
 
   // JAIPUR
@@ -73,6 +106,8 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     imageUrl: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80",
     description: "The 'Jewel of Jaipur' — former residence of the Maharaja of Jaipur with marble corridors, peacock gardens, and royal dining.",
     tier: "luxury",
+    propertyType: "resort",
+    roomType: "Palace Suite",
     amenities: ["Heritage Palace Walk", "Jiva Grande Spa", "Indoor & Outdoor Pools", "Butler Service", "Suvarna Mahal Royal Dining"],
   },
   {
@@ -85,6 +120,8 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     imageUrl: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80",
     description: "Regal haveli-styled architecture with central courtyard water bodies, Peshawri dining, and Kaya Kalp spa.",
     tier: "comfort",
+    propertyType: "hotel",
+    roomType: "Executive Club Room",
     amenities: ["Outdoor Pool", "Kaya Kalp Spa", "Peshawri Restaurant", "Free WiFi", "Fitness Center", "Valet Parking"],
   },
   {
@@ -97,19 +134,51 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     imageUrl: "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=800&q=80",
     description: "Intricately carved Rajput balconies, antique furnishings, rooftop pool, and live evening puppet and folk performances.",
     tier: "comfort",
+    propertyType: "hotel",
+    roomType: "Heritage Deluxe Room",
     amenities: ["Rooftop Pool", "Folk Performances", "Free Breakfast", "Free WiFi", "Multi-Cuisine Restaurant", "Air Conditioning"],
   },
   {
     id: "jaipur-zostel",
-    name: "Zostel Jaipur (Old City)",
+    name: "Zostel Jaipur (Hawa Mahal)",
     destination: "Jaipur",
     address: "First Floor, Hawa Mahal Road, Badi Choupad, Jaipur 302002",
-    pricePerNightINR: [1400, 2500],
-    rating: 4.3,
+    pricePerNightINR: [450, 850],
+    rating: 4.5,
     imageUrl: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80",
-    description: "Colorful traveler stay right in the Pink City bazaar, 5 minutes walk from Hawa Mahal, with rooftop terrace views.",
+    description: "Colorful traveler stay right in the Pink City bazaar, 5 minutes walk from Hawa Mahal, with rooftop terrace views and AC dorms.",
     tier: "budget",
-    amenities: ["Rooftop Cafe", "Hawa Mahal Views", "Free High-Speed WiFi", "Luggage Storage", "Walking Tours"],
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["AC Dormitory Bed", "Rooftop Cafe", "Hawa Mahal Views", "Free High-Speed WiFi", "Luggage Storage", "Walking Tours"],
+  },
+  {
+    id: "jaipur-gostops",
+    name: "goSTOPS Jaipur",
+    destination: "Jaipur",
+    address: "Chomu Haveli, D-76, Subhash Marg, C-Scheme, Jaipur 302001",
+    pricePerNightINR: [400, 799],
+    rating: 4.4,
+    imageUrl: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80",
+    description: "Lively backpacker hostel in central C-Scheme with movie screening zone, vibrant dorms, foosball tables, and rooftop sunsets.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["AC Dormitory Bed", "Game Room & Movie Zone", "Free WiFi", "Rooftop Terrace", "Lockers & Lamp", "Cafe"],
+  },
+  {
+    id: "jaipur-the-hosteller",
+    name: "The Hosteller Jaipur",
+    destination: "Jaipur",
+    address: "MIA, Gopalbari, Near Railway Station, Jaipur 302001",
+    pricePerNightINR: [450, 799],
+    rating: 4.3,
+    imageUrl: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80",
+    description: "Modern design hostel 5 minutes from Jaipur Junction with yellow haveli accents, sunlit terrace, and guided bazaar walks.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["AC Dormitory Bed", "Yellow Haveli Terrace", "Free High-Speed WiFi", "Reading Pods", "Walking Tours", "24/7 Reception"],
   },
 
   // UDAIPUR
@@ -158,8 +227,52 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     rating: 4.4,
     imageUrl: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80",
     description: "300-year-old restored stone boutique mansion in the heart of old Udaipur with sweeping rooftop terrace vistas.",
-    tier: "budget",
+    tier: "comfort",
+    propertyType: "hotel",
+    roomType: "Haveli Room",
     amenities: ["Rooftop Terrace", "Lake & Palace Views", "Free Breakfast", "Free WiFi", "Air Conditioning", "Restaurant"],
+  },
+  {
+    id: "udaipur-zostel",
+    name: "Zostel Udaipur (Lake Pichola View)",
+    destination: "Udaipur",
+    address: "Navghat, Chandpole, Lake Pichola Old City, Udaipur 313001",
+    pricePerNightINR: [550, 950],
+    rating: 4.6,
+    imageUrl: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80",
+    description: "Iconic backpacker stay right on the ghats of Lake Pichola with breathtaking rooftop sunset views over the City Palace and lake.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["Lake Pichola Rooftop View", "AC Dormitory Bed", "Free WiFi", "Rooftop Cafe", "Personal Lockers", "Boat Tour Bookings"],
+  },
+  {
+    id: "udaipur-the-hosteller",
+    name: "The Hosteller Udaipur",
+    destination: "Udaipur",
+    address: "Near Ambrai Ghat, Old City, Udaipur 313001",
+    pricePerNightINR: [499, 899],
+    rating: 4.4,
+    imageUrl: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80",
+    description: "Waterfront backpacker hostel steps from Ambrai Ghat featuring artistic dorms, community hangout spaces, and lakeside morning chai.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["Steps to Ambrai Ghat", "AC Dorm Bed", "Free WiFi", "Lakeside Hangout", "Lockers", "Luggage Storage"],
+  },
+  {
+    id: "udaipur-moustache",
+    name: "Moustache Udaipur",
+    destination: "Udaipur",
+    address: "Panduwari, Gadiya Devra, Near Lake Pichola, Udaipur 313001",
+    pricePerNightINR: [450, 799],
+    rating: 4.3,
+    imageUrl: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80",
+    description: "Vibrant traveler haven with rooftop pool overlooking Old City havelis and Lake Pichola, offering affordable dorm beds and socializing events.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["Rooftop Mini Pool", "Lake Views", "AC Dormitory Bed", "Free WiFi", "Haveli Courtyard", "Walking Tours"],
   },
 
   // KERALA (Kochi, Munnar, Alleppey)
@@ -173,6 +286,8 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     imageUrl: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80",
     description: "Victorian shipyard restored into a luxury eco-heritage hotel overlooking the historic Fort Kochi harbour and shipping channel.",
     tier: "luxury",
+    propertyType: "resort",
+    roomType: "Sea View Suite",
     amenities: ["Harbour Sea View", "Swimming Pool", "History of Fort Kochi Cuisine", "Ayurveda Spa", "Complimentary Sunset Cruise"],
   },
   {
@@ -185,6 +300,8 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     imageUrl: "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&w=800&q=80",
     description: "High-altitude luxury hill resort nestled in mist-covered tea gardens with fireplace suites and valley viewpoints.",
     tier: "comfort",
+    propertyType: "resort",
+    roomType: "Valley View Room",
     amenities: ["Tea Garden Views", "Fireplace in Rooms", "Ayurvedic Spa", "Free Breakfast", "Nature Walks", "Fitness Center"],
   },
   {
@@ -197,19 +314,37 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     imageUrl: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80",
     description: "Canal-side wooden heritage cottages accessible by country canoe with traditional Kerala home-cooked sadhya dining.",
     tier: "comfort",
+    propertyType: "resort",
+    roomType: "Heritage Cottage",
     amenities: ["Canoe Transfers", "Backwater Views", "Fishing & Birdwatching", "Ayurvedic Center", "Free Breakfast"],
   },
   {
     id: "kerala-zostel-kochi",
-    name: "Zostel Kochi (Fort Kochi)",
+    name: "Zostel Fort Kochi",
     destination: "Kerala",
     address: "KB Jacob Road, Fort Kochi, Kochi 682001",
-    pricePerNightINR: [1200, 2400],
-    rating: 4.3,
+    pricePerNightINR: [499, 850],
+    rating: 4.4,
     imageUrl: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80",
-    description: "Laid-back colonial villa hostel with open-air courtyard garden, hammock zone, and heritage bike rentals.",
+    description: "Laid-back colonial villa hostel with open-air courtyard garden, AC dorm beds, hammock zone, and heritage bike rentals.",
     tier: "budget",
-    amenities: ["Garden Courtyard", "Free High-Speed WiFi", "Bicycle Rentals", "Common Kitchen", "Walking Tours"],
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["AC Dormitory Bed", "Garden Courtyard", "Free High-Speed WiFi", "Bicycle Rentals", "Common Kitchen", "Walking Tours"],
+  },
+  {
+    id: "kerala-the-hosteller-kochi",
+    name: "The Hosteller Fort Kochi",
+    destination: "Kerala",
+    address: "Burger Street, Near Vasco da Gama Square, Fort Kochi 682001",
+    pricePerNightINR: [450, 799],
+    rating: 4.3,
+    imageUrl: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80",
+    description: "Colonial-style backpacker hostel walking distance from Chinese Fishing Nets with garden cafe and air-conditioned dorms.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["Chinese Fishing Nets Proximity", "AC Dormitory Bed", "Garden Cafe", "Free WiFi", "Lockers", "Bike Rentals"],
   },
 
   // VARANASI
@@ -246,8 +381,38 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     rating: 4.3,
     imageUrl: "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=800&q=80",
     description: "Colorful courtyard guesthouse with vibrant fresco murals, steps from Manikarnika Ghat with multi-tier riverview rooftops.",
-    tier: "budget",
+    tier: "comfort",
+    propertyType: "hotel",
+    roomType: "River View Room",
     amenities: ["River View Rooftop", "Fresh Meals Cafe", "Free WiFi", "Travel Desk", "Sunrise Boat Arranged"],
+  },
+  {
+    id: "varanasi-zostel",
+    name: "Zostel Varanasi (Dashashwamedh Ghat)",
+    destination: "Varanasi",
+    address: "D-53/90 B, Luxa Road, Dashashwamedh, Varanasi 221001",
+    pricePerNightINR: [450, 850],
+    rating: 4.6,
+    imageUrl: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80",
+    description: "Top backpacker hostel located walking distance from Dashashwamedh Ghat and Ganga Aarti with lively common rooms and sunrise walking tours.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["AC Dormitory Bed", "Walking to Dashashwamedh", "Free WiFi", "Common Lounge", "Sunrise Boat Tours", "Personal Lockers"],
+  },
+  {
+    id: "varanasi-gostops",
+    name: "goSTOPS Varanasi",
+    destination: "Varanasi",
+    address: "B-20/47 A-2, Vijayanagaram Colony, Bhelupur, Varanasi 221010",
+    pricePerNightINR: [399, 750],
+    rating: 4.3,
+    imageUrl: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80",
+    description: "Cozy budget hostel with vibrant movie terrace, games zone, air-conditioned dorm pods, and delicious street food trails.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["AC Dorm Pods", "Movie Screening Terrace", "Free WiFi", "Personal Lockers", "Street Food Walks", "24/7 Desk"],
   },
 
   // DELHI
@@ -261,6 +426,8 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     imageUrl: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80",
     description: "Legendary 1930s Art Deco luxury hotel surrounded by royal palms with museum-quality art galleries and 1911 Verandah bar.",
     tier: "luxury",
+    propertyType: "hotel",
+    roomType: "Heritage Room",
     amenities: ["Museum Art Collection", "Imperial Spa", "Outdoor Swimming Pool", "Spice Route Restaurant", "Connaught Place Location"],
   },
   {
@@ -273,6 +440,8 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     imageUrl: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=800&q=80",
     description: "Lutyens-inspired palatial luxury with temperature-controlled rooftop infinity pool overlooking Delhi's green diplomatic canopy.",
     tier: "luxury",
+    propertyType: "hotel",
+    roomType: "Grande Deluxe Room",
     amenities: ["Rooftop Infinity Pool", "ESPA Luxury Spa", "MEGU Japanese Dining", "Le Cirque", "24h Butler"],
   },
   {
@@ -284,8 +453,52 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     rating: 4.3,
     imageUrl: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80",
     description: "Vibrant canary-yellow designer boutique hotel located next to Janpath metro, offering spotless cloudbeds and cafe dining.",
-    tier: "budget",
+    tier: "comfort",
+    propertyType: "hotel",
+    roomType: "Cloud Bed Private Room",
     amenities: ["Next to Metro Station", "Free High-Speed WiFi", "All-Day Cafe", "Cloudbeds", "Free Breakfast", "Airport Transfer"],
+  },
+  {
+    id: "delhi-gostops",
+    name: "goSTOPS Delhi (Near New Delhi Railway Station)",
+    destination: "Delhi",
+    address: "4/23-B, Asaf Ali Road, Near New Delhi Railway Station & Metro, Delhi 110002",
+    pricePerNightINR: [450, 850],
+    rating: 4.4,
+    imageUrl: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80",
+    description: "Top-rated backpacker hostel right by New Delhi Railway Station and metro with colorful AC dorm pods, co-working lounge, and Delhi street food walks.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["AC Dorm Pods", "Personal Lockers & Reading Lamp", "Free High-Speed WiFi", "Rooftop Common Area", "Walking Tours & Activities", "24/7 Front Desk"],
+  },
+  {
+    id: "delhi-zostel",
+    name: "Zostel Delhi (Paharganj / Central Delhi)",
+    destination: "Delhi",
+    address: "5, Imperial Cinema Complex, Chuna Mandi, Paharganj, New Delhi 110055",
+    pricePerNightINR: [550, 950],
+    rating: 4.5,
+    imageUrl: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80",
+    description: "Vibrant social hub in central Delhi with air-conditioned dorms, rooftop cafe overlooking the bustling skyline, game room, and community gatherings.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["AC Dormitory Bed", "Rooftop Cafe", "Free High-Speed WiFi", "Community Events", "Luggage Storage", "Travel Desk"],
+  },
+  {
+    id: "delhi-the-hosteller",
+    name: "The Hosteller Delhi (Saket)",
+    destination: "Delhi",
+    address: "Block K, Saket, South Delhi, New Delhi 110017",
+    pricePerNightINR: [499, 899],
+    rating: 4.3,
+    imageUrl: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80",
+    description: "Chic design-led backpacker hostel in South Delhi near Qutub Minar, featuring spacious dorms, open cafe courtyard, and community workspaces.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["AC Dormitory Bed", "Courtyard Cafe", "High-Speed WiFi", "Co-working Space", "Daily City Tours", "Clean Linen Included"],
   },
 
   // MUMBAI
@@ -299,6 +512,8 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     imageUrl: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80",
     description: "India's flagship grand hotel since 1903, facing the Gateway of India and Arabian Sea with 9 iconic restaurants and Jiva spa.",
     tier: "luxury",
+    propertyType: "hotel",
+    roomType: "Palace Wing City View Room",
     amenities: ["Gateway of India Views", "Jiva Spa", "Landscaped Pool", "Wasabi by Morimoto", "Historic Heritage Wing"],
   },
   {
@@ -311,6 +526,8 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     imageUrl: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80",
     description: "India's tallest luxury hotel tower towering over Palladium mall in Lower Parel with signature St. Regis 24/7 Butler Service.",
     tier: "comfort",
+    propertyType: "hotel",
+    roomType: "Deluxe King Room",
     amenities: ["Signature Butler Service", "Rooftop Swimming Pool", "Iridium Spa", "The Sahib Room & Kipling Bar", "Skyline Views"],
   },
   {
@@ -322,8 +539,38 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     rating: 4.3,
     imageUrl: "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=800&q=80",
     description: "Charming European-heritage boutique stay in the colonial Fort district, 10 minutes walk from CSMT station and Marine Drive.",
-    tier: "budget",
+    tier: "comfort",
+    propertyType: "hotel",
+    roomType: "Standard AC Room",
     amenities: ["Walking Distance to CSMT", "Free Hot Breakfast", "Free WiFi", "Travel Assistance", "Air Conditioning"],
+  },
+  {
+    id: "mumbai-zostel",
+    name: "Zostel Mumbai (Andheri)",
+    destination: "Mumbai",
+    address: "Off Military Road, Marol, Andheri East, Mumbai 400059",
+    pricePerNightINR: [750, 1300],
+    rating: 4.4,
+    imageUrl: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80",
+    description: "First chain hostel in Mumbai, 15 minutes from international airport with Bollywood-themed common spaces, cafe, and AC dorms.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["Airport Proximity", "AC Dormitory Bed", "Bollywood Common Room", "Free WiFi", "Cafe", "Lockers"],
+  },
+  {
+    id: "mumbai-the-hosteller",
+    name: "The Hosteller Mumbai",
+    destination: "Mumbai",
+    address: "Marol Maroshi Road, Andheri East, Mumbai 400059",
+    pricePerNightINR: [699, 1200],
+    rating: 4.3,
+    imageUrl: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80",
+    description: "Modern co-living and hostel hub with co-working desks, sunny rooftop lounge, superfast WiFi, and clean AC dorms.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["Co-working Desks", "AC Dormitory Bed", "Rooftop Lounge", "Free Superfast WiFi", "Lockers", "Luggage Storage"],
   },
 
   // AGRA
@@ -337,6 +584,8 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     imageUrl: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80",
     description: "Every single room and suite enjoys uninterrupted views of the Taj Mahal, located just 600 meters from the monument.",
     tier: "luxury",
+    propertyType: "resort",
+    roomType: "Premier Taj View Room",
     amenities: ["Direct Taj Mahal Views from Every Room", "Private Golf Buggies to Taj", "Moorish-Mughal Pool", "Oberoi Spa", "Fine Dining"],
   },
   {
@@ -349,6 +598,8 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
     description: "Spread over 35 acres of Mughal gardens with Kaya Kalp spa (one of Asia's largest) and Taj observation deck.",
     tier: "comfort",
+    propertyType: "hotel",
+    roomType: "Mughal Chamber",
     amenities: ["35-Acre Mughal Gardens", "Kaya Kalp Spa", "2 Swimming Pools", "Taj Observation Observatory", "Peshawri Dining"],
   },
   {
@@ -360,8 +611,38 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     rating: 4.3,
     imageUrl: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80",
     description: "Contemporary 4-star hotel on Fatehabad Road with rooftop pool offering clear views of the Taj Mahal monument.",
-    tier: "budget",
+    tier: "comfort",
+    propertyType: "hotel",
+    roomType: "Deluxe Room",
     amenities: ["Rooftop Pool with Taj View", "Free Breakfast", "Free High-Speed WiFi", "Fitness Center", "Multi-Cuisine Restaurant"],
+  },
+  {
+    id: "agra-gostops",
+    name: "goSTOPS Agra (Taj East Gate)",
+    destination: "Agra",
+    address: "Taj East Gate Road, Tajganj, Agra 282001",
+    pricePerNightINR: [399, 750],
+    rating: 4.4,
+    imageUrl: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80",
+    description: "Backpacker favorite situated 10 minutes walk from the Taj Mahal East Gate with rooftop terrace views, social games, and AC dorms.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["10 Min Walk to Taj East Gate", "Rooftop Terrace", "AC Dormitory Bed", "Free WiFi", "Lockers", "Common Cafe"],
+  },
+  {
+    id: "agra-the-hosteller",
+    name: "The Hosteller Agra",
+    destination: "Agra",
+    address: "Fatehabad Road, Near Shilpgram, Agra 282001",
+    pricePerNightINR: [399, 750],
+    rating: 4.3,
+    imageUrl: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80",
+    description: "Modern design hostel near Shilpgram with spacious dorms, traveler work zones, and sunrise cycling tours to the Taj Mahal.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["AC Dormitory Bed", "Sunrise Cycling Tours", "Free WiFi", "Cafe & Lounge", "Personal Lockers", "Luggage Storage"],
   },
 
   // LADAKH / LEH
@@ -413,6 +694,8 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     imageUrl: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80",
     description: "Terraced Himalayan eco-resort on a private beach along the sacred Ganges river with Jiva Spa and morning yoga pavilions.",
     tier: "luxury",
+    propertyType: "resort",
+    roomType: "Deluxe River View Villa",
     amenities: ["Private Ganga Beach", "Daily Sunset Ganga Aarti", "Jiva Himalayan Spa", "Yoga & Meditation Shalas", "Heated Pool"],
   },
   {
@@ -425,19 +708,37 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
     description: "Cliffside resort overlooking the emerald waters of the Ganges near Laxman Jhula with infinity pool and Ayurvedic therapies.",
     tier: "comfort",
+    propertyType: "resort",
+    roomType: "Superior Ganges Room",
     amenities: ["Cliffside Riverview Pool", "Ayurvedic Spa", "Latitude 30 Restaurant", "Yoga Sessions", "Direct River Trail"],
   },
   {
     id: "rishikesh-zostel-tapovan",
-    name: "Zostel Tapovan",
+    name: "Zostel Tapovan / Rishikesh",
     destination: "Rishikesh",
     address: "Badrinath Road, Tapovan, Laxman Jhula, Rishikesh 249192",
-    pricePerNightINR: [1400, 2800],
-    rating: 4.4,
+    pricePerNightINR: [450, 850],
+    rating: 4.5,
     imageUrl: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80",
     description: "Peaceful social hostel in Tapovan with rooftop cafe overlooking forested green hills, steps from yoga ashrams and river cafes.",
     tier: "budget",
-    amenities: ["Rooftop Cafe", "Co-working Space", "Daily Yoga Workshops", "Rafting Bookings", "Free WiFi"],
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["AC Dormitory Bed", "Rooftop Cafe", "Co-working Space", "Daily Yoga Workshops", "Rafting Bookings", "Free WiFi"],
+  },
+  {
+    id: "rishikesh-the-hosteller",
+    name: "The Hosteller Rishikesh",
+    destination: "Rishikesh",
+    address: "Near Laxman Jhula Road, Tapovan, Rishikesh 249192",
+    pricePerNightINR: [420, 799],
+    rating: 4.4,
+    imageUrl: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80",
+    description: "Vibrant mountain hostel with panoramic Himalayan foothills view, outdoor yoga sessions, rafting desk, and cozy cafe.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["Foothill Views", "AC Dormitory Bed", "Rafting & Trekking Desk", "Free WiFi", "Yoga Shala", "Cafe"],
   },
 
   // AMRITSAR
@@ -451,6 +752,8 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
     description: "Contemporary 5-star hotel featuring Jiva spa, outdoor pool, and Grand Trunk restaurant celebrating regional Punjabi cuisine.",
     tier: "luxury",
+    propertyType: "hotel",
+    roomType: "Luxury Suite",
     amenities: ["Jiva Spa", "Outdoor Swimming Pool", "Grand Trunk Fine Dining", "Golden Temple Shuttle", "Free High-Speed WiFi"],
   },
   {
@@ -463,6 +766,8 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     imageUrl: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80",
     description: "Elegant full-service luxury hotel with vitality pool, authentic Amritsari kulcha breakfast, and complimentary temple shuttle.",
     tier: "comfort",
+    propertyType: "hotel",
+    roomType: "King Room",
     amenities: ["Vitality Pool & Spa", "Complimentary Temple Shuttle", "Punjab Province Restaurant", "Fitness Center", "Free WiFi"],
   },
   {
@@ -475,7 +780,111 @@ export const REAL_HOTELS_DB: RealHotelRecord[] = [
     imageUrl: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80",
     description: "Highly rated family hotel 5 minutes from railway station, offering immaculate clean rooms and 24/7 airport and temple transfers.",
     tier: "budget",
+    propertyType: "hotel",
+    roomType: "Deluxe Private Room",
     amenities: ["Near Railway Station", "Free Breakfast", "Free High-Speed WiFi", "24/7 Room Service", "Air Conditioning"],
+  },
+  {
+    id: "amritsar-gostops",
+    name: "goSTOPS Amritsar (Golden Temple)",
+    destination: "Amritsar",
+    address: "Near Heritage Street, Golden Temple South Gate, Amritsar 143001",
+    pricePerNightINR: [399, 750],
+    rating: 4.4,
+    imageUrl: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80",
+    description: "Prime backpacker hostel just 400 meters from the Golden Temple and Heritage Street with clean AC dorm pods and 24/7 common room.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["400m to Golden Temple", "AC Dorm Pods", "Personal Lockers", "Free WiFi", "Common Lounge", "24/7 Front Desk"],
+  },
+
+  // BANGALORE
+  {
+    id: "bangalore-the-leela",
+    name: "The Leela Palace Bengaluru",
+    destination: "Bangalore",
+    address: "23, HAL Old Airport Rd, HAL 2nd Stage, Kodihalli, Bengaluru 560008",
+    pricePerNightINR: [16000, 30000],
+    rating: 4.8,
+    imageUrl: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80",
+    description: "Grand Vijayanagara-inspired palace hotel set in 7 acres of tranquil lagoons and gardens with Zen pan-Asian dining.",
+    tier: "luxury",
+    propertyType: "hotel",
+    roomType: "Royal Premiere Room",
+    amenities: ["Palace Gardens", "Outdoor Lagoon Pool", "The Leela Spa", "Zen Pan-Asian Dining", "Free WiFi"],
+  },
+  {
+    id: "bangalore-zostel",
+    name: "Zostel Bangalore (Indiranagar)",
+    destination: "Bangalore",
+    address: "12th Main Road, HAL 2nd Stage, Indiranagar, Bengaluru 560038",
+    pricePerNightINR: [650, 1100],
+    rating: 4.5,
+    imageUrl: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80",
+    description: "Trendy backpacker hub in vibrant Indiranagar, steps from 100 Feet Road brewpubs and cafes with co-working terrace and AC dorm pods.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["Heart of Indiranagar", "AC Dorm Pods", "Co-working Terrace", "Free High-Speed WiFi", "Lockers", "Cafe"],
+  },
+  {
+    id: "bangalore-the-hosteller",
+    name: "The Hosteller Bangalore (Koramangala)",
+    destination: "Bangalore",
+    address: "4th Block, 80 Feet Road, Koramangala, Bengaluru 560034",
+    pricePerNightINR: [599, 1050],
+    rating: 4.4,
+    imageUrl: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80",
+    description: "Design-forward traveler stay in startup and cafe heartland Koramangala with sunlit work terrace, gaming zone, and dorms.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["Koramangala Location", "AC Dormitory Bed", "Work Terrace", "Free WiFi", "Personal Lockers", "Bicycle Rentals"],
+  },
+
+  // MANALI / KASOL
+  {
+    id: "manali-span-resort",
+    name: "Span Resort and Spa, Manali",
+    destination: "Manali",
+    address: "Baragran Bihal, Kullu Manali Highway, Manali 175129",
+    pricePerNightINR: [14000, 26000],
+    rating: 4.7,
+    imageUrl: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80",
+    description: "Legendary luxury riverside resort on the banks of river Beas with pine forest gardens and heated pool.",
+    tier: "luxury",
+    propertyType: "resort",
+    roomType: "River View Suite",
+    amenities: ["River Beas Frontage", "Heated Pool", "La Riviere Spa by L'Occitane", "Pine Forest Walks", "Trout Fishing"],
+  },
+  {
+    id: "manali-zostel",
+    name: "Zostel Manali (Old Manali)",
+    destination: "Manali",
+    address: "Manu Temple Road, Old Manali, Himachal Pradesh 175131",
+    pricePerNightINR: [550, 950],
+    rating: 4.6,
+    imageUrl: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80",
+    description: "Cozy mountain hostel nestled in apple orchards of Old Manali with snow peak views, vibrant cafe, and bonfire guitar nights.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["Snow Peak Views", "Apple Orchard Garden", "Dorm Bed with Locker", "Free WiFi", "Bonfire Nights", "Cafe"],
+  },
+  {
+    id: "manali-the-hosteller",
+    name: "The Hosteller Manali",
+    destination: "Manali",
+    address: "Club House Road, Old Manali, Himachal Pradesh 175131",
+    pricePerNightINR: [499, 899],
+    rating: 4.5,
+    imageUrl: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80",
+    description: "Scenic hostel overlooking the Manalsu river with warm wooden dorms, outdoor patio cafe, and trek booking desk.",
+    tier: "budget",
+    propertyType: "hostel",
+    roomType: "AC Dormitory Bed",
+    amenities: ["River View Patio", "Wooden Dorm Beds", "High-Speed WiFi", "Trek Guides", "Lockers", "Common Kitchen"],
   },
 
   // SRIRANGAM / TRICHY
@@ -743,6 +1152,8 @@ export interface ResolvedHotel {
   description: string;
   amenities: string[];
   tier: "budget" | "comfort" | "luxury";
+  propertyType?: "hostel" | "hotel" | "resort" | "homestay";
+  roomType?: string;
   nightlyMin: number;
   nightlyMax: number;
   city?: string;
@@ -751,6 +1162,8 @@ export interface ResolvedHotel {
     googleHotels: string;
     bookingCom: string;
     makeMyTrip: string;
+    hostelworld?: string;
+    directBrand?: string;
   };
 }
 
@@ -762,9 +1175,15 @@ export interface ResolvedHotel {
 export function resolveRealHotels(
   destination: string,
   tier: 0 | 1 | 2 = 1,
-  _pax = 2,
-  _userBudget?: number
+  pax = 2,
+  userBudget?: number
 ): ResolvedHotel[] {
+  // If user budget is ultra-lean (under ₹5,000 per person), prioritize budget dormitories and hostels
+  let effectiveTier = tier;
+  if (userBudget && pax > 0 && userBudget / pax < 5000 && tier === 1) {
+    effectiveTier = 0;
+  }
+
   // If destination contains multiple stops (e.g., "Delhi (2 days) | Jaipur (3 days)" or "Delhi -> Jaipur")
   const rawSegments = destination.split(/\||->/).map((s) => s.trim()).filter(Boolean);
   if (rawSegments.length > 1) {
@@ -775,7 +1194,7 @@ export function resolveRealHotels(
       // Strip days notation like "(2 days)" or ":2"
       const cleanStop = seg.replace(/\s*\(\s*\d+\s*(?:days?|d)?\s*\)|\s*:\s*\d+/gi, "").trim();
       if (!cleanStop) continue;
-      const stopHotels = resolveSingleDestinationHotels(cleanStop, tier);
+      const stopHotels = resolveSingleDestinationHotels(cleanStop, effectiveTier);
       for (const h of stopHotels) {
         if (!seenNames.has(h.name)) {
           seenNames.add(h.name);
@@ -789,7 +1208,7 @@ export function resolveRealHotels(
     }
   }
 
-  return resolveSingleDestinationHotels(destination, tier);
+  return resolveSingleDestinationHotels(destination, effectiveTier);
 }
 
 function cleanDestinationName(dest: string): string {
@@ -810,12 +1229,24 @@ function resolveSingleDestinationHotels(
   const tierName: "budget" | "comfort" | "luxury" =
     tier === 0 ? "budget" : tier === 2 ? "luxury" : "comfort";
 
-  const buildBookingUrls = (hotelName: string, city: string) => {
+  const buildBookingUrls = (hotelName: string, city: string, directUrl?: string) => {
     const searchTarget = `${hotelName} ${city}`.trim();
+    let directBrand = directUrl;
+    if (!directBrand) {
+      if (/zostel/i.test(hotelName)) {
+        directBrand = `https://www.zostel.com/search?q=${encodeURIComponent(city)}`;
+      } else if (/gostops/i.test(hotelName)) {
+        directBrand = `https://gostops.com/`;
+      } else if (/the hosteller|hosteller/i.test(hotelName)) {
+        directBrand = `https://www.thehosteller.com/`;
+      }
+    }
     return {
       googleHotels: `https://www.google.com/travel/hotels?q=${encodeURIComponent(searchTarget)}`,
       bookingCom: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(`${hotelName}, ${city}`)}`,
       makeMyTrip: `https://www.makemytrip.com/hotels/hotel-listing/?city=${encodeURIComponent(city)}&searchText=${encodeURIComponent(hotelName)}`,
+      hostelworld: `https://www.hostelworld.com/s?q=${encodeURIComponent(`${hotelName}, ${city}`)}`,
+      directBrand,
     };
   };
 
@@ -830,7 +1261,9 @@ function resolveSingleDestinationHotels(
       (norm.includes("munnar") && dest === "kerala") ||
       (norm.includes("alleppey") && dest === "kerala") ||
       (norm.includes("leh") && dest === "ladakh") ||
-      (norm.includes("nyc") && dest === "new york")
+      (norm.includes("nyc") && dest === "new york") ||
+      (norm.includes("kasol") && dest === "manali") ||
+      (norm.includes("bengaluru") && dest === "bangalore")
     );
   });
 
@@ -838,21 +1271,30 @@ function resolveSingleDestinationHotels(
     const sorted = [...matched].sort((a, b) => {
       if (a.tier === tierName && b.tier !== tierName) return -1;
       if (b.tier === tierName && a.tier !== tierName) return 1;
+      if (tier === 0) {
+        const aHostel = a.propertyType === "hostel" || /hostel|zostel|gostops|dorm/i.test(a.name) ? 1 : 0;
+        const bHostel = b.propertyType === "hostel" || /hostel|zostel|gostops|dorm/i.test(b.name) ? 1 : 0;
+        if (aHostel !== bHostel) return bHostel - aHostel;
+      }
       return b.rating - a.rating;
     });
 
     return sorted.slice(0, 3).map((h) => {
-      const urls = buildBookingUrls(h.name, h.destination);
+      const urls = buildBookingUrls(h.name, h.destination, h.directUrl);
+      const isHostel = h.propertyType === "hostel" || /hostel|zostel|gostops|dorm/i.test(h.name);
+      const unit = isHostel ? "/bed (Dormitory)" : "/night (estimate)";
       return {
         name: h.name,
         address: h.address,
-        price: `₹${h.pricePerNightINR[0].toLocaleString("en-IN")}–₹${h.pricePerNightINR[1].toLocaleString("en-IN")}/night (estimate)`,
+        price: `₹${h.pricePerNightINR[0].toLocaleString("en-IN")}–₹${h.pricePerNightINR[1].toLocaleString("en-IN")}${unit}`,
         image_query: `${h.name} ${h.destination}`,
         image_url: h.imageUrl,
         rating: h.rating,
         description: h.description,
         amenities: h.amenities,
         tier: h.tier,
+        propertyType: h.propertyType || (isHostel ? "hostel" : h.tier === "luxury" ? "resort" : "hotel"),
+        roomType: h.roomType || (isHostel ? "AC Dormitory Bed" : h.tier === "luxury" ? "Luxury Suite" : "Deluxe Private Room"),
         nightlyMin: h.pricePerNightINR[0],
         nightlyMax: h.pricePerNightINR[1],
         city: h.destination,
@@ -872,6 +1314,8 @@ function resolveSingleDestinationHotels(
       imageUrl: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80",
       description: `Premier 5-star palatial retreat in ${cleanCity} with royal architecture, landscaped swimming pool, and fine dining.`,
       tier: "luxury" as const,
+      propertyType: "resort" as const,
+      roomType: "Palace Suite",
       amenities: ["Swimming Pool", "Luxury Wellness Spa", "Free Breakfast", "Free High-Speed WiFi", "Valet Parking"],
     },
     {
@@ -882,17 +1326,21 @@ function resolveSingleDestinationHotels(
       imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
       description: `Comfortable 4-star boutique hotel located in the central commercial district with multi-cuisine dining.`,
       tier: "comfort" as const,
+      propertyType: "hotel" as const,
+      roomType: "Deluxe Room",
       amenities: ["City View Rooms", "Complimentary Breakfast", "Free WiFi", "Fitness Center", "Airport Shuttle"],
     },
     {
-      name: `Zostel / Traveler Homestay ${cleanCity}`,
+      name: `Zostel / Backpacker Dormitory ${cleanCity}`,
       address: `Historic Old Town Quarter, ${cleanCity}`,
-      pricePerNightINR: [1800, 3400] as [number, number],
-      rating: 4.3,
-      imageUrl: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80",
-      description: `Cozy, well-rated modern guest stay featuring clean air-conditioned rooms, traveler lounge, and walking tours.`,
+      pricePerNightINR: [450, 850] as [number, number],
+      rating: 4.4,
+      imageUrl: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80",
+      description: `Vibrant social backpacker hostel in central ${cleanCity} offering secure air-conditioned dorm beds, personal lockers, common lounge, and walking tours.`,
       tier: "budget" as const,
-      amenities: ["Free High-Speed WiFi", "Air Conditioning", "Common Lounge", "Travel Assistance", "Luggage Storage"],
+      propertyType: "hostel" as const,
+      roomType: "AC Dormitory Bed",
+      amenities: ["AC Dormitory Bed", "Personal Lockers", "Free High-Speed WiFi", "Common Cafe Lounge", "Walking Tours", "Luggage Storage"],
     },
   ];
 
@@ -904,16 +1352,20 @@ function resolveSingleDestinationHotels(
 
   return sortedDynamic.map((h) => {
     const urls = buildBookingUrls(h.name, cleanCity);
+    const isHostel = h.propertyType === "hostel" || /hostel|zostel|gostops|dorm/i.test(h.name);
+    const unit = isHostel ? "/bed (Dormitory)" : "/night (estimate)";
     return {
       name: h.name,
       address: h.address,
-      price: `₹${h.pricePerNightINR[0].toLocaleString("en-IN")}–₹${h.pricePerNightINR[1].toLocaleString("en-IN")}/night (estimate)`,
+      price: `₹${h.pricePerNightINR[0].toLocaleString("en-IN")}–₹${h.pricePerNightINR[1].toLocaleString("en-IN")}${unit}`,
       image_query: `${h.name} ${cleanCity}`,
       image_url: h.imageUrl,
       rating: h.rating,
       description: h.description,
       amenities: h.amenities,
       tier: h.tier,
+      propertyType: h.propertyType,
+      roomType: h.roomType,
       nightlyMin: h.pricePerNightINR[0],
       nightlyMax: h.pricePerNightINR[1],
       city: cleanCity,

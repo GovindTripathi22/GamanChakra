@@ -222,11 +222,9 @@ export function LiveActivityCard({
         <div className="flex items-center gap-3">
           {(activity.ticket_price || activity.estimatedCost) && (
             <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-              <span className="text-slate-400 font-normal">Ticket:</span>
-              <span>
-                {activity.estimatedCost
-                  ? `${activity.estimatedCost.currency}${activity.estimatedCost.amount}`
-                  : activity.ticket_price}
+              <span className="text-slate-400 font-normal">Ticket / Entry:</span>
+              <span className="text-orange-600 dark:text-orange-400 font-bold">
+                {activity.ticket_price || (activity.estimatedCost ? `${activity.estimatedCost.currency}${activity.estimatedCost.amount}` : "Free")}
               </span>
             </div>
           )}

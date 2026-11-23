@@ -7,6 +7,7 @@
 export interface Poi {
   name: string; category: "sightseeing" | "culture" | "food" | "leisure"; lat: number; lng: number; minutes: number; cost: number;
   slot: "morning" | "afternoon" | "evening" | "any"; crowd: "low" | "moderate" | "peak"; outdoor: boolean; tip: string; booking: "walk-in" | "3-7 days advance" | "30+ days required";
+  ticketPrice?: string;
 }
 export interface DestinationKB { name: string; stays: [tier: string, area: string, minNight: number, maxNight: number][]; pois: Poi[]; dailyFood: [number, number]; localTransitPerDay: [number, number]; season: string }
 
@@ -30,15 +31,15 @@ Goan fish-curry dinner at a Panaji tavern|food|15.4989|73.8278|90|900|evening|mo
     stays: [["Heritage haveli guesthouse", "Old City", 2000, 4000], ["Boutique haveli", "Bani Park", 5000, 9000], ["Palace hotel", "Rambagh / Amer Road", 15000, 40000]],
     food: [700, 1600], transit: [500, 1200], season: "Oct–Mar pleasant; Apr–Jun very hot",
     pois: `
-Amber Fort|sightseeing|26.9855|75.8513|180|500|morning|peak|1|Go at opening (8 am) to beat 2-hour queues|walk-in
-Hawa Mahal|sightseeing|26.9239|75.8267|60|200|morning|peak|1|Best facade view from the café opposite|walk-in
-City Palace|culture|26.9258|75.8237|120|700|afternoon|moderate|0|Composite ticket also covers Jantar Mantar|walk-in
-Jantar Mantar observatory|culture|26.9248|75.8246|60|200|afternoon|moderate|1|Hire a guide; instruments make sense with context|walk-in
-Nahargarh Fort sunset|sightseeing|26.9373|75.8155|120|200|evening|moderate|1|Leave 45 min before sunset; road is steep|walk-in
-Johari & Bapu Bazaar|food|26.9196|75.8267|120|0|evening|peak|1|Fixed-price shops near Bapu Bazaar gate|walk-in
-Albert Hall Museum|culture|26.9116|75.8195|90|300|afternoon|low|0|Lit up beautifully after 7 pm|walk-in
-Rajasthani thali dinner|food|26.9124|75.7873|90|900|evening|moderate|0|Ask for unlimited refills of dal-baati-churma|walk-in
-Panna Meena ka Kund stepwell|sightseeing|26.9877|75.8558|40|0|morning|low|1|Combine with Amber Fort|walk-in`,
+Amber Fort|sightseeing|26.9855|75.8513|180|100|morning|peak|1|Go at opening (8 am) to beat 2-hour queues (₹100 Indian / ₹500 Foreigner)|walk-in|₹100 (Indian) / ₹500 (Foreigner)
+Hawa Mahal|sightseeing|26.9239|75.8267|60|50|morning|peak|1|Best facade view from the café opposite (₹50 Indian / ₹200 Foreigner)|walk-in|₹50 (Indian) / ₹200 (Foreigner)
+City Palace|culture|26.9258|75.8237|120|300|afternoon|moderate|0|Courtyard entry ₹300 / Museum composite ₹700|walk-in|₹300 (Courtyard) / ₹700 (Museum)
+Jantar Mantar observatory|culture|26.9248|75.8246|60|50|afternoon|moderate|1|Hire a guide; instruments make sense with context (₹50 Indian / ₹200 Foreigner)|walk-in|₹50 (Indian) / ₹200 (Foreigner)
+Nahargarh Fort sunset|sightseeing|26.9373|75.8155|120|50|evening|moderate|1|Leave 45 min before sunset; road is steep (₹50 Indian / ₹200 Foreigner)|walk-in|₹50 (Indian) / ₹200 (Foreigner)
+Johari & Bapu Bazaar|food|26.9196|75.8267|120|0|evening|peak|1|Fixed-price shops near Bapu Bazaar gate|walk-in|Free
+Albert Hall Museum|culture|26.9116|75.8195|90|100|afternoon|low|0|Lit up beautifully after 7 pm (₹100 Indian / ₹300 Foreigner)|walk-in|₹100 (Indian) / ₹300 (Foreigner)
+Rajasthani thali dinner|food|26.9124|75.7873|90|900|evening|moderate|0|Ask for unlimited refills of dal-baati-churma|walk-in|Free Entry (~₹600–₹1,000 for dinner)
+Panna Meena ka Kund stepwell|sightseeing|26.9877|75.8558|40|0|morning|low|1|Combine with Amber Fort|walk-in|Free`,
   },
   kerala: {
     stays: [["Homestay", "Fort Kochi", 1800, 3500], ["Houseboat (1 night)", "Alleppey backwaters", 7000, 14000], ["Tea-estate resort", "Munnar", 6000, 15000]],
@@ -57,49 +58,49 @@ Marari beach|leisure|9.6017|76.2980|150|0|afternoon|low|1|Quieter alternative to
     stays: [["Ghat-side guesthouse", "Assi Ghat", 1500, 3500], ["Heritage riverside hotel", "Dashashwamedh", 6000, 15000]],
     food: [500, 1200], transit: [400, 1000], season: "Oct–Mar; Dev Deepawali (Nov) is spectacular but crowded",
     pois: `
-Sunrise boat ride on the Ganga|leisure|25.3000|83.0107|90|600|morning|moderate|1|Start 5:30 am from Assi Ghat|walk-in
-Kashi Vishwanath corridor|culture|25.3109|83.0107|120|0|morning|peak|0|No phones inside; use lockers|walk-in
-Dashashwamedh Ghat Ganga Aarti|culture|25.3068|83.0105|90|0|evening|peak|1|Get a boat spot for the best view|walk-in
-Sarnath stupa & museum|culture|25.3811|83.0245|150|300|afternoon|low|1|Museum closed Fridays|walk-in
-Old city lanes food walk|food|25.3100|83.0090|120|500|evening|peak|1|Kachori-sabzi at breakfast, malaiyyo in winter|walk-in
-Ramnagar Fort|sightseeing|25.2840|83.0279|90|200|afternoon|low|0|Across the river; take an e-rickshaw|walk-in
-Banaras silk weaving workshop|culture|25.3250|83.0050|90|0|afternoon|low|0|Buy from cooperatives, not commission shops|walk-in`,
+Sunrise boat ride on the Ganga|leisure|25.3000|83.0107|90|600|morning|moderate|1|Start 5:30 am from Assi Ghat|walk-in|₹600
+Kashi Vishwanath corridor|culture|25.3109|83.0107|120|0|morning|peak|0|No phones inside; use lockers|walk-in|Free
+Dashashwamedh Ghat Ganga Aarti|culture|25.3068|83.0105|90|0|evening|peak|1|Get a boat spot for the best view|walk-in|Free
+Sarnath stupa & museum|culture|25.3811|83.0245|150|25|afternoon|low|1|Museum closed Fridays (₹25 Indian / ₹300 Foreigner)|walk-in|₹25 (Indian) / ₹300 (Foreigner)
+Old city lanes food walk|food|25.3100|83.0090|120|300|evening|peak|1|Kachori-sabzi at breakfast, malaiyyo in winter|walk-in|Free Entry (~₹200–₹350 for street food tastings)
+Ramnagar Fort|sightseeing|25.2840|83.0279|90|75|afternoon|low|0|Across the river; take an e-rickshaw|walk-in|₹75
+Banaras silk weaving workshop|culture|25.3250|83.0050|90|0|afternoon|low|0|Buy from cooperatives, not commission shops|walk-in|Free`,
   },
   delhi: {
     stays: [["Budget hotel", "Paharganj", 1500, 3000], ["Boutique B&B", "Hauz Khas / GK", 4000, 8000], ["Luxury hotel", "Lutyens' Delhi / Aerocity", 10000, 25000]],
     food: [700, 1800], transit: [500, 1200], season: "Oct–Mar; Dec–Jan fog disrupts flights and trains",
     pois: `
-Humayun's Tomb|sightseeing|28.5933|77.2507|90|600|morning|moderate|1|Morning light is best|walk-in
-Qutub Minar|sightseeing|28.5245|77.1855|90|600|morning|moderate|1|Pay online for faster entry|walk-in
-Old Delhi rickshaw & food walk|food|28.6562|77.2300|150|600|morning|peak|1|Paranthe Wali Gali opens ~9 am|walk-in
-Red Fort|culture|28.6562|77.2410|90|600|afternoon|peak|1|Closed Mondays|walk-in
-India Gate & Kartavya Path|sightseeing|28.6129|77.2295|60|0|evening|peak|1|Lit up after sunset|walk-in
-National Museum|culture|28.6118|77.2194|120|650|afternoon|low|0|Closed Mondays|walk-in
-Lodhi Garden walk|leisure|28.5931|77.2197|60|0|evening|low|1|Joggers' favourite; tombs inside|walk-in
-Hauz Khas Village dinner|food|28.5535|77.1943|120|1200|evening|moderate|0|Lake-view tables fill by 8 pm|walk-in`,
+Humayun's Tomb|sightseeing|28.5933|77.2507|90|50|morning|moderate|1|Morning light is best (₹50 Indian / ₹550 Foreigner)|walk-in|₹50 (Indian) / ₹550 (Foreigner)
+Qutub Minar|sightseeing|28.5245|77.1855|90|50|morning|moderate|1|Pay online for faster entry (₹50 Indian / ₹550 Foreigner)|walk-in|₹50 (Indian) / ₹550 (Foreigner)
+Old Delhi rickshaw & food walk|food|28.6562|77.2300|150|350|morning|peak|1|Paranthe Wali Gali opens ~9 am|walk-in|Free Entry (~₹250–₹400 for street food tastings)
+Red Fort|culture|28.6562|77.2410|90|50|afternoon|peak|1|Closed Mondays (₹50 Indian / ₹550 Foreigner)|walk-in|₹50 (Indian) / ₹550 (Foreigner)
+India Gate & Kartavya Path|sightseeing|28.6129|77.2295|60|0|evening|peak|1|Lit up after sunset|walk-in|Free
+National Museum|culture|28.6118|77.2194|120|20|afternoon|low|0|Closed Mondays (₹20 Indian / ₹650 Foreigner)|walk-in|₹20 (Indian) / ₹650 (Foreigner)
+Lodhi Garden walk|leisure|28.5931|77.2197|60|0|evening|low|1|Joggers' favourite; tombs inside|walk-in|Free
+Hauz Khas Village dinner|food|28.5535|77.1943|120|1200|evening|moderate|0|Lake-view tables fill by 8 pm|walk-in|Free Entry (~₹800–₹1,500 for dinner)`,
   },
   mumbai: {
     stays: [["Budget hotel", "Colaba", 2500, 4500], ["Boutique hotel", "Bandra", 6000, 12000], ["Sea-facing luxury", "Marine Drive / Worli", 12000, 30000]],
     food: [900, 2000], transit: [600, 1500], season: "Nov–Feb; Jun–Sep monsoon floods local trains",
     pois: `
-Gateway of India & Colaba Causeway|sightseeing|18.9220|72.8347|90|0|morning|peak|1|Early morning avoids crowds|walk-in
-Elephanta Caves ferry|culture|18.9633|72.9315|240|700|morning|moderate|1|Last ferry back ~5:30 pm; closed Mondays|walk-in
-Chhatrapati Shivaji Maharaj Vastu Sangrahalaya|culture|18.9269|72.8326|120|700|afternoon|low|0|Audio guide is excellent|walk-in
-Marine Drive sunset|leisure|18.9440|72.8230|60|0|evening|moderate|1|Queen's Necklace view after dark|walk-in
-Dharavi community tour|culture|19.0380|72.8538|150|1200|morning|low|1|Choose a community-run tour|3-7 days advance
-Bandra Bandstand & Carter Road|leisure|19.0544|72.8205|90|0|evening|moderate|1|Street food at Carter Road|walk-in
-Crawford Market & Mohammed Ali Road food|food|18.9474|72.8344|120|600|evening|peak|1|Ramzan nights are legendary|walk-in`,
+Gateway of India & Colaba Causeway|sightseeing|18.9220|72.8347|90|0|morning|peak|1|Early morning avoids crowds|walk-in|Free
+Elephanta Caves ferry|culture|18.9633|72.9315|240|260|morning|moderate|1|Last ferry back ~5:30 pm; closed Mondays|walk-in|₹260 (Ferry & Cave Entry)
+Chhatrapati Shivaji Maharaj Vastu Sangrahalaya|culture|18.9269|72.8326|120|150|afternoon|low|0|Audio guide is excellent (₹150 Indian / ₹700 Foreigner)|walk-in|₹150 (Indian) / ₹700 (Foreigner)
+Marine Drive sunset|leisure|18.9440|72.8230|60|0|evening|moderate|1|Queen's Necklace view after dark|walk-in|Free
+Dharavi community tour|culture|19.0380|72.8538|150|800|morning|low|1|Choose a community-run tour|3-7 days advance|₹800 (Guided Tour)
+Bandra Bandstand & Carter Road|leisure|19.0544|72.8205|90|0|evening|moderate|1|Street food at Carter Road|walk-in|Free
+Crawford Market & Mohammed Ali Road food|food|18.9474|72.8344|120|350|evening|peak|1|Ramzan nights are legendary|walk-in|Free Entry (~₹250–₹500 for street food tastings)`,
   },
   agra: {
     stays: [["Budget hotel", "Taj Ganj", 1500, 3000], ["Taj-view hotel", "Fatehabad Road", 6000, 18000]],
     food: [600, 1400], transit: [500, 1200], season: "Oct–Mar; Taj closed Fridays",
     pois: `
-Taj Mahal at sunrise|sightseeing|27.1751|78.0421|150|1300|morning|peak|1|East gate queue is shortest; closed Fridays|walk-in
-Agra Fort|culture|27.1795|78.0211|120|650|morning|moderate|1|Taj view from Musamman Burj|walk-in
-Mehtab Bagh sunset|leisure|27.1800|78.0430|60|300|evening|low|1|Taj across the Yamuna at dusk|walk-in
-Itimad-ud-Daulah (Baby Taj)|culture|27.1928|78.0311|60|350|afternoon|low|1|Exquisite inlay, few crowds|walk-in
-Fatehpur Sikri|sightseeing|27.0945|77.6679|180|650|afternoon|moderate|1|40 km away; go with a driver|walk-in
-Mughlai dinner|food|27.1630|78.0400|90|900|evening|moderate|0|Try petha and bedai for breakfast|walk-in`,
+Taj Mahal at sunrise|sightseeing|27.1751|78.0421|150|50|morning|peak|1|East gate queue is shortest; closed Fridays (₹50 Indian / ₹1,100 Foreigner)|walk-in|₹50 (Indian) / ₹1,100 (Foreigner)
+Agra Fort|culture|27.1795|78.0211|120|50|morning|moderate|1|Taj view from Musamman Burj (₹50 Indian / ₹550 Foreigner)|walk-in|₹50 (Indian) / ₹550 (Foreigner)
+Mehtab Bagh sunset|leisure|27.1800|78.0430|60|25|evening|low|1|Taj across the Yamuna at dusk (₹25 Indian / ₹300 Foreigner)|walk-in|₹25 (Indian) / ₹300 (Foreigner)
+Itimad-ud-Daulah (Baby Taj)|culture|27.1928|78.0311|60|30|afternoon|low|1|Exquisite inlay, few crowds (₹30 Indian / ₹310 Foreigner)|walk-in|₹30 (Indian) / ₹310 (Foreigner)
+Fatehpur Sikri|sightseeing|27.0945|77.6679|180|50|afternoon|moderate|1|40 km away; go with a driver (₹50 Indian / ₹550 Foreigner)|walk-in|₹50 (Indian) / ₹550 (Foreigner)
+Mughlai dinner|food|27.1630|78.0400|90|900|evening|moderate|0|Try petha and bedai for breakfast|walk-in|Free Entry (~₹600–₹1,000 for dinner)`,
   },
   srirangam: {
     stays: [["Pilgrim guesthouse", "South Chitra Street", 1200, 2500], ["Heritage hotel", "Rockfort area", 2800, 6000]],
@@ -408,8 +409,33 @@ Original Mylari Dosa & warm Mysore Pak tasting|food|12.3060|76.6540|60|300|morni
 
 function parsePois(block: string): Poi[] {
   return block.trim().split("\n").map((l) => {
-    const [name, category, lat, lng, minutes, cost, slot, crowd, outdoor, tip, booking] = l.split("|");
-    return { name, category: category as Poi["category"], lat: +lat, lng: +lng, minutes: +minutes, cost: +cost, slot: slot as Poi["slot"], crowd: crowd as Poi["crowd"], outdoor: outdoor === "1", tip, booking: booking as Poi["booking"] };
+    const [name, category, lat, lng, minutes, cost, slot, crowd, outdoor, tip, booking, ticketPrice] = l.split("|");
+    let calculatedTicketPrice = ticketPrice;
+    if (!calculatedTicketPrice) {
+      if (/food walk|street food|tasting/i.test(name)) {
+        calculatedTicketPrice = "Free Entry (~₹250–₹400 for street food tastings)";
+      } else if (/red fort|qutub minar|humayun|agra fort|fatehpur sikri/i.test(name)) {
+        calculatedTicketPrice = "₹50 (Indian) / ₹550 (Foreigner)";
+      } else if (+cost > 0) {
+        calculatedTicketPrice = `₹${(+cost).toLocaleString("en-IN")}`;
+      } else {
+        calculatedTicketPrice = "Free";
+      }
+    }
+    return {
+      name,
+      category: category as Poi["category"],
+      lat: +lat,
+      lng: +lng,
+      minutes: +minutes,
+      cost: +cost,
+      slot: slot as Poi["slot"],
+      crowd: crowd as Poi["crowd"],
+      outdoor: outdoor === "1",
+      tip,
+      booking: booking as Poi["booking"],
+      ticketPrice: calculatedTicketPrice,
+    };
   });
 }
 

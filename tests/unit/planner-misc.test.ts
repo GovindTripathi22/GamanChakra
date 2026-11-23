@@ -87,6 +87,48 @@ describe("keyless trip planner", () => {
     expect(h.price).not.toMatch(/₹20[0-9]|₹21[0-9]\/night/);
     expect(h.price).toMatch(/₹[\d,]+–₹[\d,]+\/night/);
   });
+  it("prioritizes affordable backpacker hostels (Zostel, goSTOPS, Hosteller) for budget trips with dorm pricing and Hostelworld links", () => {
+    const budgetDelhiTrip = planTripLocally({
+      origin: "Mumbai",
+      destination: "Delhi",
+      days: "3",
+      budget: "Cheap",
+      travelers: "1",
+      vibe: "Balanced",
+    });
+    expect(budgetDelhiTrip.hotels.length).toBeGreaterThanOrEqual(1);
+    const topHotel = budgetDelhiTrip.hotels[0];
+    expect(topHotel.tier).toBe("budget");
+    expect(topHotel.propertyType).toBe("hostel");
+    expect(topHotel.price).toMatch(/₹[\d,]+–₹[\d,]+\/bed \(Dormitory\)/);
+    expect(topHotel.bookingUrls?.hostelworld).toBeDefined();
+    expect(topHotel.bookingUrls?.hostelworld).toContain("hostelworld.com");
+  });
+  it("accurately reports activity ticket admission prices without artificial budget scaling to absurd numbers like ₹29", () => {
+    const delhiTrip = planTripLocally({
+      origin: "Mumbai",
+      destination: "Delhi",
+      days: "3",
+      budget: "Cheap",
+      travelers: "1",
+      vibe: "Cultural",
+    });
+    const allActs = delhiTrip.itinerary.flatMap((d) => d.activities);
+    
+    // Check for Old Delhi food walk
+    const foodWalk = allActs.find((a) => /food walk|old delhi/i.test(a.title));
+    if (foodWalk) {
+      expect(foodWalk.ticket_price).not.toBe("₹29");
+      expect(foodWalk.ticket_price).toMatch(/Free Entry/i);
+    }
+
+    // Check for Red Fort, Qutub Minar, or Humayun's Tomb
+    const monument = allActs.find((a) => /red fort|qutub minar|humayun/i.test(a.title));
+    if (monument) {
+      expect(monument.ticket_price).not.toBe("₹29");
+      expect(monument.ticket_price).toMatch(/₹50/);
+    }
+  });
   it("handles multi-destination trips with optional per-city days and intercity transit", () => {
     const multiTrip = planTripLocally({
       origin: "Delhi",

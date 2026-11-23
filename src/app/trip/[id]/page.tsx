@@ -612,11 +612,15 @@ export default function TripPage() {
                                                         <span>{hotel.city}</span>
                                                     </div>
                                                 )}
-                                                {hotel.tier && (
+                                                {hotel.propertyType === "hostel" ? (
+                                                    <div className={`absolute ${hotel.city ? "top-10" : "top-3"} left-3 rounded-full bg-emerald-950/90 text-emerald-300 px-2.5 py-0.5 text-[11px] font-semibold backdrop-blur-sm shadow-md border border-emerald-500/30 flex items-center gap-1 z-10`}>
+                                                        <span>🛏️ Backpacker Dorm</span>
+                                                    </div>
+                                                ) : hotel.tier ? (
                                                     <div className={`absolute ${hotel.city ? "top-10" : "top-3"} left-3 rounded-full bg-slate-950/80 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur-sm shadow-md capitalize border border-white/10 z-10`}>
                                                         {hotel.tier}
                                                     </div>
-                                                )}
+                                                ) : null}
                                                 <div className="absolute top-3 right-3 rounded-full bg-white/95 dark:bg-slate-900/95 px-2.5 py-1 text-xs font-bold tabular-nums text-orange-600 backdrop-blur-sm shadow-md flex items-center gap-1">
                                                     <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                                                     <span>{typeof hotel.rating === "number" ? hotel.rating.toFixed(1) : hotel.rating}</span>
@@ -627,6 +631,11 @@ export default function TripPage() {
                                                     <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-500 transition-colors line-clamp-1">
                                                         {hotel.name}
                                                     </h3>
+                                                    {hotel.roomType && (
+                                                        <span className="inline-block text-[11px] font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md">
+                                                            {hotel.roomType}
+                                                        </span>
+                                                    )}
                                                     <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                                                         <MapPin className="h-3.5 w-3.5 shrink-0 text-orange-500" />
                                                         <span className="line-clamp-1">{hotel.address}</span>
@@ -668,6 +677,19 @@ export default function TripPage() {
                                                         <span>Book Direct</span>
                                                         <ExternalLink className="h-3 w-3" />
                                                     </Button>
+                                                    {hotel.bookingUrls?.hostelworld && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="rounded-full text-[11px] font-semibold border-emerald-200 dark:border-emerald-800/60 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 h-8 px-2.5 cursor-pointer"
+                                                            onClick={() => {
+                                                                window.open(hotel.bookingUrls!.hostelworld, '_blank', 'noopener,noreferrer');
+                                                            }}
+                                                            title="Book on Hostelworld"
+                                                        >
+                                                            Hostelworld ↗
+                                                        </Button>
+                                                    )}
                                                     <Button
                                                         size="sm"
                                                         variant="outline"

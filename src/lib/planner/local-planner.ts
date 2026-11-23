@@ -157,19 +157,32 @@ function genericPois(place: Place, seed: number, vibe = "balanced"): Poi[] {
     ],
   ];
 
-  return tpl.map(([name, category, slot, crowd, outdoor, minutes, cost, tip]) => ({
-    name,
-    category,
-    slot,
-    crowd,
-    outdoor,
-    minutes,
-    cost,
-    tip,
-    booking: "walk-in",
-    lat: place.lat + jitter(),
-    lng: place.lng + jitter(),
-  }));
+  return tpl.map(([name, category, slot, crowd, outdoor, minutes, cost, tip]) => {
+    let ticketPrice: string;
+    if (/food walk|street food|tasting|bazaar/i.test(name)) {
+      ticketPrice = "Free Entry (~₹200–₹400 for food tastings)";
+    } else if (/dinner|cuisine/i.test(name)) {
+      ticketPrice = "Free Entry (~₹400–₹700 for dinner)";
+    } else if (cost === 0) {
+      ticketPrice = "Free";
+    } else {
+      ticketPrice = `₹${cost.toLocaleString("en-IN")}`;
+    }
+    return {
+      name,
+      category,
+      slot,
+      crowd,
+      outdoor,
+      minutes,
+      cost,
+      tip,
+      booking: "walk-in" as const,
+      lat: place.lat + jitter(),
+      lng: place.lng + jitter(),
+      ticketPrice,
+    };
+  });
 }
 
 function orderByProximity(pois: Poi[]): Poi[] {
@@ -674,10 +687,11 @@ export function planTripLocally(input: TripData): GeneratedTrip {
   for (const stop of perStop) {
     const realHotels = resolveRealHotels(stop.name, tier, pax, rawBudgetNum);
     const primary = realHotels[0];
-    const rooms = Math.ceil(pax / 2);
+    const isHostel = primary.propertyType === "hostel" || /hostel|zostel|gostops|dorm/i.test(primary.name);
+    const units = isHostel ? pax : Math.ceil(pax / 2);
     const nightly = Math.round((primary.nightlyMin + primary.nightlyMax) / 2);
     const stopNights = Math.max(1, stop.days);
-    stayCost += nightly * rooms * stopNights;
+    stayCost += nightly * units * stopNights;
 
     for (const rh of realHotels) {
       hotels.push({
@@ -690,6 +704,8 @@ export function planTripLocally(input: TripData): GeneratedTrip {
         description: rh.description,
         amenities: rh.amenities,
         tier: rh.tier,
+        propertyType: rh.propertyType,
+        roomType: rh.roomType,
         geo_coordinates: stop.place ? { lat: stop.place.lat, lng: stop.place.lng } : undefined,
         city: rh.city || stop.name,
         bookingUrl: rh.bookingUrl,
@@ -841,7 +857,7 @@ export function planTripLocally(input: TripData): GeneratedTrip {
             crowdLevel: crowdNow,
             offPeakTip: distinctTip,
             bookingDeadline: p.booking,
-            ticket_price: p.cost ? `₹${p.cost.toLocaleString("en-IN")}` : "Free",
+            ticket_price: p.ticketPrice || (p.cost ? `₹${p.cost.toLocaleString("en-IN")}` : "Free"),
             estimatedCost: { amount: p.cost, currency: "₹" },
             coordinates: { lat: p.lat, lng: p.lng },
             geo_coordinates: { lat: p.lat, lng: p.lng },
@@ -1176,7 +1192,6 @@ export function clampTripToUserBudget<
 
   // Realistic category allocations matching calculateTrueCost in cost engine
   const targetTransport = Math.round(targetTotalCost * 0.27);
-  const targetStay = Math.round(targetTotalCost * 0.31);
   const targetFood = Math.round(targetTotalCost * 0.16);
   const targetActivities = Math.round(targetTotalCost * 0.12);
   const targetLocalTransit = Math.round(targetTotalCost * 0.06);
@@ -1208,14 +1223,16 @@ export function clampTripToUserBudget<
     trip.hotels.forEach((hotel: any) => {
       // Never overwrite real hotel prices with impossible ~₹200/night rates or rename to generic hostel
       if (!hotel.price || /₹20[0-9]|₹21[0-9]/i.test(hotel.price)) {
-        const floorMin = hotel.tier === "luxury" ? 14000 : hotel.tier === "comfort" ? 4500 : 1800;
-        const floorMax = hotel.tier === "luxury" ? 28000 : hotel.tier === "comfort" ? 8500 : 3400;
-        hotel.price = `₹${floorMin.toLocaleString("en-IN")}–₹${floorMax.toLocaleString("en-IN")}/night (estimate)`;
+        const isHostel = hotel.propertyType === "hostel" || /hostel|zostel|gostops|dorm/i.test(hotel.name);
+        const floorMin = hotel.tier === "luxury" ? 14000 : hotel.tier === "comfort" ? 4500 : (isHostel ? 450 : 1800);
+        const floorMax = hotel.tier === "luxury" ? 28000 : hotel.tier === "comfort" ? 8500 : (isHostel ? 850 : 3400);
+        const unit = isHostel ? "/bed (Dormitory)" : "/night (estimate)";
+        hotel.price = `₹${floorMin.toLocaleString("en-IN")}–₹${floorMax.toLocaleString("en-IN")}${unit}`;
       }
     });
   }
 
-  // 3. Harmonize Activities: Scale activity ticket costs realistically
+  // 3. Harmonize Activities: Preserve authentic ticket prices and allocate realistic budgets
   const allActivities: any[] = [];
   for (const day of daysList) {
     if (Array.isArray(day.activities)) {
@@ -1224,21 +1241,11 @@ export function clampTripToUserBudget<
   }
 
   if (allActivities.length > 0) {
-    const rawSum = allActivities.reduce(
-      (acc, act) => acc + Math.max(1, Number(act.cost ?? act.estimatedCost?.amount ?? act.estimatedCost ?? 50)),
-      0
-    );
-    let runningTotal = 0;
-    allActivities.forEach((act, idx) => {
-      const weight = Math.max(1, Number(act.cost ?? act.estimatedCost?.amount ?? act.estimatedCost ?? 50)) / rawSum;
-      const scaled =
-        idx === allActivities.length - 1
-          ? Math.max(10, targetActivities - runningTotal)
-          : Math.max(10, Math.round(targetActivities * weight));
-      runningTotal += scaled;
-      act.cost = scaled;
-      act.estimatedCost = { amount: scaled, currency: "₹" };
-      act.ticket_price = scaled <= 20 ? "Free" : `₹${scaled.toLocaleString("en-IN")}`;
+    allActivities.forEach((act) => {
+      // Keep authentic ticket price and never overwrite with artificial budget math fractions like ₹29
+      if (!act.ticket_price || act.ticket_price === "₹0") {
+        act.ticket_price = (act.cost && act.cost > 0) ? `₹${act.cost.toLocaleString("en-IN")}` : "Free";
+      }
       act.currency = "INR";
     });
   }
