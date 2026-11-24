@@ -6,17 +6,11 @@ import { toast } from "@/components/gc/toast";
 import {
   Radar,
   AlertTriangle,
-  Shield,
   Activity,
   Play,
-  RotateCcw,
-  CheckCircle2,
   RefreshCw,
   Zap,
-  Clock,
   Compass,
-  ArrowRight,
-  Database,
   Sliders,
 } from "lucide-react";
 import {

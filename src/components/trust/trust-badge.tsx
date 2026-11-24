@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, HelpCircle, AlertCircle, Sparkles } from "lucide-react";
+import { CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
 import type { FactProvenance } from "@/lib/providers/types";
 
 interface TrustBadgeProps {

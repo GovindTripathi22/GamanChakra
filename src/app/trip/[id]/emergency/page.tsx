@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import {
   ShieldAlert,
   ArrowLeft,
@@ -13,19 +12,14 @@ import {
   Shield,
   HelpCircle,
   Clock,
-  Sparkles,
-  Download,
   CheckCircle2,
   BookmarkCheck,
   Building,
   Volume2,
-  Calendar,
   CloudRain,
   Flame,
   Wind,
   Waves,
-  Eye,
-  Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,9 +33,7 @@ export default function TripEmergencyPage() {
   const router = useRouter();
   const tripId = params.id as string;
 
-  const [trip, setTrip] = useState<GeneratedTrip | null>(null);
   const [destination, setDestination] = useState<string>("Goa");
-  const [loading, setLoading] = useState(true);
   const [riskAnalysis, setRiskAnalysis] = useState<RouteRiskAnalysis | null>(null);
   const [emergencyCard, setEmergencyCard] = useState<OfflineEmergencyCard | null>(null);
   const [activeTab, setActiveTab] = useState<"card" | "radar">("card");
@@ -66,7 +58,6 @@ export default function TripEmergencyPage() {
     if (rawTrip) {
       try {
         const parsed = JSON.parse(rawTrip) as GeneratedTrip;
-        setTrip(parsed);
         if (parsed.trip_details?.destination) {
           targetDest = parsed.trip_details.destination;
           setDestination(targetDest);
@@ -84,12 +75,11 @@ export default function TripEmergencyPage() {
         const parsedProf = JSON.parse(savedProfile);
         setProfile(parsedProf);
         activeProfile = parsedProf;
-      } catch (e) {}
+      } catch {}
     }
 
     // 2. Fetch server data
     async function loadData() {
-      setLoading(true);
       try {
         const [risk, card] = await Promise.all([
           getRouteRiskAssessment(targetDest),
@@ -109,14 +99,13 @@ export default function TripEmergencyPage() {
           try {
             setEmergencyCard(JSON.parse(offlineData));
             setIsOfflineCached(true);
-          } catch (e) {}
+          } catch {}
         }
-      } finally {
-        setLoading(false);
       }
     }
 
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tripId]);
 
   const handleSaveProfile = async () => {

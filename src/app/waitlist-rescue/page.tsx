@@ -5,21 +5,13 @@ import { motion } from "framer-motion";
 import { toast } from "@/components/gc/toast";
 import {
   Train,
-  ShieldCheck,
   AlertTriangle,
   Clock,
-  Sparkles,
   ArrowRight,
-  Bus,
-  Car,
   Bell,
   CheckCircle2,
-  Calendar,
   Search,
-  ExternalLink,
   MapPin,
-  TrendingUp,
-  Database,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

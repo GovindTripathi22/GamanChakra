@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Loader2, MapPin } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface PlaceAutocompleteProps {
     value: string;
@@ -70,11 +69,7 @@ export function PlaceAutocomplete({
     }, [value, showSuggestions]);
 
     const handleSelect = (item: NominatimResult) => {
-        // Extract a cleaner name (usually the first part of the display_name)
         const parts = item.display_name.split(",");
-        const cityName = parts[0].trim();
-        // Or keep the full name if preferred, but usually for trips "City" is better
-        // Let's use the first 2 parts for context if available (e.g. "Paris, France")
         const formattedName = parts.length > 1 ? `${parts[0].trim()}, ${parts[parts.length - 1].trim()}` : item.display_name;
 
         onChange(formattedName);

@@ -145,7 +145,7 @@ export function TripWizard() {
         let budgetParam = searchParams.get("budget") || undefined;
         let travelersParam = searchParams.get("travelers") || undefined;
         let startDateParam = searchParams.get("startDate") || undefined;
-        let travelModeParam = searchParams.get("travelMode") || undefined;
+        const travelModeParam = searchParams.get("travelMode") || undefined;
         let includeTravelParam = searchParams.get("includeTravelDays") || undefined;
 
         // If destParam contains multiple stops separated by |, parse into addedDestinations

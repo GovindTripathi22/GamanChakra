@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useCallback } from "react";
+import { motion } from "framer-motion";
 import { toast } from "@/components/gc/toast";
 import {
   Store,
@@ -10,11 +10,7 @@ import {
   Car,
   Plane,
   Clock,
-  ShieldCheck,
   CheckCircle2,
-  Tag,
-  AlertCircle,
-  RefreshCw,
   ShoppingBag,
 } from "lucide-react";
 import { getListingsAction, createHoldAction, confirmReservationAction } from "@/actions/exchange";
@@ -28,9 +24,21 @@ export default function LiquidityExchangePage() {
   const [confirming, setConfirming] = useState(false);
   const [confirmedReservation, setConfirmedReservation] = useState<any | null>(null);
 
+  const loadListings = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await getListingsAction(selectedDestination);
+      setListings(data);
+    } catch (e) {
+      console.error("Failed to load listings:", e);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedDestination]);
+
   useEffect(() => {
     loadListings();
-  }, [selectedDestination]);
+  }, [loadListings]);
 
   useEffect(() => {
     if (holdSecondsLeft <= 0) return;
@@ -45,18 +53,6 @@ export default function LiquidityExchangePage() {
     }, 1000);
     return () => clearInterval(interval);
   }, [holdSecondsLeft]);
-
-  const loadListings = async () => {
-    setLoading(true);
-    try {
-      const data = await getListingsAction(selectedDestination);
-      setListings(data);
-    } catch (e) {
-      console.error("Failed to load listings:", e);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleHold = async (listingId: string) => {
     try {

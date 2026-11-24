@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import {
     MapPin,
@@ -12,8 +12,6 @@ import {
     ArrowRight,
     Activity,
     ShieldCheck,
-    TrendingUp,
-    Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +19,7 @@ import Link from "next/link";
 import type { GeneratedTrip } from "@/types/trip";
 import { getGlobalTelemetryStats } from "@/lib/outcome-ledger";
 import { getUserTripsFromDatabase, saveTripToDatabase, getTripFromDatabase } from "@/actions/trip-persistence";
+import { localDestinationImage } from "@/lib/destination-image";
 
 interface SavedTrip extends GeneratedTrip {
     id: string;
@@ -28,7 +27,6 @@ interface SavedTrip extends GeneratedTrip {
 }
 
 export default function MyTripsPage() {
-    const router = useRouter();
     const [trips, setTrips] = useState<SavedTrip[]>([]);
     const [loading, setLoading] = useState(true);
     const [telemetry, setTelemetry] = useState({
@@ -208,28 +206,28 @@ export default function MyTripsPage() {
                                     transition={{ delay: index * 0.1 }}
                                     className="group relative h-full overflow-hidden rounded-2xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm transition-all hover:shadow-lg hover:-translate-y-1"
                                 >
-                                    {/* Card Header / Image Placeholder */}
+                                    {/* Card Header / Image */}
                                     <div className="relative h-48 w-full overflow-hidden bg-slate-200 dark:bg-slate-700">
-                                        <img
-                                            src={`https://source.unsplash.com/800x600/?${encodeURIComponent(trip.trip_details?.destination || "travel")}`}
-                                            alt={trip.trip_details?.destination}
-                                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop";
-                                            }}
+                                        <Image
+                                            src={localDestinationImage(trip.trip_details?.destination || "") || "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop"}
+                                            alt={trip.trip_details?.destination ? `Trip to ${trip.trip_details.destination}` : "Travel trip destination"}
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                            className="object-cover transition-transform duration-500 group-hover:scale-110"
                                         />
-                                        <div className="absolute top-4 right-4">
+                                        <div className="absolute top-3 right-3 z-10">
                                             <button
                                                 onClick={(e) => deleteTrip(e, trip.id)}
-                                                className="rounded-full bg-white/90 dark:bg-slate-900/90 p-2 text-red-500 shadow-sm backdrop-blur-sm transition-colors hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600"
+                                                className="rounded-full bg-white/90 dark:bg-slate-900/90 p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-red-500 shadow-sm backdrop-blur-sm transition-colors hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
                                                 title="Delete Trip"
+                                                aria-label={`Delete saved trip to ${trip.trip_details?.destination || "destination"}`}
                                             >
-                                                <Trash2 className="h-4 w-4" />
+                                                <Trash2 className="h-4 w-4" aria-hidden="true" />
                                             </button>
                                         </div>
-                                        <div className="absolute bottom-4 left-4">
-                                            <span className="rounded-full bg-black/50 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
-                                                {trip.trip_details?.vibe}
+                                        <div className="absolute bottom-4 left-4 z-10">
+                                            <span className="rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
+                                                {trip.trip_details?.vibe || "Explore"}
                                             </span>
                                         </div>
                                     </div>

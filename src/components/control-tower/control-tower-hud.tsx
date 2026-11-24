@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import {
-  Zap,
   ShieldCheck,
   Activity as ActivityIcon,
-  AlertTriangle,
   PlayCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";

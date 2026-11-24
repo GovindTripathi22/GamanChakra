@@ -22,7 +22,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { CostBreakdown, CostLineItem } from "@/types/cost";
+import type { CostBreakdown } from "@/types/cost";
 import { TrustBadge } from "@/components/trust/trust-badge";
 
 interface TrueCostBreakdownProps {

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { DollarSign, PieChart, Wallet } from "lucide-react";
+import { Wallet } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 interface BudgetEstimatorProps {

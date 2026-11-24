@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 import { MapPin, ArrowRight } from "lucide-react";
 
 export default function HiddenGemsPage() {
@@ -10,10 +11,13 @@ export default function HiddenGemsPage() {
         <div className="min-h-screen bg-white dark:bg-slate-900 transition-colors duration-500">
             <div className="relative h-[60vh] w-full overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30 z-10" />
-                <img
+                <Image
                     src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=2070&auto=format&fit=crop"
-                    alt="Hidden Gems"
-                    className="h-full w-full object-cover"
+                    alt="Scenic secluded alpine lake representing hidden gems and peaceful getaways"
+                    fill
+                    priority
+                    sizes="100vw"
+                    className="object-cover"
                 />
                 <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4">
                     <motion.div
@@ -22,7 +26,7 @@ export default function HiddenGemsPage() {
                         className="max-w-4xl"
                     >
                         <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-orange-500/20 px-4 py-1.5 backdrop-blur-md border border-orange-500/30 text-orange-100">
-                            <MapPin className="h-4 w-4" />
+                            <MapPin className="h-4 w-4" aria-hidden="true" />
                             <span className="text-sm font-medium">Off the Beaten Path</span>
                         </div>
                         <h1 className="mb-6 font-serif text-5xl font-bold text-white md:text-7xl">
@@ -31,9 +35,9 @@ export default function HiddenGemsPage() {
                         <p className="mb-8 text-xl text-white/90 md:text-2xl">
                             Escape the crowds. Find the secret spots, local favorites, and untouched beauty.
                         </p>
-                        <Link href="/create-trip?destination=Hidden Gem&vibe=Relaxed">
-                            <Button className="h-14 rounded-full bg-orange-500 px-8 text-lg font-bold text-white hover:bg-orange-600 transition-all hover:scale-105 shadow-lg shadow-orange-500/30">
-                                Find Secret Spots <ArrowRight className="ml-2 h-5 w-5" />
+                        <Link href="/create-trip?destination=Hidden Gem&vibe=Relaxed" aria-label="Find secret travel spots">
+                            <Button className="h-14 min-h-[44px] rounded-full bg-orange-500 px-8 text-lg font-bold text-white hover:bg-orange-600 transition-all hover:scale-105 shadow-lg shadow-orange-500/30">
+                                Find Secret Spots <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
                             </Button>
                         </Link>
                     </motion.div>
@@ -49,13 +53,15 @@ export default function HiddenGemsPage() {
                     className="mb-20 rounded-3xl bg-slate-900 text-white overflow-hidden shadow-2xl"
                 >
                     <div className="grid md:grid-cols-2">
-                        <div className="relative h-64 md:h-auto">
-                            <img
+                        <div className="relative h-64 md:h-auto min-h-[250px]">
+                            <Image
                                 src="https://images.unsplash.com/photo-1516483638261-f4dbaf036963?q=80&w=2066&auto=format&fit=crop"
-                                alt="Cinque Terre"
-                                className="absolute inset-0 h-full w-full object-cover"
+                                alt="Cinque Terre, Italy colorful cliffside houses overlooking the sea"
+                                fill
+                                sizes="(max-width: 768px) 100vw, 50vw"
+                                className="object-cover"
                             />
-                            <div className="absolute top-4 left-4 rounded-full bg-orange-500 px-4 py-1 text-sm font-bold text-white shadow-lg">
+                            <div className="absolute top-4 left-4 rounded-full bg-orange-500 px-4 py-1 text-sm font-bold text-white shadow-lg z-10">
                                 Gem of the Day
                             </div>
                         </div>

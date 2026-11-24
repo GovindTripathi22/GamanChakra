@@ -12,14 +12,8 @@ import {
   Plus,
   CheckCircle2,
   ArrowLeft,
-  ArrowRight,
   Sparkles,
-  ExternalLink,
-  QrCode,
-  DollarSign,
-  TrendingUp,
   CreditCard,
-  IndianRupee,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,7 +48,7 @@ export default function GroupTripRoomPage() {
   const [expenseTitle, setExpenseTitle] = useState("");
   const [expenseAmount, setExpenseAmount] = useState("");
   const [expensePayerId, setExpensePayerId] = useState("");
-  const [expenseCategory, setExpenseCategory] = useState("food");
+  const expenseCategory = "food";
   const [showAddExpense, setShowAddExpense] = useState(false);
 
   // New Member State

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, Check, Sparkles, Clock, ArrowRight, ShieldAlert } from "lucide-react";
+import { AlertTriangle, Check, Sparkles, ArrowRight, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { VerificationIssue, VerificationRecoveryOption } from "@/types/verification";
