@@ -31,7 +31,6 @@ import {
   INDIAN_DESTINATIONS_META,
   type RegionType,
   type CategoryType,
-  type DestinationMeta,
 } from "@/lib/destination-intelligence/constants";
 
 export default function DestinationIntelligencePage() {

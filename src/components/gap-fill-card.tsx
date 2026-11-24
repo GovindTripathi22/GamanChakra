@@ -13,7 +13,6 @@ import {
   Tag,
   ChevronDown,
   ChevronUp,
-  MapPin,
   Loader2,
   Check,
 } from "lucide-react";

@@ -1,18 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import {
   Cpu,
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
   Play,
   RotateCcw,
   ShieldCheck,
   Server,
   Layers,
-  ArrowRight,
   RefreshCw,
 } from "lucide-react";
 import { requestWorkflowAction, approveAndExecuteWorkflowAction, getExecutionWorkflowsAction } from "@/actions/execution";

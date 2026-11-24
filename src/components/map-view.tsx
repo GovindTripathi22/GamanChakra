@@ -123,6 +123,7 @@ export function MapView({ destination, hotels, itinerary }: MapViewProps) {
                 mapInstanceRef.current = null;
             }
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [destination]); // Only reinitialize when destination changes
 
     return (

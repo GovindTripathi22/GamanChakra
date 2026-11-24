@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { Check, X } from "lucide-react";
 import { PLANS, type Plan } from "@/lib/billing/plans";
@@ -66,12 +67,12 @@ export default function Pricing() {
       {pay && (
         <div className="fixed inset-0 z-[60] grid place-items-center bg-black/60 p-4" role="dialog" aria-label="Complete payment">
           <div className="gc-panel w-full max-w-sm p-6 relative">
-            <button onClick={() => { setPay(null); setState(null); }} className="absolute right-3 top-3" aria-label="Close"><X className="h-5 w-5" /></button>
+            <button onClick={() => { setPay(null); setState(null); }} className="absolute right-3 top-3 p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Close dialog"><X className="h-5 w-5" /></button>
             <div className="font-display text-xl font-semibold">{pay.plan.name} · ₹{pay.plan.priceInr.toLocaleString("en-IN")}</div>
             {pay.mode === "upi" ? (
               <>
                 <p className="text-sm gc-muted mt-1">Scan with any UPI app, or tap to pay on mobile.</p>
-                {pay.qr && <img src={pay.qr} alt="UPI payment QR code" className="mx-auto mt-4 rounded-xl bg-white p-2" width={220} height={220} />}
+                {pay.qr && <Image src={pay.qr} alt="UPI payment QR code" className="mx-auto mt-4 rounded-xl bg-white p-2" width={220} height={220} unoptimized />}
                 <a href={pay.upiLink} className="block mt-3"><Btn className="w-full">Pay with UPI app</Btn></a>
                 <input value={utr} onChange={(e) => setUtr(e.target.value)} placeholder="UPI reference / UTR after paying" className="mt-4 w-full h-10 rounded-xl gc-panel-2 px-3 text-sm outline-none" />
                 <Btn variant="agent" className="mt-2 w-full" disabled={!/^[A-Za-z0-9]{10,22}$/.test(utr.trim())} onClick={confirm}>I’ve paid — activate</Btn>

@@ -2,16 +2,12 @@
 
 import { useState } from "react";
 import {
-  CheckCircle2,
   AlertTriangle,
   ShieldCheck,
   RefreshCw,
   ChevronDown,
   ChevronUp,
-  MapPin,
   Clock,
-  Sparkles,
-  Train,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { ArrowRight, Building2, User, PlayCircle } from "lucide-react";
 import { ChakraMark } from "@/components/brand";
 import { Btn } from "@/components/gc/ui";
 import { cn } from "@/lib/utils";
 
 export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
-  const router = useRouter();
   const next = useSearchParams().get("next") || "/command";
   const [form, setForm] = useState({ name: "", email: "", password: "", orgName: "", orgKind: "personal" });
   const [error, setError] = useState<string | null>(null);

@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { MapPin, Calendar, Clock, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
+import { MapPin, Clock, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // Mock data store (in a real app, this would be a database or API)

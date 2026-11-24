@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Mail, MapPin, Phone, Send } from "lucide-react";
+import { MapPin, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -63,28 +63,28 @@ export default function ContactPage() {
                         <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
                             <div className="grid gap-6 md:grid-cols-2">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">First Name</label>
-                                    <Input placeholder="John" className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700" />
+                                    <label htmlFor="contact-first-name" className="text-sm font-medium text-slate-700 dark:text-slate-300">First Name</label>
+                                    <Input id="contact-first-name" placeholder="John" className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700" />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Last Name</label>
-                                    <Input placeholder="Doe" className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700" />
+                                    <label htmlFor="contact-last-name" className="text-sm font-medium text-slate-700 dark:text-slate-300">Last Name</label>
+                                    <Input id="contact-last-name" placeholder="Doe" className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700" />
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Email</label>
-                                <Input type="email" placeholder="john@example.com" className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700" />
+                                <label htmlFor="contact-email" className="text-sm font-medium text-slate-700 dark:text-slate-300">Email</label>
+                                <Input id="contact-email" type="email" placeholder="john@example.com" className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700" />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Subject</label>
-                                <Input placeholder="How can we help?" className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700" />
+                                <label htmlFor="contact-subject" className="text-sm font-medium text-slate-700 dark:text-slate-300">Subject</label>
+                                <Input id="contact-subject" placeholder="How can we help?" className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700" />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Message</label>
-                                <Textarea placeholder="Tell us more about your inquiry..." className="min-h-[150px] bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700" />
+                                <label htmlFor="contact-message" className="text-sm font-medium text-slate-700 dark:text-slate-300">Message</label>
+                                <Textarea id="contact-message" placeholder="Tell us more about your inquiry..." className="min-h-[150px] bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700" />
                             </div>
-                            <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-6 text-lg">
-                                <Send className="mr-2 h-5 w-5" /> Send Message
+                            <Button className="w-full min-h-[48px] bg-orange-500 hover:bg-orange-600 text-white py-6 text-lg cursor-pointer">
+                                <Send className="mr-2 h-5 w-5" aria-hidden="true" /> Send Message
                             </Button>
                         </form>
                     </motion.div>

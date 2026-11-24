@@ -4,14 +4,12 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Clock,
   MapPin,
   AlertTriangle,
   CheckCircle2,
   ShieldCheck,
   Sparkles,
   CloudRain,
-  Umbrella,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
@@ -32,7 +30,6 @@ interface LiveActivityCardProps {
 export function LiveActivityCard({
   activity,
   index,
-  tripId,
   onReportOutcome,
   verification,
   onApplyFix,
@@ -240,26 +237,28 @@ export function LiveActivityCard({
         <div className="flex items-center gap-2">
           {activity.actualOutcome ? (
             <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-              <CheckCircle2 className="h-3 w-3" />
+              <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
               {activity.actualOutcome.notes || "Logged On Time"}
             </span>
           ) : (
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 text-[11px] text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 px-2 rounded-full cursor-pointer"
+              className="h-8 min-h-[32px] text-[11px] text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 px-2.5 rounded-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-400"
               onClick={() => setShowStatusOptions(!showStatusOptions)}
               title="Report actual arrival time or crowd status"
+              aria-expanded={showStatusOptions}
+              aria-label={`Toggle live status reporting for ${activity.title}`}
             >
               <span>Live Status</span>
-              {showStatusOptions ? <ChevronUp className="h-3 w-3 ml-0.5" /> : <ChevronDown className="h-3 w-3 ml-0.5" />}
+              {showStatusOptions ? <ChevronUp className="h-3 w-3 ml-0.5" aria-hidden="true" /> : <ChevronDown className="h-3 w-3 ml-0.5" aria-hidden="true" />}
             </Button>
           )}
 
           <Button
             variant="outline"
             size="sm"
-            className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-950/30 border-orange-200 dark:border-orange-800/60 text-xs font-semibold h-7 px-3 rounded-full flex items-center gap-1 cursor-pointer"
+            className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-950/30 border-orange-200 dark:border-orange-800/60 text-xs font-semibold h-8 min-h-[32px] px-3 rounded-full flex items-center gap-1 cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500"
             onClick={() =>
               window.open(
                 `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
@@ -269,8 +268,9 @@ export function LiveActivityCard({
                 "noopener,noreferrer"
               )
             }
+            aria-label={`View ${activity.title || "location"} on Google Maps (opens in new window)`}
           >
-            <MapPin className="h-3 w-3 text-orange-500" />
+            <MapPin className="h-3 w-3 text-orange-500" aria-hidden="true" />
             <span>View on Maps ↗</span>
           </Button>
         </div>
@@ -278,30 +278,33 @@ export function LiveActivityCard({
 
       {/* Expandable Live Status Reporting Options */}
       {showStatusOptions && !activity.actualOutcome && (
-        <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 bg-slate-50/60 dark:bg-slate-950/40 p-2.5 rounded-xl">
+        <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 bg-slate-50/60 dark:bg-slate-950/40 p-2.5 rounded-xl" role="region" aria-label="Quick status reporting options">
           <span className="text-[11px] font-medium text-slate-500">Record Ground Status:</span>
           <div className="flex items-center gap-1.5">
             <Button
               variant="outline"
               size="sm"
-              className="h-6 text-[10px] px-2.5 rounded-md hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/40 cursor-pointer"
+              className="h-7 text-[10px] px-2.5 rounded-md hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/40 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500"
               onClick={() => handleQuickReport("on_time")}
+              aria-label={`Report ${activity.title} on time`}
             >
               ✓ On Time
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="h-6 text-[10px] px-2.5 rounded-md hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-950/40 cursor-pointer"
+              className="h-7 text-[10px] px-2.5 rounded-md hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-950/40 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500"
               onClick={() => handleQuickReport("delayed")}
+              aria-label={`Report 35 minute delay for ${activity.title}`}
             >
               ⚠ Delay (+35m)
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="h-6 text-[10px] px-2.5 rounded-md hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950/40 cursor-pointer"
+              className="h-7 text-[10px] px-2.5 rounded-md hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950/40 cursor-pointer focus:outline-none focus:ring-2 focus:ring-rose-500"
               onClick={() => handleQuickReport("crowded")}
+              aria-label={`Report heavy crowd at ${activity.title}`}
             >
               👥 Heavy Crowd
             </Button>

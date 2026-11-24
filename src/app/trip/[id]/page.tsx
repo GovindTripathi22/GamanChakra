@@ -1,7 +1,8 @@
 "use client";
+import Image from "next/image";
 import { localDestinationImage } from "@/lib/destination-image";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -79,7 +80,7 @@ export default function TripPage() {
     const [isValidating, setIsValidating] = useState(false);
     const [costBreakdown, setCostBreakdown] = useState<CostBreakdown | null>(null);
 
-    const runVerification = async (currentTrip: GeneratedTrip) => {
+    const runVerification = useCallback(async (currentTrip: GeneratedTrip) => {
         setIsValidating(true);
         try {
             const report = await verifyTripAction(currentTrip, params.id as string);
@@ -89,7 +90,7 @@ export default function TripPage() {
         } finally {
             setIsValidating(false);
         }
-    };
+    }, [params.id]);
 
     const handleUpdateSpendCap = (newCap: number) => {
         if (!trip) return;
@@ -146,7 +147,7 @@ export default function TripPage() {
         }
 
         loadTripData();
-    }, [params.id]);
+    }, [params.id, runVerification]);
 
     const handleApplyVerificationFix = async (option: VerificationRecoveryOption) => {
         if (!trip) return;
@@ -373,9 +374,16 @@ export default function TripPage() {
             <div className="relative h-[55vh] w-full overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-black/30 z-10" />
                 {localDestinationImage(trip.trip_details.destination) ? (
-                    <img src={localDestinationImage(trip.trip_details.destination)!} alt={trip.trip_details.destination} className="h-full w-full object-cover object-center scale-105 animate-subtle-zoom" />
+                    <Image
+                        src={localDestinationImage(trip.trip_details.destination)!}
+                        alt={`Scenic panorama of ${trip.trip_details.destination}`}
+                        fill
+                        priority
+                        sizes="100vw"
+                        className="object-cover object-center scale-105 animate-subtle-zoom"
+                    />
                 ) : (
-                    <div className="h-full w-full bg-[radial-gradient(ellipse_at_20%_20%,#ff6a1a55,transparent_55%),radial-gradient(ellipse_at_80%_30%,#7c5cff55,transparent_55%),linear-gradient(180deg,#0b1020,#070b16)]" aria-hidden />
+                    <div className="h-full w-full bg-[radial-gradient(ellipse_at_20%_20%,#ff6a1a55,transparent_55%),radial-gradient(ellipse_at_80%_30%,#7c5cff55,transparent_55%),linear-gradient(180deg,#0b1020,#070b16)]" aria-hidden="true" />
                 )}
                 
                 {/* Floating Navigation & Controls */}
@@ -383,26 +391,29 @@ export default function TripPage() {
                     <Button
                         onClick={() => router.push("/")}
                         variant="outline"
-                        className="rounded-full border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white"
+                        className="rounded-full border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white min-h-[44px] px-5"
+                        aria-label="Back to search and itinerary builder"
                     >
-                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
                         Back to Search
                     </Button>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2 items-center">
                         <Button
                             onClick={() => router.push(`/trip/${params.id}/room`)}
                             variant="outline"
-                            className="rounded-full border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white"
+                            className="rounded-full border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white min-h-[44px] px-4"
+                            aria-label="Open collaborative group room"
                         >
-                            <Users className="mr-2 h-4 w-4 text-orange-400" />
+                            <Users className="mr-2 h-4 w-4 text-orange-400" aria-hidden="true" />
                             Group Room
                         </Button>
                         <Button
                             onClick={() => router.push(`/trip/${params.id}/emergency`)}
                             variant="outline"
-                            className="rounded-full border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white"
+                            className="rounded-full border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white min-h-[44px] px-4"
+                            aria-label="Safety and emergency directory"
                         >
-                            <ShieldAlert className="mr-2 h-4 w-4 text-rose-400" />
+                            <ShieldAlert className="mr-2 h-4 w-4 text-rose-400" aria-hidden="true" />
                             Safety & Emergency
                         </Button>
                         <PdfExportButton trip={trip} />
@@ -412,9 +423,10 @@ export default function TripPage() {
                                 toast("Trip link copied to clipboard!", "success");
                             }}
                             variant="outline"
-                            className="rounded-full border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white"
+                            className="rounded-full border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white min-h-[44px] px-4"
+                            aria-label="Share trip link to clipboard"
                         >
-                            <Share2 className="mr-2 h-4 w-4" />
+                            <Share2 className="mr-2 h-4 w-4" aria-hidden="true" />
                             Share
                         </Button>
                     </div>
@@ -591,18 +603,16 @@ export default function TripPage() {
                                         <div>
                                             <div className="relative h-48 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
                                                 {hotel.image_url ? (
-                                                    <img
+                                                    <Image
                                                         src={hotel.image_url}
-                                                        alt={hotel.name}
-                                                        loading="lazy"
-                                                        referrerPolicy="no-referrer"
-                                                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                                        onError={(e) => {
-                                                            e.currentTarget.src = "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80";
-                                                        }}
+                                                        alt={`${hotel.name}${hotel.city ? `, ${hotel.city}` : ""}`}
+                                                        fill
+                                                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                                        unoptimized={!hotel.image_url.startsWith("https://images.unsplash.com") && !hotel.image_url.startsWith("/")}
                                                     />
                                                 ) : (
-                                                    <div className="h-full w-full bg-slate-100 dark:bg-slate-950 flex items-center justify-center text-slate-400 text-sm">
+                                                    <div className="h-full w-full bg-slate-100 dark:bg-slate-950 flex items-center justify-center text-slate-400 text-sm" aria-label="No preview image available">
                                                         No Preview Image
                                                     </div>
                                                 )}
@@ -666,26 +676,28 @@ export default function TripPage() {
                                                 <div className="flex flex-wrap items-center gap-1.5">
                                                     <Button
                                                         size="sm"
-                                                        className="rounded-full bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold px-3 py-1.5 h-8 shadow-sm flex items-center gap-1 cursor-pointer"
+                                                        className="rounded-full bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold px-3 py-1.5 min-h-[36px] shadow-sm flex items-center gap-1 cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500"
                                                         onClick={() => {
                                                             const searchCity = hotel.city || trip.trip_details.destination;
                                                             const url = hotel.bookingUrls?.googleHotels || hotel.bookingUrl || `https://www.google.com/travel/hotels?q=${encodeURIComponent(hotel.name + " " + searchCity)}`;
                                                             window.open(url, '_blank', 'noopener,noreferrer');
                                                         }}
                                                         title="Book directly on Google Hotels"
+                                                        aria-label={`Book ${hotel.name} directly on Google Hotels (opens in new window)`}
                                                     >
                                                         <span>Book Direct</span>
-                                                        <ExternalLink className="h-3 w-3" />
+                                                        <ExternalLink className="h-3 w-3" aria-hidden="true" />
                                                     </Button>
                                                     {hotel.bookingUrls?.hostelworld && (
                                                         <Button
                                                             size="sm"
                                                             variant="outline"
-                                                            className="rounded-full text-[11px] font-semibold border-emerald-200 dark:border-emerald-800/60 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 h-8 px-2.5 cursor-pointer"
+                                                            className="rounded-full text-[11px] font-semibold border-emerald-200 dark:border-emerald-800/60 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 min-h-[36px] px-2.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500"
                                                             onClick={() => {
                                                                 window.open(hotel.bookingUrls!.hostelworld, '_blank', 'noopener,noreferrer');
                                                             }}
                                                             title="Book on Hostelworld"
+                                                            aria-label={`Book ${hotel.name} on Hostelworld (opens in new window)`}
                                                         >
                                                             Hostelworld ↗
                                                         </Button>
@@ -693,26 +705,28 @@ export default function TripPage() {
                                                     <Button
                                                         size="sm"
                                                         variant="outline"
-                                                        className="rounded-full text-[11px] font-medium border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 h-8 px-2.5 cursor-pointer"
+                                                        className="rounded-full text-[11px] font-medium border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 min-h-[36px] px-2.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-400"
                                                         onClick={() => {
                                                             const searchCity = hotel.city || trip.trip_details.destination;
                                                             const url = hotel.bookingUrls?.bookingCom || `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(hotel.name + ", " + searchCity)}`;
                                                             window.open(url, '_blank', 'noopener,noreferrer');
                                                         }}
                                                         title="Book on Booking.com"
+                                                        aria-label={`Book ${hotel.name} on Booking.com (opens in new window)`}
                                                     >
                                                         Booking.com ↗
                                                     </Button>
                                                     <Button
                                                         size="sm"
                                                         variant="ghost"
-                                                        className="rounded-full text-[11px] font-medium text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/40 h-8 px-2 cursor-pointer"
+                                                        className="rounded-full text-[11px] font-medium text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/40 min-h-[36px] px-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-400"
                                                         onClick={() => {
                                                             const searchCity = hotel.city || trip.trip_details.destination;
                                                             const url = hotel.bookingUrls?.makeMyTrip || `https://www.makemytrip.com/hotels/hotel-listing/?city=${encodeURIComponent(searchCity)}&searchText=${encodeURIComponent(hotel.name)}`;
                                                             window.open(url, '_blank', 'noopener,noreferrer');
                                                         }}
                                                         title="Book on MakeMyTrip"
+                                                        aria-label={`Book ${hotel.name} on MakeMyTrip (opens in new window)`}
                                                     >
                                                         MMT ↗
                                                     </Button>
@@ -851,11 +865,16 @@ export default function TripPage() {
 
                                 <div className="flex flex-wrap items-center gap-2">
                                     {/* View Mode Toggle: Detailed Cards vs Compact Schedule */}
-                                    <div className="inline-flex rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1 shadow-xs">
+                                    <div
+                                        className="inline-flex rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1 shadow-xs"
+                                        role="group"
+                                        aria-label="Itinerary display mode"
+                                    >
                                         <button
                                             type="button"
                                             onClick={() => setViewMode("detailed")}
-                                            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                                            aria-pressed={viewMode === "detailed"}
+                                            className={`px-3.5 py-1.5 min-h-[36px] rounded-lg text-xs font-semibold transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500 ${
                                                 viewMode === "detailed"
                                                     ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
                                                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -866,7 +885,8 @@ export default function TripPage() {
                                         <button
                                             type="button"
                                             onClick={() => setViewMode("compact")}
-                                            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                                            aria-pressed={viewMode === "compact"}
+                                            className={`px-3.5 py-1.5 min-h-[36px] rounded-lg text-xs font-semibold transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500 ${
                                                 viewMode === "compact"
                                                     ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
                                                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -877,10 +897,16 @@ export default function TripPage() {
                                     </div>
 
                                     {/* Modern Scrollable Tab Bar */}
-                                    <div className="flex gap-1.5 overflow-x-auto pb-1 max-w-full scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
+                                    <div
+                                        className="flex gap-1.5 overflow-x-auto pb-1 max-w-full scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800"
+                                        role="tablist"
+                                        aria-label="Select itinerary day"
+                                    >
                                         <button
+                                            role="tab"
+                                            aria-selected={activeDay === "all"}
                                             onClick={() => setActiveDay("all")}
-                                            className={`px-4 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all duration-300 cursor-pointer ${
+                                            className={`px-4 py-1.5 min-h-[36px] rounded-full text-xs font-semibold shrink-0 transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500 ${
                                                 activeDay === "all"
                                                     ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
                                                     : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -891,8 +917,10 @@ export default function TripPage() {
                                         {trip.itinerary.map((day) => (
                                             <button
                                                 key={day.day}
+                                                role="tab"
+                                                aria-selected={Number(activeDay) === Number(day.day)}
                                                 onClick={() => setActiveDay(day.day)}
-                                                className={`px-4 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all duration-300 cursor-pointer ${
+                                                className={`px-4 py-1.5 min-h-[36px] rounded-full text-xs font-semibold shrink-0 transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500 ${
                                                     Number(activeDay) === Number(day.day)
                                                         ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
                                                         : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -988,14 +1016,14 @@ export default function TripPage() {
                                                 {viewMode === "compact" ? (
                                                     <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
                                                         <div className="overflow-x-auto">
-                                                            <table className="w-full text-left border-collapse text-xs">
+                                                            <table className="w-full text-left border-collapse text-xs" aria-label={`Compact itinerary schedule for Day ${day.day}`}>
                                                                 <thead>
-                                                                    <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/50 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                                                        <th className="py-3 px-4">Time Window</th>
-                                                                        <th className="py-3 px-4">Stop & Highlights</th>
-                                                                        <th className="py-3 px-4">Transfer & Distance</th>
-                                                                        <th className="py-3 px-4">Crowd & Timing Tip</th>
-                                                                        <th className="py-3 px-4 text-right">Entry / Cost</th>
+                                                                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/80 text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                                                                        <th scope="col" className="py-3 px-4">Time Window</th>
+                                                                        <th scope="col" className="py-3 px-4">Stop & Highlights</th>
+                                                                        <th scope="col" className="py-3 px-4">Transfer & Distance</th>
+                                                                        <th scope="col" className="py-3 px-4">Crowd & Timing Tip</th>
+                                                                        <th scope="col" className="py-3 px-4 text-right">Entry / Cost</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">

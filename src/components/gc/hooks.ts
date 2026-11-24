@@ -34,12 +34,13 @@ export function useApi<T>(url: string | null, opts: { refreshMs?: number } = {})
   }, [url]);
 
   useEffect(() => {
+    const seqRef = seq;
     if (!url) { setLoading(false); return; }
     setLoading(true);
     load();
-    if (!opts.refreshMs) return () => { seq.current++; };
+    if (!opts.refreshMs) return () => { seqRef.current++; };
     const t = setInterval(() => { if (document.visibilityState !== "hidden") load(); }, opts.refreshMs);
-    return () => { clearInterval(t); seq.current++; };
+    return () => { clearInterval(t); seqRef.current++; };
   }, [load, url, opts.refreshMs]);
   return { data, error, loading, reload: load, setData };
 }

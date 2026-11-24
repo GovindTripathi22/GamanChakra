@@ -1,27 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
   ArrowRight,
   MapPin,
   Calendar,
-  IndianRupee,
   Hotel,
-  SunMedium,
   CheckCircle2,
   Compass,
-  SlidersHorizontal,
   ChevronDown,
   ChevronUp,
-  Share2,
   Zap,
 } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -99,10 +94,13 @@ export default function InspirePage() {
       <div className="relative min-h-[62vh] w-full overflow-hidden flex items-center justify-center">
         <div className="absolute inset-0 bg-black/65 z-10 pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-black/40 to-black/75 z-10 pointer-events-none" />
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2070&auto=format&fit=crop"
-          alt="Voyage Inspiration"
-          className="h-full w-full object-cover absolute inset-0 scale-105"
+          alt="Scenic travel destination view inspiring voyages and expeditions"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover scale-105"
         />
 
         <div className="relative z-20 flex flex-col items-center justify-center text-center px-4 py-16 max-w-4xl mx-auto">
@@ -214,13 +212,14 @@ export default function InspirePage() {
                 {/* Card Top: Imagery & Badges */}
                 <div>
                   <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
-                    <img
+                    <Image
                       src={trip.imageUrl}
-                      alt={trip.title}
-                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      loading="lazy"
+                      alt={`${trip.title} - ${trip.destination}`}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-black/30" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-black/30 pointer-events-none" />
 
                     {/* Top Left Theme Badge */}
                     <div className="absolute top-4 left-4 flex items-center gap-2">
@@ -420,12 +419,14 @@ export default function InspirePage() {
 
             {/* Modal Header Cover */}
             <div className="relative h-56 w-full overflow-hidden">
-              <img
+              <Image
                 src={activeModalTrip.imageUrl}
-                alt={activeModalTrip.title}
-                className="h-full w-full object-cover"
+                alt={`${activeModalTrip.title} - ${activeModalTrip.destination}`}
+                fill
+                sizes="(max-width: 768px) 100vw, 768px"
+                className="object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent pointer-events-none" />
               <div className="absolute top-4 left-4">
                 <span className="rounded-full bg-slate-950/80 px-3 py-1 text-xs font-bold text-white backdrop-blur-md border border-white/10">
                   {activeModalTrip.themeIcon} {activeModalTrip.themeLabel}

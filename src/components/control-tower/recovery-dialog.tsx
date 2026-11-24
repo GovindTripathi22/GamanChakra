@@ -16,12 +16,10 @@ import {
   CheckCircle2,
   Clock,
   ShieldCheck,
-  TrendingUp,
   Sparkles,
   ArrowRight,
   RefreshCw,
   Umbrella,
-  Users,
 } from "lucide-react";
 import type { DisruptionAnalysisResult, RecoveryOption, Activity } from "@/types/trip";
 

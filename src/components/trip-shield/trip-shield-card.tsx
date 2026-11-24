@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   IndianRupee,
   ArrowRight,
-  Sparkles,
   AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";

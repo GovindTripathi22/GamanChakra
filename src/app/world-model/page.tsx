@@ -11,8 +11,6 @@ import {
   AlertTriangle,
   RefreshCw,
   Compass,
-  ArrowRight,
-  ShieldCheck,
   CheckCircle2,
   Activity,
   Layers,
@@ -115,15 +113,17 @@ export default function WorldModelPage() {
               {Object.entries(PRESET_SCENARIOS).map(([key, item]) => (
                 <button
                   key={key}
+                  disabled={simulating}
                   onClick={() => {
                     setSelectedScenario(key);
                     runSimulation(key);
                   }}
+                  aria-pressed={selectedScenario === key}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                     selectedScenario === key
                       ? "bg-amber-600 text-white shadow-sm"
                       : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-                  }`}
+                  } ${simulating ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
                 >
                   {item.name.split("(")[0].trim()}
                 </button>
