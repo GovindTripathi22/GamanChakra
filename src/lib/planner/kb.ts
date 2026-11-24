@@ -168,15 +168,17 @@ Jagdish Temple 1651 carved stone shrine|culture|24.5794|73.6837|45|0|morning|mod
 Sajjangarh Monsoon Palace hilltop sunset|sightseeing|24.5900|73.6370|90|200|evening|moderate|1|Perched on high hill; take shared jeep up|walk-in`,
   },
   ladakh: {
-    stays: [["Ladakhi homestay", "Old Leh / Changspa", 1800, 4000], ["Boutique resort", "Shey / Choglamsar", 5000, 11000], ["Luxury desert camp", "Nubra Valley / Pangong", 6000, 16000]],
+    stays: [["Backpacker hostel dorm", "Upper Changspa / Old Leh", 450, 850], ["Ladakhi homestay", "Old Leh / Changspa", 1800, 4000], ["Boutique resort", "Shey / Choglamsar", 5000, 11000], ["Luxury desert camp", "Nubra Valley / Pangong", 6000, 16000]],
     food: [600, 1500], transit: [1500, 3500], season: "May–Sep; winters below -20°C with frozen Zanskar river",
     pois: `
-Pangong Tso high-altitude salt lake|sightseeing|33.7595|78.6674|360|0|morning|moderate|1|Color-changing turquoise waters at 14,270 ft; inner line permit required|3-7 days advance
-Thiksey Monastery morning prayer chant|culture|34.0583|77.6667|120|50|morning|moderate|0|Arrive at 6:30 am to hear deep horn trumpets and chants|walk-in
-Nubra Valley & Hunder sand dunes double-humped camel|sightseeing|34.5800|77.4600|300|500|evening|moderate|1|Cold desert surrounded by snow peaks|3-7 days advance
-Shanti Stupa sunset panorama over Leh valley|sightseeing|34.1700|77.5750|75|0|evening|moderate|1|White-domed Buddhist stupa inaugurated by Dalai Lama|walk-in
-Khardung La world's highest motorable pass|sightseeing|34.2787|77.6047|60|0|morning|peak|1|17,982 ft pass; limit halt to 20 mins to prevent AMS|walk-in
-Leh Palace & Old Town heritage walk|culture|34.1660|77.5860|90|100|afternoon|low|0|Tibetan Potala-style 17th century hill palace|walk-in`,
+Pangong Tso high-altitude salt lake|sightseeing|33.7595|78.6674|360|0|morning|moderate|1|Color-changing turquoise waters at 14,270 ft; inner line permit required|3-7 days advance|Free (Inner Line Permit ~₹400–₹600)
+Thiksey Monastery morning prayer chant|culture|34.0583|77.6667|120|50|morning|moderate|0|Arrive at 6:30 am to hear deep horn trumpets and chants|walk-in|₹50
+Nubra Valley & Hunder sand dunes double-humped camel|sightseeing|34.5800|77.4600|300|300|evening|moderate|1|Cold desert surrounded by snow peaks; camel ride ₹300 for 15 mins|3-7 days advance|Free Entry (~₹300 for Bactrian camel ride)
+Shanti Stupa sunset panorama over Leh valley|sightseeing|34.1700|77.5750|75|0|evening|moderate|1|White-domed Buddhist stupa inaugurated by Dalai Lama|walk-in|Free
+Khardung La world's highest motorable pass|sightseeing|34.2787|77.6047|60|0|morning|peak|1|17,982 ft pass; limit halt to 20 mins to prevent AMS|walk-in|Free
+Leh Palace & Old Town heritage walk|culture|34.1660|77.5860|90|50|afternoon|low|0|Tibetan Potala-style 17th century hill palace (₹50 Indian / ₹300 Foreigner)|walk-in|₹50 (Indian) / ₹300 (Foreigner)
+Hemis Monastery & museum treasures|culture|33.9126|77.7067|120|100|afternoon|low|0|Largest and wealthiest monastery in Ladakh with gilded statues|walk-in|₹100 (Monastery & Museum)
+Tibetan Kitchen traditional Ladakhi skyu & tingmo dinner|food|34.1640|77.5840|90|400|evening|moderate|0|Hearty winter stew, steamed tingmo bread, and yak butter tea|walk-in|Free Entry (~₹300–₹550 for dinner)`,
   },
   rishikesh: {
     stays: [["Ashram stay / guesthouse", "Tapovan", 1200, 2800], ["Riverfront boutique resort", "Shivpuri", 4500, 10000]],
@@ -201,26 +203,28 @@ Legendary Amritsari Kulcha breakfast with chole & lassi|food|31.6250|74.8700|60|
 Gobindgarh Fort & Punjab heritage cultural show|sightseeing|31.6270|74.8580|120|150|evening|low|0|18th century fort restored with light show and martial arts|walk-in`,
   },
   hampi: {
-    stays: [["Heritage guesthouse", "Hampi Bazaar", 1200, 2800], ["Boutique resort", "Kamalapur / Sanapur", 3500, 8000]],
+    stays: [["Backpacker hostel dorm", "Sanapur / Hampi Bazaar", 450, 850], ["Heritage guesthouse", "Hampi Bazaar", 1200, 2800], ["Boutique resort", "Kamalapur / Sanapur", 3500, 8000]],
     food: [500, 1100], transit: [500, 1100], season: "Oct–Feb cool; Hampi Utsav in Nov",
     pois: `
-Virupaksha Temple 7th-century active shrine|culture|15.3350|76.4600|90|50|morning|moderate|0|Meet Lakshmi the temple elephant; active worship since 7th century|walk-in
-Vijaya Vittala Temple & iconic Stone Chariot|sightseeing|15.3400|76.4750|150|600|morning|peak|1|Famous 56 musical pillars; electric buggy available|walk-in
-Matanga Hill sunrise panoramic view over boulders|sightseeing|15.3320|76.4680|90|0|morning|moderate|1|Steep 30-min climb; best 360-degree sunrise view of Hampi ruins|walk-in
-Tungabhadra coracle round-boat ride on the river|leisure|15.3370|76.4620|60|300|afternoon|low|1|Circular woven boat drifting past ancient boulder ghats|walk-in
-Lotus Mahal & Elephant Stables royal enclosure|culture|15.3200|76.4710|90|600|afternoon|moderate|1|Indo-Islamic secular architecture for Vijayanagara queens|walk-in
-Hippie Island Sanapur lake cliff jump & sunset|leisure|15.3550|76.4650|120|0|evening|low|1|Relaxed boulder landscape across the river|walk-in`,
+Virupaksha Temple 7th-century active shrine|culture|15.3350|76.4600|90|50|morning|moderate|0|Active worship since 7th century; ₹50 for inner sanctum entry|walk-in|Free (General) / ₹50 (Inner Sanctum)
+Vijaya Vittala Temple & iconic Stone Chariot|sightseeing|15.3400|76.4750|150|50|morning|peak|1|Famous 56 musical pillars; composite ASI ticket covers Lotus Mahal|walk-in|₹50 (Indian) / ₹550 (Foreigner)
+Matanga Hill sunrise panoramic view over boulders|sightseeing|15.3320|76.4680|90|0|morning|moderate|1|Steep 30-min climb; best 360-degree sunrise view of Hampi ruins|walk-in|Free
+Tungabhadra coracle round-boat ride on the river|leisure|15.3370|76.4620|60|300|afternoon|low|1|Circular woven boat drifting past ancient boulder ghats|walk-in|₹300 (per person boat ride)
+Lotus Mahal & Elephant Stables royal enclosure|culture|15.3200|76.4710|90|50|afternoon|moderate|1|Indo-Islamic secular architecture; same ASI ticket as Vittala|walk-in|₹50 (Indian) / ₹550 (Foreigner)
+Hippie Island Sanapur lake cliff jump & sunset|leisure|15.3550|76.4650|120|0|evening|low|1|Relaxed boulder landscape across the river; cliff jumping into lake|walk-in|Free
+Hampi Bazaar street food & mango tree cafe walk|food|15.3355|76.4610|90|250|evening|moderate|0|Banana flower curry, south Indian filter coffee and thali|walk-in|Free Entry (~₹200–₹350 for food tastings)
+Anjaneya Hill (Monkey Temple) sunset climb|sightseeing|15.3560|76.4720|120|0|evening|peak|1|Birthplace of Hanuman; 575 whitewashed stone steps with panoramic sunset|walk-in|Free`,
   },
   ooty: {
-    stays: [["Colonial heritage bungalow", "Club Road", 3000, 7000], ["Tea estate cottage", "Kotagiri / Coonoor", 4500, 10000]],
+    stays: [["Heritage backpacker hostel dorm", "Fern Hill / Sheddon Road", 450, 850], ["Colonial heritage bungalow", "Club Road", 3000, 7000], ["Tea estate cottage", "Kotagiri / Coonoor", 4500, 10000]],
     food: [600, 1400], transit: [600, 1400], season: "Mar–Jun summer; Sep–Nov lush post-monsoon",
     pois: `
-Nilgiri Mountain Railway UNESCO toy train ride|sightseeing|11.4060|76.7030|180|250|morning|peak|1|Steam locomotive crawling over viaducts and tea slopes|30+ days required
-Government Botanical Gardens & Italian Garden|leisure|11.4170|76.7110|90|50|afternoon|peak|1|55-acre garden founded in 1848; 20-million-year-old fossil tree|walk-in
-Doddabetta Peak summit view (8,650 ft)|sightseeing|11.4010|76.7370|90|30|morning|moderate|1|Highest mountain in the Nilgiris; telescope house|walk-in
-Dolphin's Nose viewpoint & Catherine Falls (Coonoor)|sightseeing|11.3400|76.8200|120|50|morning|low|1|Stunning view of deep gorges and tea carpeted hills|walk-in
-Fresh homemade chocolate & Nilgiri tea tasting|food|11.4100|76.7050|45|200|evening|moderate|0|Try fudge, dark chocolate truffles, and white tea|walk-in
-Pykara Lake speedboating & cascading waterfall|leisure|11.4800|76.6000|120|300|afternoon|low|1|21 km from town; sacred river to the Toda tribe|walk-in`,
+Nilgiri Mountain Railway UNESCO toy train ride|sightseeing|11.4060|76.7030|180|250|morning|peak|1|Steam locomotive crawling over viaducts and tea slopes|30+ days required|₹250 (Second Class) / ₹600 (First Class)
+Government Botanical Gardens & Italian Garden|leisure|11.4170|76.7110|90|50|afternoon|peak|1|55-acre garden founded in 1848; 20-million-year-old fossil tree|walk-in|₹50
+Doddabetta Peak summit view (8,650 ft)|sightseeing|11.4010|76.7370|90|30|morning|moderate|1|Highest mountain in the Nilgiris; telescope house|walk-in|₹30
+Dolphin's Nose viewpoint & Catherine Falls (Coonoor)|sightseeing|11.3400|76.8200|120|50|morning|low|1|Stunning view of deep gorges and tea carpeted hills|walk-in|₹50
+Fresh homemade chocolate & Nilgiri tea tasting|food|11.4100|76.7050|45|200|evening|moderate|0|Try fudge, dark chocolate truffles, and white tea|walk-in|Free Entry (~₹150–₹300 for tastings)
+Pykara Lake speedboating & cascading waterfall|leisure|11.4800|76.6000|120|300|afternoon|low|1|21 km from town; sacred river to the Toda tribe|walk-in|₹50 (Entry) / ₹300 (Speedboat)`,
   },
   dubai: {
     stays: [["Budget hotel", "Deira / Bur Dubai", 5000, 9000], ["Mid-range", "Downtown / Business Bay", 10000, 20000], ["Beach resort", "JBR / Palm", 22000, 60000]],
@@ -340,15 +344,15 @@ Kufri Himalayan Nature Park & Mahasu Peak|sightseeing|31.0978|77.2678|180|300|af
 Mall Road heritage bakery & Himachali Dham dinner|food|31.1040|77.1720|90|650|evening|moderate|0|Try Chana Madra, Babru and warm fruit cake at historic bakeries|walk-in`,
   },
   darjeeling: {
-    stays: [["Tea planters homestay", "Observatory Hill / Lebong", 1600, 3500], ["Colonial heritage hotel", "The Mall / Chowrasta", 5500, 12000], ["Luxury tea estate bungalow", "Glenburn / Makaibari", 16000, 38000]],
+    stays: [["Alpine backpacker hostel dorm", "Chowrasta / Hermitage", 450, 850], ["Tea planters homestay", "Observatory Hill / Lebong", 1600, 3500], ["Colonial heritage hotel", "The Mall / Chowrasta", 5500, 12000], ["Luxury tea estate bungalow", "Glenburn / Makaibari", 16000, 38000]],
     food: [500, 1300], transit: [600, 1500], season: "Mar–May & Oct–Dec for crystal-clear Kanchenjunga views",
     pois: `
-Tiger Hill sunrise over Mount Kanchenjunga|sightseeing|26.9962|88.2850|150|100|morning|peak|1|Depart hotel at 3:45 am; watch golden alpenglow hit the 8,586m summit|walk-in
-Darjeeling Himalayan Railway (Joyride to Ghoom & Batasia Loop)|sightseeing|27.0410|88.2630|120|1000|morning|peak|0|1881 steam locomotive spiralling through Batasia war memorial garden|3-7 days advance
-Happy Valley Tea Estate organic plucking & tasting tour|culture|27.0510|88.2580|90|250|afternoon|low|0|Established 1854; sample aromatic First Flush and Second Flush muscatel teas|walk-in
-Padmaja Naidu Himalayan Zoological Park & HMI|sightseeing|27.0580|88.2540|120|150|morning|moderate|1|See endangered Red Pandas, Snow Leopards and Tenzing Norgay's Everest gear|walk-in
-Peace Pagoda & Japanese Temple morning bells|culture|27.0285|88.2595|75|0|evening|low|1|Serene white stupa with sweeping views of Darjeeling town|walk-in
-Keventer's / Glenary's colonial breakfast & Tibetan momo trail|food|27.0440|88.2670|90|500|evening|moderate|0|Steaming thukpa,Darjeeling tea and heritage bakery pastries on Nehru Road|walk-in`,
+Tiger Hill sunrise over Mount Kanchenjunga|sightseeing|26.9962|88.2850|150|100|morning|peak|1|Depart hotel at 3:45 am; watch golden alpenglow hit the 8,586m summit|walk-in|₹100
+Darjeeling Himalayan Railway (Joyride to Ghoom & Batasia Loop)|sightseeing|27.0410|88.2630|120|1000|morning|peak|0|1881 steam locomotive spiralling through Batasia war memorial garden|3-7 days advance|₹1,000 (Diesel) / ₹1,500 (Steam)
+Happy Valley Tea Estate organic plucking & tasting tour|culture|27.0510|88.2580|90|250|afternoon|low|0|Established 1854; sample aromatic First Flush and Second Flush muscatel teas|walk-in|₹250
+Padmaja Naidu Himalayan Zoological Park & HMI|sightseeing|27.0580|88.2540|120|110|morning|moderate|1|See endangered Red Pandas, Snow Leopards and Tenzing Norgay's Everest gear|walk-in|₹110 (Indian) / ₹250 (Foreigner)
+Peace Pagoda & Japanese Temple morning bells|culture|27.0285|88.2595|75|0|evening|low|1|Serene white stupa with sweeping views of Darjeeling town|walk-in|Free
+Keventer's / Glenary's colonial breakfast & Tibetan momo trail|food|27.0440|88.2670|90|450|evening|moderate|0|Steaming thukpa, Darjeeling tea and heritage bakery pastries on Nehru Road|walk-in|Free Entry (~₹300–₹550 for breakfast & momos)`,
   },
   ayodhya: {
     stays: [["Dharamshala / pilgrim guesthouse", "Ram Path / Naya Ghat", 1400, 3000], ["Mid-range pilgrim hotel", "Civil Lines / Faizabad Rd", 3800, 8000], ["Luxury tent city / heritage stay", "Saryu Riverfront", 9000, 18000]],
@@ -362,15 +366,16 @@ Guptar Ghat & Saryu boat ride|leisure|26.7830|82.1320|90|300|evening|low|1|Peace
 Traditional Awadhi sattvic thali & rabri-jalebi tasting|food|26.7960|82.2010|60|300|afternoon|moderate|0|Pure vegetarian cuisine with hot kachori-sabzi and peda|walk-in`,
   },
   pondicherry: {
-    stays: [["Boutique guesthouse", "White Town / Rue Romain Rolland", 2500, 5500], ["Heritage Franco-Tamil villa", "French Quarter", 6500, 14000], ["Eco beach resort", "Serenity / Paradise Beach", 8000, 18000]],
+    stays: [["Backpacker hostel dorm", "Heritage Town / Serenity", 450, 850], ["Boutique guesthouse", "White Town / Rue Romain Rolland", 2500, 5500], ["Heritage Franco-Tamil villa", "French Quarter", 6500, 14000], ["Eco beach resort", "Serenity / Paradise Beach", 8000, 18000]],
     food: [800, 1800], transit: [400, 1000], season: "Oct–Mar breezy coastal weather; Apr–Jun hot & humid",
     pois: `
-White Town French Quarter architectural walk & cafes|culture|11.9310|79.8340|120|0|morning|low|1|Mustard-yellow colonial villas, bougainvillea lanes and artisanal croissants|walk-in
-Sri Aurobindo Ashram & Matrimandir viewing point (Auroville)|culture|12.0069|79.8106|180|0|morning|moderate|1|Silent meditation centre; inner chamber requires booking 7 days ahead|3-7 days advance
-Promenade Rock Beach sunrise & Goubert Avenue stroll|leisure|11.9338|79.8367|75|0|morning|moderate|1|Closed to motor vehicles in the morning and evening|walk-in
-Chunnambar Backwater boat ride to Paradise Beach|leisure|11.8840|79.8210|150|400|afternoon|moderate|1|Golden sand spit between the backwaters and Bay of Bengal|walk-in
-Arulmigu Manakula Vinayagar Temple|culture|11.9358|79.8336|60|0|evening|moderate|0|300-year-old Ganesha temple with vibrant ceiling murals|walk-in
-Creole & Franco-Tamil dinner in a courtyard bistro|food|11.9300|79.8335|90|1100|evening|moderate|0|Try prawn Assad, ratatouille and wood-fired sourdough pizza|walk-in`,
+White Town French Quarter architectural walk & cafes|culture|11.9310|79.8340|120|0|morning|low|1|Mustard-yellow colonial villas, bougainvillea lanes and artisanal croissants|walk-in|Free
+Sri Aurobindo Ashram & Matrimandir viewing point (Auroville)|culture|12.0069|79.8106|180|0|morning|moderate|1|Silent meditation centre; inner chamber requires booking 7 days ahead|3-7 days advance|Free
+Promenade Rock Beach sunrise & Goubert Avenue stroll|leisure|11.9338|79.8367|75|0|morning|moderate|1|Closed to motor vehicles in the morning and evening|walk-in|Free
+Chunnambar Backwater boat ride to Paradise Beach|leisure|11.8840|79.8210|150|350|afternoon|moderate|1|Golden sand spit between the backwaters and Bay of Bengal|walk-in|₹350 (Return Boat Ride)
+Arulmigu Manakula Vinayagar Temple|culture|11.9358|79.8336|60|0|evening|moderate|0|300-year-old Ganesha temple with vibrant ceiling murals|walk-in|Free
+Arikamedu ancient Roman trade port archaeological site|sightseeing|11.9020|79.8180|90|0|morning|low|1|Ruins of 2,000-year-old Indo-Roman bead making and maritime emporium|walk-in|Free
+Creole & Franco-Tamil dinner in a courtyard bistro|food|11.9300|79.8335|90|600|evening|moderate|0|Try prawn Assad, ratatouille and wood-fired sourdough pizza|walk-in|Free Entry (~₹500–₹900 for dinner)`,
   },
   andaman: {
     stays: [["Island guesthouse", "Port Blair / Aberdeen", 2500, 5000], ["Beach eco-cottages", "Havelock (Swaraj Dweep)", 6500, 14000], ["Luxury oceanfront villa", "Radhanagar / Neil Island", 16000, 42000]],
@@ -405,6 +410,95 @@ Brindavan Gardens musical fountain & KRS Dam|leisure|12.4217|76.5728|120|100|eve
 St. Philomena's Neo-Gothic Cathedral & Jaganmohan Art Gallery|culture|12.3210|76.6580|90|100|afternoon|low|0|Original Raja Ravi Varma paintings and twin 175-foot church spires|walk-in
 Original Mylari Dosa & warm Mysore Pak tasting|food|12.3060|76.6540|60|300|morning|peak|0|Fluffy butter dosa served on banana leaf and melt-in-mouth ghee Mysore Pak|walk-in`,
   },
+  gokarna: {
+    stays: [["Beach backpacker hostel dorm", "Kudle / Middle Beach", 450, 850], ["Beach shack / guesthouse", "Om Beach", 1200, 2500], ["Eco wellness cliff resort", "Om Beach Cliff", 5000, 12000]],
+    food: [500, 1200], transit: [400, 900], season: "Oct–Mar breezy beach weather; Nov–Feb peak backpacking",
+    pois: `
+Mahabaleshwar Temple & Kotitirtha sacred tank|culture|14.5428|74.3182|90|0|morning|peak|0|Dhoti dress code for men at the sacred Atmalinga shrine|walk-in|Free
+Five Beaches cliff trek (Kudle to Paradise Beach)|sightseeing|14.5250|74.3200|180|0|morning|moderate|1|Scenic coastal trail connecting Kudle, Om, Half Moon, and Paradise beach|walk-in|Free
+Om Beach water sports & sunset dolphin spotting|leisure|14.5180|74.3150|150|400|afternoon|peak|1|Distinctive Om-shaped dual crescent beach with boat trips|walk-in|Free Entry (~₹300–₹500 for boat ride)
+Kudle Beach shack cafe dinner & acoustic sunsets|food|14.5310|74.3140|120|450|evening|peak|1|Candlelit beach tables with wood-fired pizza and fresh seafood|walk-in|Free Entry (~₹350–₹600 for dinner)
+Yana Caves limestone karst monoliths day excursion|sightseeing|14.5880|74.5580|210|50|morning|low|1|Towering black crystalline limestone formations hidden in dense Western Ghats forest|walk-in|₹50
+Mirjan Fort 16th-century laterite ramparts|culture|14.4920|74.4190|90|0|afternoon|low|1|Historic pepper-queen fortress carpeted in emerald moss after rains|walk-in|Free`,
+  },
+  spiti: {
+    stays: [["High-altitude backpacker hostel dorm", "Kaza / Mud Village", 450, 850], ["Traditional Spitian homestay", "Langza / Kibber", 1200, 2500], ["Himalayan eco retreat", "Kaza", 4000, 8500]],
+    food: [450, 1100], transit: [1200, 3000], season: "Jun–Sep open high-passes; Dec–Feb frozen winter expedition",
+    pois: `
+Key Monastery 1,000-year-old cliffside fortress Gompa|culture|32.2980|78.0120|120|0|morning|moderate|0|Sip warm herbal tea with lamas inside ancient assembly hall|walk-in|Free
+Kibber Wildlife Sanctuary & Chicham Bridge (highest bridge)|sightseeing|32.3330|77.9980|150|0|morning|low|1|Suspension bridge suspended 1,350 ft above deep gorge; snow leopard habitat|walk-in|Free
+Hikkim world's highest post office (14,567 ft)|sightseeing|32.2530|78.0770|90|50|afternoon|moderate|1|Send handwritten postcards to anywhere in the world|walk-in|Free Entry (~₹50 for postcard & stamps)
+Langza giant Buddha statue & prehistoric marine fossils|sightseeing|32.2610|78.0840|90|0|afternoon|low|1|1,000-year-old golden Buddha set against Chau Chau Kang Nilda snow peak|walk-in|Free
+Dhankar Monastery & high-altitude cliffside Dhankar Lake|culture|32.1180|78.2140|180|25|morning|low|1|Perched precariously over razor-sharp clay pinnacles above Spiti River|walk-in|₹25
+Traditional Spitian sea-buckthorn tea & thukpa meal|food|32.2270|78.0720|60|250|evening|low|0|Warm butter tea, momos, tingmo and wild sea-buckthorn juice|walk-in|Free Entry (~₹150–₹300 for food tastings)
+Chandratal Lake (Moon Lake) pristine crescent waters|sightseeing|32.4820|77.6160|240|0|morning|moderate|1|Turquoise glacial alpine lake at 14,100 ft; 1 km trek from parking|walk-in|Free`,
+  },
+  shillong: {
+    stays: [["Backpacker hostel dorm", "Upper Lachumiere / Police Bazar", 450, 850], ["Pine view guesthouse", "Laitumkhrah", 1500, 3200], ["Luxury lakeside resort", "Umiam Lake / Ri Kynjai", 8000, 22000]],
+    food: [500, 1300], transit: [500, 1400], season: "Sep–May pleasant mountain breeze; Jun–Aug dramatic monsoons and roaring waterfalls",
+    pois: `
+Elephant Falls three-tiered cascading mountain waterfall|sightseeing|25.5350|91.8230|90|50|morning|moderate|1|Three distinct tiers flowing over fern-fringed black rocks|walk-in|₹50
+Umiam Lake (Barapani) watersports & sunset view|leisure|25.6550|91.9080|120|200|afternoon|moderate|1|Vast crystal-blue reservoir surrounded by rolling Khasi pine hills|walk-in|₹20 (Entry) / ₹200 (Speedboat Ride)
+Don Bosco Museum of Indigenous Cultures|culture|25.5920|91.8900|150|100|morning|low|0|Seven-storey hexagonal museum exhibiting northeastern tribal heritage|walk-in|₹100 (Indian) / ₹250 (Foreigner)
+Shillong Peak & Laitlum Canyons panorama|sightseeing|25.4470|91.9050|150|50|afternoon|low|1|End of the world canyon edge dropping into emerald river gorges|walk-in|₹50
+Ward's Lake wooden footbridge stroll & boating|leisure|25.5760|91.8840|60|30|evening|moderate|1|Colonial horseshoe-shaped lake framed by cherry blossoms and lotus ponds|walk-in|₹30
+Police Bazar street food trail (Jadoh & pork momos)|food|25.5780|91.8820|90|250|evening|peak|1|Traditional Khasi jadoh rice, tungrymbai, and piping hot dimsums|walk-in|Free Entry (~₹150–₹300 for food tastings)`,
+  },
+  kasol: {
+    stays: [["Riverside backpacker hostel dorm", "Old Kasol / Katagla", 450, 850], ["Riverside alpine cottage", "Chalal / Manikaran", 1200, 2600], ["Luxury Himalayan village resort", "Kullu Valley", 6000, 16000]],
+    food: [450, 1100], transit: [300, 800], season: "Mar–Jun lush summer trekking; Sep–Nov crisp mountain autumn",
+    pois: `
+Parvati River pine forest nature trail to Chalal|sightseeing|32.0120|77.3180|120|0|morning|moderate|1|Suspension bridge crossing into serene deodar trails along roaring turquoise waters|walk-in|Free
+Manikaran Sahib Gurudwara hot sulfur springs & langar|culture|32.0270|77.3460|120|0|morning|peak|0|Sacred thermal pools where rice is cooked naturally; 24/7 free community kitchen|walk-in|Free
+Tosh Village Himalayan amphitheatre day trek|sightseeing|32.0180|77.4520|210|0|morning|moderate|1|Picturesque wooden village perched at 7,874 ft with panoramic glacier views|walk-in|Free
+Kheerganga hot spring trail basecamp (Barshaini)|sightseeing|31.9880|77.4420|300|0|morning|moderate|1|Famous 12 km trek through waterfalls to natural mountaintop hot sulphur baths|walk-in|Free
+Kasol Israeli cafe hopping (Shakshuka & Falafel)|food|32.0100|77.3150|90|350|afternoon|moderate|0|Try fresh pita with hummus, shakshuka, and cinnamon babka in garden cafes|walk-in|Free Entry (~₹250–₹450 for cafe meal)
+Malana village overlook & ancient democracy walk|culture|32.0620|77.2620|240|0|morning|low|1|Isolated tribal hamlet claiming Greek descent from Alexander's army|walk-in|Free`,
+  },
+  jaisalmer: {
+    stays: [["Sandstone backpacker hostel dorm", "Dhibba Para / Fort Area", 450, 850], ["Heritage haveli guesthouse", "Old City", 1500, 3500], ["Luxury desert resort & tented camp", "Sam Sand Dunes", 7000, 22000]],
+    food: [500, 1300], transit: [400, 1000], season: "Oct–Mar pleasant desert winter; Desert Festival in Feb",
+    pois: `
+Jaisalmer Fort (Sonar Qila) living golden citadel|culture|26.9124|70.9127|150|50|morning|peak|0|World's only living fort housing 4,000 residents; carved yellow sandstone havelis|walk-in|₹50 (Indian) / ₹250 (Foreigner)
+Patwon Ki Haveli 5-palace cluster & stone jharokhas|culture|26.9170|70.9150|90|50|morning|moderate|0|Finest lacework sandstone filigree balconies in Rajasthan (₹50 Indian / ₹100 Foreigner)|walk-in|₹50 (Indian) / ₹100 (Foreigner)
+Sam Sand Dunes sunset camel & desert jeep safari|sightseeing|26.8320|70.5050|240|600|evening|peak|1|Golden shifting desert dunes with live Kalbeliya gypsy dance and bonfire dinner|3-7 days advance|₹600 (Camel & Jeep Safari)
+Gadisar Lake 14th-century royal rainwater reservoir|leisure|26.9060|70.9220|90|100|evening|moderate|1|Carved arched gateways, historic chhatris, and paddle boating at sunset|walk-in|₹100 (Paddle Boating)
+Kuldhara abandoned haunted village heritage ruins|sightseeing|26.8660|70.7850|90|50|afternoon|low|1|13th-century Paliwal Brahmin settlement deserted overnight (₹50 Indian / ₹150 Foreigner)|walk-in|₹50 (Indian) / ₹150 (Foreigner)
+Ker Sangri & Dal Baati desert street food tasting|food|26.9150|70.9140|60|300|evening|moderate|0|Local wild bean curry, churma, pyaaz kachori, and ghotua laddu|walk-in|Free Entry (~₹200–₹400 for food tastings)`,
+  },
+  munnar: {
+    stays: [["Plantation backpacker hostel dorm", "Chithirapuram / Lockhart", 450, 850], ["Tea planters homestay", "Devikulam / Pallivasal", 1800, 3800], ["Luxury tea valley resort", "Munnar Hills", 6500, 18000]],
+    food: [500, 1200], transit: [600, 1500], season: "Sep–Mar crisp mountain mist; Jun–Aug monsoon waterfalls",
+    pois: `
+Eravikulam National Park & Anamudi summit slopes|sightseeing|10.1919|77.0880|180|200|morning|peak|1|Home to endangered Nilgiri Tahr; highest peak in South India (₹200 Indian / ₹500 Foreigner)|3-7 days advance|₹200 (Indian) / ₹500 (Foreigner)
+Munnar Tea Museum & CTC factory live processing|culture|10.0889|77.0595|90|125|morning|moderate|0|19th-century roller machinery, orthodox tea tasting and history of estate planters|walk-in|₹125 (Museum & Tea Tasting)
+Mattupetty Dam & speed boating reservoir lake|leisure|10.1060|77.1240|120|300|afternoon|moderate|1|Surrounded by rolling tea ridges; wild elephant herds occasionally drink at water edge|walk-in|₹50 (Entry) / ₹300 (Speedboat)
+Top Station panoramic Western Ghats cloud views|sightseeing|10.1240|77.2460|150|50|morning|moderate|1|Highest point on Munnar-Kodaikanal road at 6,170 ft with historic ropeway terminal|walk-in|₹50
+Attukad Waterfalls rolling tea jungle ravine trek|sightseeing|10.0540|77.0530|90|0|afternoon|low|1|Thunderous cascade through rocky hills and cardamom groves|walk-in|Free
+Kerala spice garden walk & appam with stew dinner|food|10.0820|77.0610|90|350|evening|moderate|0|Walk among green cardamom, black pepper, cinnamon trees followed by hot appam dinner|walk-in|Free Entry (~₹250–₹450 for dinner & spice walk)`,
+  },
+  varkala: {
+    stays: [["Cliff-top backpacker hostel dorm", "North Cliff / South Cliff", 450, 850], ["Beach cottage & guesthouse", "Kurakkanni", 1400, 3000], ["Luxury oceanfront boutique resort", "Helipad / Odayam Beach", 5000, 14000]],
+    food: [500, 1300], transit: [350, 800], season: "Oct–Mar tropical coastal breeze; prime season for surfing and yoga",
+    pois: `
+Varkala North Cliff sunset promenade & surf break|leisure|8.7360|76.7020|120|0|evening|peak|1|Spectacular red laterite cliffs bordering Arabian Sea with surf schools and cafes|walk-in|Free
+Janardhana Swami 2,000-year-old coastal temple|culture|8.7290|76.7110|60|0|morning|moderate|0|Ancient Vaishnavite temple with Dutch bell and sacred Papanasam mineral springs|walk-in|Free
+Papanasam Beach sacred mineral water sea bath|leisure|8.7310|76.7060|90|0|morning|moderate|1|Holy waters believed to cleanse sins; natural mountain springs trickling into sea|walk-in|Free
+Kappil Beach & backwater estuary bridge crossover|sightseeing|8.7840|76.6780|120|200|afternoon|low|1|Scenic coastal strip where Arabian Sea and Edava-Nadayara backwaters meet|walk-in|Free Entry (~₹200 for boating)
+Anjengo Fort & 130-foot lighthouse ruins (Anchuthengu)|culture|8.6810|76.7580|90|30|afternoon|low|1|Historic 1695 British East India Company fort with panoramic coastal tower views|walk-in|₹30
+Fresh catch grilled fish & Kerala parotta cliff dinner|food|8.7350|76.7030|90|450|evening|peak|0|Candlelit cliff tables serving grilled kingfish, karimeen pollichathu and coconut water|walk-in|Free Entry (~₹350–₹650 for dinner)`,
+  },
+  pushkar: {
+    stays: [["Desert backpacker hostel dorm", "Motisar Road / Jamjar", 450, 850], ["Heritage courtyard haveli", "Brahma Temple Road", 1400, 3200], ["Luxury desert tented resort & spa", "Pushkar Valley", 6000, 18000]],
+    food: [400, 1000], transit: [300, 700], season: "Oct–Mar pleasant desert winter; Pushkar Camel Fair in Oct/Nov",
+    pois: `
+Jagatpita Brahma Mandir 14th-century rare shrine|culture|26.4880|74.5510|60|0|morning|peak|0|One of the few temples in the world dedicated to Lord Brahma; silver coin flooring|walk-in|Free
+Pushkar Holy Lake 52 ghats morning dip & aarti|culture|26.4900|74.5540|90|0|morning|peak|1|Sacred lake surrounded by 52 bathing ghats; beware of pushy fake priests (puja scams)|walk-in|Free
+Savitri Temple hilltop sunrise ropeway climb|sightseeing|26.4840|74.5360|120|150|morning|moderate|1|Perched atop Ratnagiri hill with 360-degree desert panoramas; ropeway or 1,000 steps|walk-in|₹150 (Roundtrip Ropeway)
+Pushkar Camel Fair grounds & desert sunset safari|leisure|26.4960|74.5420|150|500|evening|moderate|1|Sand dunes camel cart ride, Kalbeliya folk performances, and desert sunset|walk-in|₹500 (Camel Cart Safari)
+Varaha Temple 12th-century boar incarnation shrine|culture|26.4890|74.5560|45|0|afternoon|low|0|Oldest temple in Pushkar with intricately carved white marble pillars|walk-in|Free
+Pushkar Malpua & Falafel street food walk|food|26.4895|74.5530|60|200|evening|peak|1|Rabri-soaked hot malpuas at Halwai Gali, lassi in clay kulhads, and falafel rolls|walk-in|Free Entry (~₹150–₹300 for food tastings)`,
+  },
 };
 
 function parsePois(block: string): Poi[] {
@@ -414,7 +508,7 @@ function parsePois(block: string): Poi[] {
     if (!calculatedTicketPrice) {
       if (/food walk|street food|tasting/i.test(name)) {
         calculatedTicketPrice = "Free Entry (~₹250–₹400 for street food tastings)";
-      } else if (/red fort|qutub minar|humayun|agra fort|fatehpur sikri/i.test(name)) {
+      } else if (/red fort|qutub minar|humayun|agra fort|fatehpur sikri|vittala|lotus mahal|jaisalmer fort|patwon/i.test(name)) {
         calculatedTicketPrice = "₹50 (Indian) / ₹550 (Foreigner)";
       } else if (+cost > 0) {
         calculatedTicketPrice = `₹${(+cost).toLocaleString("en-IN")}`;
@@ -444,7 +538,7 @@ export const KB: Record<string, DestinationKB> = Object.fromEntries(
 );
 
 export const KB_ALIASES: Record<string, string> = {
-  "new delhi": "delhi", kochi: "kerala", cochin: "kerala", munnar: "kerala", alleppey: "kerala", alappuzha: "kerala", trivandrum: "thiruvananthapuram",
+  "new delhi": "delhi", kochi: "kerala", cochin: "kerala", alleppey: "kerala", alappuzha: "kerala", trivandrum: "thiruvananthapuram",
   banaras: "varanasi", benares: "varanasi", kashi: "varanasi", bombay: "mumbai", panaji: "goa", denpasar: "bali", ubud: "bali", nyc: "new york",
   srirangam: "srirangam", trichy: "srirangam", tiruchirappalli: "srirangam",
   madurai: "madurai",
@@ -456,6 +550,14 @@ export const KB_ALIASES: Record<string, string> = {
   rishikesh: "rishikesh", haridwar: "rishikesh",
   amritsar: "amritsar",
   hampi: "hampi",
+  gokarna: "gokarna",
+  spiti: "spiti", kaza: "spiti", "spiti valley": "spiti",
+  shillong: "shillong", meghalaya: "shillong",
+  kasol: "kasol", "parvati valley": "kasol", tosh: "kasol", chalal: "kasol",
+  jaisalmer: "jaisalmer",
+  munnar: "munnar",
+  varkala: "varkala",
+  pushkar: "pushkar",
   ooty: "ooty", udhagamandalam: "ooty", coonoor: "ooty",
   manali: "manali", kullu: "manali", solang: "manali",
   shimla: "shimla", kufri: "shimla",
